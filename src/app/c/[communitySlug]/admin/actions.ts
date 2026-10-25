@@ -712,6 +712,7 @@ export type CommunityGuidelinesState = { error: string } | { ok: true } | undefi
 // same sanitised HTML/Markdown as space descriptions — rendered only through
 // <RichText> on display. RLS restricts the update to the owner and admins; an
 // empty submission clears the guidelines (so the read page and its links hide).
+// Unticking "show in nav" keeps the page but drops its sidebar/menu link.
 export async function updateCommunityGuidelines(
   _prevState: CommunityGuidelinesState,
   formData: FormData
@@ -719,12 +720,13 @@ export async function updateCommunityGuidelines(
   const communityId = String(formData.get("community_id") ?? "");
   const communitySlug = String(formData.get("community_slug") ?? "");
   const guidelines = String(formData.get("guidelines") ?? "").trim();
+  const showInNav = formData.get("show_in_nav") === "on";
 
   const supabase = await createClient();
   const failure = requireWrite(
     await supabase
       .from("communities")
-      .update({ guidelines: guidelines || null })
+      .update({ guidelines: guidelines || null, guidelines_show_in_nav: showInNav })
       .eq("id", communityId)
       .select("id"),
     "these guidelines"

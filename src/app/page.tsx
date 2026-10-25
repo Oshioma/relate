@@ -1,28 +1,39 @@
 import Link from "@/components/ui/link";
 import { redirect } from "next/navigation";
+import { Caveat, Outfit } from "next/font/google";
 import {
-  Users,
-  Layers,
-  CalendarDays,
-  BookOpen,
-  MessageCircle,
   ArrowRight,
-  Heart,
-  GraduationCap,
-  Store,
-  MapPin,
-  Crown,
   BarChart3,
+  BookOpen,
+  CalendarDays,
   Check,
+  Crown,
+  Globe,
+  Heart,
+  IdCard,
+  Lock,
+  MessageCircle,
+  Search,
   Sparkles,
+  Store,
+  Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { Avatar } from "@/components/ui/avatar";
+import { CommunityCarousel } from "@/components/layout/community-carousel";
 import type { Community } from "@/types/database";
 import { SHOWCASE_COUNT } from "@/lib/homepage-showcase";
 import { communitySubdomainUrl } from "@/lib/custom-domain";
 import { WHATSAPP_DISPLAY, WHATSAPP_HREF } from "@/lib/support-contact";
+import { readTestimonials, testimonialPhoto } from "@/lib/testimonials";
+import { readCreatorTestimonials, HOMEPAGE_TESTIMONIALS } from "@/lib/creator-testimonials";
+import { getTestimonialMemberPhotos } from "@/lib/data/testimonial-photos";
+
+// The homepage's own type: a rounded geometric face for the headings, and a
+// handwritten one for the little notes scribbled beside the pictures.
+const display = Outfit({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-display" });
+const script = Caveat({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-script" });
 
 // How many public communities the showcase strip's fallback considers before
 // ranking them. How many it renders is SHOWCASE_COUNT, shared with the platform
@@ -38,24 +49,43 @@ function showcaseRank(community: Community): number {
   return (community.description?.trim() ? 2 : 0) + (community.logo_url ? 1 : 0);
 }
 
-const FEATURES: { icon: ReactNode; title: string; description: string }[] = [
-  { icon: <MessageCircle />, title: "Discussions", description: "Bring people together with thoughtful conversations." },
-  { icon: <Layers />, title: "Spaces", description: "Organize public, private and premium spaces." },
-  { icon: <GraduationCap />, title: "Courses", description: "Share knowledge, lessons and resources." },
-  { icon: <CalendarDays />, title: "Events", description: "Bring members together online or in person." },
-  { icon: <Store />, title: "Marketplace", description: "Give your community a place to exchange." },
-  { icon: <MapPin />, title: "Directories", description: "Help people discover members, places and resources." },
-  { icon: <Crown />, title: "Memberships", description: "Offer free access, paid membership or premium spaces." },
-  { icon: <BarChart3 />, title: "Community tools", description: "Manage members, roles and community activity." },
+// Icon colours from the design: forest green, terracotta and honey.
+const GREEN = "bg-[#DCE8D9] text-[#326B42]";
+const TERRACOTTA = "bg-[#F6E1D6] text-[#C96745]";
+const HONEY = "bg-[#FBEBC8] text-[#C08A1E]";
+
+const FEATURES: { icon: ReactNode; tone: string; title: string; description: string }[] = [
+  { icon: <MessageCircle />, tone: GREEN, title: "Discussions", description: "Bring people together with conversations." },
+  { icon: <Users />, tone: TERRACOTTA, title: "Spaces", description: "Create public, members-only or paid spaces." },
+  { icon: <BookOpen />, tone: TERRACOTTA, title: "Courses", description: "Share knowledge with lessons and resources." },
+  { icon: <CalendarDays />, tone: TERRACOTTA, title: "Events", description: "Online or in-person events with RSVPs." },
+  { icon: <Store />, tone: HONEY, title: "Marketplace", description: "Buy, sell and support each other." },
+  { icon: <IdCard />, tone: GREEN, title: "Directories", description: "Showcase people, businesses or resources." },
+  { icon: <Crown />, tone: HONEY, title: "Memberships", description: "Free, paid or multi-tier access options." },
+  { icon: <BarChart3 />, tone: GREEN, title: "Insights", description: "See what's working and grow your community." },
 ];
 
-const ACCESS_PRESETS: [title: string, description: string][] = [
-  ["Open", "A welcoming space anyone can explore."],
-  ["Private", "A quieter home for invited members."],
-  ["Paid membership", "Build a community around your expertise."],
-  ["Free + premium", "Let everyone in, with extras for supporters."],
-  ["Custom", "Make your own rules for every space."],
+const ACCESS_OPTIONS: { icon: ReactNode; label: string }[] = [
+  { icon: <Globe className="h-4 w-4" />, label: "Public" },
+  { icon: <Lock className="h-4 w-4" />, label: "Members only" },
+  { icon: <Crown className="h-4 w-4" />, label: "Paid membership" },
+  { icon: <Sparkles className="h-4 w-4" />, label: "Free + premium" },
+  { icon: <Users className="h-4 w-4" />, label: "Invite only" },
 ];
+
+const WHY_POINTS = [
+  "Public, private or invite-only",
+  "Free and paid membership tiers",
+  "Beautiful, mobile-friendly design",
+  "Built-in courses, events and marketplace",
+  "Grow your members and income",
+  "Easy to manage (no tech skills needed)",
+  "Your own web address",
+  "Real support from a small, dedicated team",
+];
+
+// One quote card on the page, whoever it came from.
+type Quote = { quote: string; name: string; detail: string; photo: string | null };
 
 export default async function LandingPage() {
   const supabase = await createClient();
@@ -104,30 +134,35 @@ export default async function LandingPage() {
       .slice(0, SHOWCASE_COUNT);
   }
 
-  // The "Explore communities" buttons and nav link jump to the showcase, so
-  // they only appear when there's a showcase to jump to.
   const hasShowcase = featuredCommunities.length > 0;
+
+  // The pictures come from the showcased communities' own covers, so the page
+  // shows real communities rather than stock people. The first one with a cover
+  // is the community in the hero's preview window.
+  const withCovers = featuredCommunities.filter((c) => c.cover_image_url);
+  const heroCommunity = withCovers[0] ?? null;
+  const whyPhoto = (withCovers[1] ?? withCovers[0])?.cover_image_url ?? null;
+  const closingPhoto = (withCovers[2] ?? withCovers[1] ?? withCovers[0])?.cover_image_url ?? null;
+
+  const quotes = await getQuotes(supabase, featuredCommunities);
 
   // The page's own footer is the app-wide SiteFooter from the root layout.
   return (
-    <div className="min-h-screen bg-[#F7F4EC] text-[#222A25]">
+    <div className={`${display.variable} ${script.variable} min-h-screen bg-[#F7F4EC] text-[#222A25]`}>
       <header className="sticky top-0 z-30 border-b border-[#326B42]/10 bg-[#F7F4EC]/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
-          <Link href="/" className="flex items-center gap-2 text-xl font-extrabold tracking-tight" aria-label="Relate home">
-            <Heart className="h-7 w-7 text-[#326B42]" strokeWidth={2.5} />
-            relate<span className="text-[#326B42]">.click</span>
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
+          <Link href="/" className="flex items-center gap-2 font-[family-name:var(--font-display)] text-xl font-bold tracking-tight sm:text-2xl" aria-label="relate.click home">
+            <Heart className="h-6 w-6 text-[#326B42] sm:h-7 sm:w-7" strokeWidth={2.5} />
+            relate.click
           </Link>
-          <nav aria-label="Main navigation" className="hidden items-center gap-7 text-sm font-medium md:flex">
-            <a href="#features" className="hover:text-[#326B42]">
-              Features
-            </a>
+          <nav aria-label="Main navigation" className="hidden items-center gap-8 text-sm font-medium lg:flex">
             {hasShowcase && (
               <a href="#communities" className="hover:text-[#326B42]">
                 Communities
               </a>
             )}
-            <a href="#how-it-works" className="hover:text-[#326B42]">
-              How it works
+            <a href="#features" className="hover:text-[#326B42]">
+              Features
             </a>
             <Link href="/pricing" className="hover:text-[#326B42]">
               Pricing
@@ -136,158 +171,191 @@ export default async function LandingPage() {
               Support
             </Link>
           </nav>
-          <div className="flex items-center gap-3 text-sm font-semibold">
-            <Link href="/login" className="hover:text-[#326B42]">
-              Sign in
+          <div className="flex items-center gap-2 text-sm font-semibold sm:gap-3">
+            <Link href="/login" className="whitespace-nowrap rounded-lg border border-[#222A25]/15 bg-white px-3 py-2.5 hover:border-[#326B42] hover:text-[#326B42]">
+              Log in
             </Link>
             <Link
               href="/signup"
-              className="rounded-full bg-[#326B42] px-4 py-2.5 text-white transition hover:bg-[#255333]"
+              className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-[#326B42] px-3 py-2.5 text-white transition sm:px-4 hover:bg-[#255333]"
             >
-              Get started <ArrowRight className="ml-1 inline h-4 w-4" />
+              <span className="sm:hidden">Get started</span>
+              <span className="hidden sm:inline">Create your community</span>
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
       </header>
 
       <main>
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#F7F4EC] via-[#F3F4E9] to-[#DCE8D9]">
-          <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-20 sm:px-8 lg:grid-cols-2 lg:py-28">
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#F7F4EC] via-[#F5F1E6] to-[#E4EBDD]">
+          <div className="mx-auto grid max-w-7xl items-center gap-14 px-6 pb-16 pt-14 sm:px-8 lg:grid-cols-[1fr_1.1fr] lg:pb-20 lg:pt-20">
             <div>
-              <span className="inline-flex rounded-full bg-[#DCE8D9] px-4 py-2 text-xs font-bold uppercase tracking-widest text-[#326B42]">
-                Communities for real people
-              </span>
-              <h1 className="mt-6 text-5xl font-extrabold leading-[1.08] tracking-tight sm:text-6xl">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#326B42]">Communities for real people</p>
+              <h1 className="mt-5 font-[family-name:var(--font-display)] text-5xl font-bold leading-[1.02] tracking-tight sm:text-6xl">
                 Build your community.
                 <br />
                 <span className="text-[#326B42]">Bring your people together.</span>
               </h1>
-              <p className="mt-6 text-lg font-medium">A calm, private home for your community.</p>
-              <p className="mt-3 max-w-xl text-base leading-7 text-[#4D5A50]">
-                Whether you run a networking group, mastermind, co-working space, membership, or local community, Relate
-                helps your audience connect like never before — creating stronger relationships that keep people coming
-                back.
+              <p className="mt-6 max-w-xl text-lg leading-8 text-[#4D5A50]">
+                relate.click makes it easy to create beautiful online communities with the tools you need to connect,
+                share, learn and grow — all in one place.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/signup"
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#326B42] px-6 py-3.5 font-semibold text-white shadow-sm hover:bg-[#255333]"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#326B42] px-6 py-3.5 font-semibold text-white shadow-sm hover:bg-[#255333]"
                 >
                   Create your community <ArrowRight className="h-4 w-4" />
                 </Link>
                 {hasShowcase && (
                   <a
                     href="#communities"
-                    className="inline-flex items-center gap-2 rounded-xl border border-[#326B42] px-6 py-3.5 font-semibold text-[#326B42] hover:bg-white"
+                    className="inline-flex items-center gap-2 rounded-lg border border-[#C96745] bg-white/60 px-6 py-3.5 font-semibold text-[#C96745] hover:bg-white"
                   >
-                    Explore communities
+                    <Search className="h-4 w-4" /> Explore communities
                   </a>
                 )}
               </div>
-              <p className="mt-6 text-sm text-[#526452]">
-                <Check className="mr-1 inline h-4 w-4 text-[#326B42]" /> Simple to set up
-                <Check className="ml-3 mr-1 inline h-4 w-4 text-[#326B42]" /> Flexible access
-                <Check className="ml-3 mr-1 inline h-4 w-4 text-[#326B42]" /> Built to grow
-              </p>
-              <p className="mt-4 text-sm text-[#526452]">
-                Spend less time managing your community and more time growing it.
-              </p>
+              <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[#526452]">
+                {["Simple to set up", "Flexible access options", "All the tools you need", "Grow at your own pace"].map((point) => (
+                  <li key={point} className="flex items-center gap-1.5">
+                    <Check className="h-4 w-4 text-[#326B42]" /> {point}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <CommunityMockup />
+            <HeroPreview community={heroCommunity} />
           </div>
         </section>
 
-        <section id="features" className="mx-auto max-w-7xl scroll-mt-24 px-6 py-20 sm:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#326B42]">Everything in one place</p>
-            <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">Turn members into a thriving community.</h2>
-            <p className="mt-4 text-[#526452]">
-              Communities grow because people build relationships. Relate helps community hosts make those connections
-              happen.
-            </p>
+        <section id="features" className="scroll-mt-24 border-y border-[#326B42]/10 bg-[#FBFAF6]">
+          <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8">
+            <h2 className="sr-only">Everything your community needs</h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+              {FEATURES.map((feature) => (
+                <Feature key={feature.title} {...feature} />
+              ))}
+            </div>
           </div>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {FEATURES.map((feature) => (
-              <Feature key={feature.title} {...feature} />
-            ))}
-          </div>
-          <p className="mt-6 text-center text-sm text-[#526452]">
-            And all the essentials: announcements, member permissions, resources, links, files and guides.
-          </p>
         </section>
 
         {hasShowcase && (
-          <section id="communities" className="scroll-mt-24 bg-white py-20">
+          <section id="communities" className="scroll-mt-24 bg-white py-16 sm:py-20">
             <div className="mx-auto max-w-7xl px-6 sm:px-8">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#326B42]">Real communities</p>
-              <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">Already at home on Relate.</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#326B42]">Real communities</p>
+              <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl">
+                Explore communities on relate.click
+              </h2>
               <p className="mt-3 text-[#526452]">
-                Discover the people, places and ideas bringing communities together.
+                From local groups to global movements — discover communities built around shared interests, places and
+                purpose.
               </p>
-              <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {featuredCommunities.map((community) => (
-                  <CommunityPreview key={community.id} community={community} />
+              <div className="mt-9">
+                <CommunityCarousel>
+                  {featuredCommunities.map((community) => (
+                    <CommunityPreview key={community.id} community={community} />
+                  ))}
+                </CommunityCarousel>
+              </div>
+            </div>
+          </section>
+        )}
+
+        <section className="bg-gradient-to-r from-[#EEF1E8] to-[#F7F4EC]">
+          <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 sm:px-8 lg:grid-cols-2 lg:py-20">
+            <div className="relative pb-6 pr-6 sm:pr-16">
+              <div className="aspect-[4/3] overflow-hidden rounded-3xl bg-gradient-to-br from-[#DCE8D9] to-[#F6E6D6] shadow-xl">
+                {whyPhoto && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={whyPhoto} alt="" className="h-full w-full object-cover" />
+                )}
+              </div>
+              <div className="absolute -right-0 top-8 w-52 rounded-2xl bg-white p-4 shadow-2xl ring-1 ring-black/5">
+                <p className="text-sm font-bold">Create a space</p>
+                <ul className="mt-3 space-y-2.5 text-sm text-[#4D5A50]">
+                  {ACCESS_OPTIONS.map((option) => (
+                    <li key={option.label} className="flex items-center gap-2.5">
+                      <span className="text-[#326B42]">{option.icon}</span>
+                      {option.label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#326B42]">Why relate.click</p>
+              <h2 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+                Powerful community tools.
+                <br />
+                <span className="text-[#326B42]">Without the complexity.</span>
+              </h2>
+              <p className="mt-5 max-w-xl text-[#526452]">
+                Whether you&apos;re a creator, business, local group or global movement, relate.click gives you
+                everything you need to build a thriving community.
+              </p>
+              <ul className="mt-7 grid gap-x-8 gap-y-3 text-sm text-[#3B463E] sm:grid-cols-2">
+                {WHY_POINTS.map((point) => (
+                  <li key={point} className="flex items-start gap-2">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#326B42]" /> {point}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {quotes.length > 0 && (
+          <section className="bg-[#FBFAF6] px-6 py-16 sm:px-8 sm:py-20">
+            <div className="mx-auto max-w-7xl">
+              <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-[#326B42]">
+                What our communities say
+              </p>
+              <h2 className="mt-3 text-center font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl">
+                Real people. Real impact.
+              </h2>
+              <div className="mx-auto mt-10 grid max-w-6xl gap-5 md:grid-cols-3">
+                {quotes.map((q, i) => (
+                  <figure key={i} className="flex flex-col gap-4 rounded-2xl border border-[#E7E7DC] bg-white p-6 shadow-sm">
+                    <Avatar src={q.photo} name={q.name || q.detail} size={56} />
+                    <div>
+                      <blockquote className="whitespace-pre-line leading-7 text-[#3B463E]">&ldquo;{q.quote}&rdquo;</blockquote>
+                      <figcaption className="mt-4 text-sm">
+                        {q.name && <span className="block font-semibold">{q.name}</span>}
+                        {q.detail && <span className="block text-[#637067]">{q.detail}</span>}
+                      </figcaption>
+                    </div>
+                  </figure>
                 ))}
               </div>
             </div>
           </section>
         )}
 
-        <section id="how-it-works" className="scroll-mt-24 bg-[#E9EEE4] py-20">
-          <div className="mx-auto max-w-7xl px-6 sm:px-8">
-            <div className="max-w-2xl">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#326B42]">Your community, your rules</p>
-              <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">Powerful tools. Without the complexity.</h2>
-              <p className="mt-4 text-[#526452]">
-                Start with a simple community setup and choose the access model that fits your people.
+        <section className="bg-[#326B42] text-white">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-6 py-10 sm:px-8">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#DCE8D9]">We are for the budget crowd</p>
+              <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold sm:text-3xl">
+                24 hour support. Call me for improvements.
+              </h2>
+              <p className="mt-2 text-white/85">
+                Let&apos;s make this work together! You want everything, but you don&apos;t want to pay the world.
               </p>
             </div>
-            <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-              {ACCESS_PRESETS.map(([title, description], i) => (
-                <div key={title} className="rounded-2xl bg-white p-5 shadow-sm">
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#DCE8D9] text-sm font-bold text-[#326B42]">
-                    {i + 1}
-                  </span>
-                  <h3 className="mt-4 font-bold">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-[#637067]">{description}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-9 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-[#326B42] px-7 py-7 text-white">
-              <div>
-                <h3 className="text-xl font-bold">Free, private or paid — make it yours.</h3>
-                <p className="mt-1 text-sm text-white/85">
-                  Bring together discussions, resources and memberships as your community grows.
-                </p>
-              </div>
-              <Link href="/signup" className="rounded-xl bg-white px-5 py-3 font-bold text-[#326B42]">
-                Get started <ArrowRight className="ml-1 inline h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-[#326B42] py-16 text-white">
-          <div className="mx-auto grid max-w-7xl gap-8 px-6 sm:px-8 lg:grid-cols-2 lg:items-center">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-[#DCE8D9]">We are for the budget crowd</p>
-              <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">24 hour support.</h2>
-              <p className="mt-4 text-xl font-semibold">Call me for improvements. Let&apos;s make this work together!</p>
-              <p className="mt-3 text-white/85">You want everything, but you don&apos;t want to pay the world.</p>
-            </div>
-            <div className="flex flex-wrap gap-3 lg:justify-end">
+            <div className="flex flex-wrap gap-3">
               <a
                 href={WHATSAPP_HREF}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-bold text-[#326B42]"
+                className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-3 font-semibold text-[#326B42]"
               >
                 <MessageCircle className="h-5 w-5" />
                 WhatsApp {WHATSAPP_DISPLAY}
               </a>
               <Link
                 href="/contact"
-                className="inline-flex items-center rounded-xl border border-white/70 px-6 py-3 font-bold text-white"
+                className="inline-flex items-center rounded-lg border border-white/70 px-5 py-3 font-semibold text-white"
               >
                 Or send a message
               </Link>
@@ -295,25 +363,52 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        <section className="bg-gradient-to-r from-[#F6E6D6] to-[#DCE8D9] px-6 py-20 text-center">
-          <Sparkles className="mx-auto h-8 w-8 text-[#C96745]" />
-          <h2 className="mt-4 text-4xl font-extrabold">
-            Your people are out there.
-            <br />
-            Bring them together.
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-[#526452]">
-            A calm, private home for your community, with the tools to help it grow.
-          </p>
-          <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <Link href="/signup" className="rounded-xl bg-[#326B42] px-6 py-3 font-bold text-white">
-              Create your community <ArrowRight className="ml-1 inline h-4 w-4" />
-            </Link>
-            {hasShowcase && (
-              <a href="#communities" className="rounded-xl border border-[#326B42] px-6 py-3 font-bold text-[#326B42]">
-                Explore communities
-              </a>
-            )}
+        <section className="relative overflow-hidden bg-gradient-to-r from-[#F6E6D6] to-[#DCE8D9]">
+          {closingPhoto && (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={closingPhoto} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#FBF3E8] via-[#FBF3E8]/90 to-[#FBF3E8]/10" />
+            </>
+          )}
+          <div className="relative mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-8 px-6 py-20 sm:px-8 lg:py-24">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#326B42]">Ready to build something meaningful?</p>
+              <h2 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-bold tracking-tight sm:text-5xl">
+                Start your community today.
+              </h2>
+              <p className="mt-4 max-w-xl text-lg text-[#4D5A50]">
+                Bring your people together, share what you love, and make a real impact.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#326B42] px-6 py-3.5 font-semibold text-white hover:bg-[#255333]"
+                >
+                  Create your community <ArrowRight className="h-4 w-4" />
+                </Link>
+                {hasShowcase && (
+                  <a
+                    href="#communities"
+                    className="inline-flex items-center gap-2 rounded-lg border border-[#222A25]/20 bg-white/80 px-6 py-3.5 font-semibold hover:bg-white"
+                  >
+                    <Search className="h-4 w-4" /> Explore communities
+                  </a>
+                )}
+              </div>
+            </div>
+            <p
+              aria-hidden
+              className="hidden rotate-[-6deg] font-[family-name:var(--font-script)] text-3xl leading-tight text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)] md:block"
+            >
+              People
+              <br />
+              Places
+              <br />
+              Ideas
+              <br />
+              Real connections
+            </p>
           </div>
         </section>
       </main>
@@ -321,82 +416,143 @@ export default async function LandingPage() {
   );
 }
 
-// The illustrative community beside the hero copy — a static picture of what a
-// host gets, not a real community.
-function CommunityMockup() {
+// Up to HOMEPAGE_TESTIMONIALS quotes: the creator quotes the super admin wrote
+// (Platform admin → Homepage) first, then real member quotes from the
+// showcased communities' own landing pages. Nothing here is made up, so with
+// no quotes anywhere the section simply isn't shown. Fails soft: a missing
+// column or a failed photo lookup costs the quotes or the photos, never the
+// page.
+async function getQuotes(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  communities: Community[]
+): Promise<Quote[]> {
+  const { data: settings } = await supabase.from("platform_settings").select("creator_testimonials").eq("id", 1).maybeSingle();
+  const quotes: Quote[] = readCreatorTestimonials(settings?.creator_testimonials).map((t) => ({
+    quote: t.quote,
+    name: t.name,
+    detail: t.role,
+    photo: null,
+  }));
+
+  for (const community of communities) {
+    if (quotes.length >= HOMEPAGE_TESTIMONIALS) break;
+    const members = readTestimonials(community.testimonials).slice(0, HOMEPAGE_TESTIMONIALS - quotes.length);
+    if (members.length === 0) continue;
+    const photos = await getTestimonialMemberPhotos(
+      community.id,
+      members.flatMap((t) => (t.memberId ? [t.memberId] : []))
+    );
+    for (const t of members) {
+      quotes.push({ quote: t.quote, name: t.name, detail: `Member, ${community.name}`, photo: testimonialPhoto(t, photos) });
+    }
+  }
+
+  return quotes.slice(0, HOMEPAGE_TESTIMONIALS);
+}
+
+// The big picture beside the hero copy: a browser window and a phone showing a
+// real showcased community (its cover, logo, name and tagline). Without one it
+// shows a generic "Your community" instead. The feed below the cover is drawn
+// as placeholder lines, never as made-up posts.
+function HeroPreview({ community }: { community: Community | null }) {
+  const name = community?.name ?? "Your community";
+  const tagline = community?.tagline || community?.description || "Connect · Share · Grow";
+  const cover = community?.cover_image_url ?? null;
+
   return (
-    <div className="relative rounded-[2rem] bg-white p-4 shadow-2xl ring-1 ring-[#326B42]/10 sm:p-6">
-      <div className="overflow-hidden rounded-2xl border border-[#DCE8D9]">
-        <div className="flex items-center justify-between bg-[#326B42] px-5 py-4 text-white">
-          <span className="font-bold">Your community</span>
-          <span className="rounded-full bg-white/20 px-3 py-1 text-xs">Community preview</span>
-        </div>
-        <div className="bg-gradient-to-r from-[#DCE8D9] to-[#F6E6D6] px-5 py-8">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-[#326B42]">
-              <Heart />
+    <div className="relative mx-auto w-full max-w-2xl pb-10 lg:pr-16">
+      <p
+        aria-hidden
+        className="absolute -top-8 right-0 z-10 hidden rotate-[-4deg] font-[family-name:var(--font-script)] text-2xl leading-6 text-[#3B463E] sm:block"
+      >
+        Your community.
+        <br />
+        <span className="pl-6">Your way.</span>
+      </p>
+
+      <div className="overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+        <div className="flex">
+          <div className="hidden w-36 shrink-0 border-r border-[#EDEDE4] bg-[#FBFAF6] p-3 text-xs text-[#4D5A50] sm:block">
+            <p className="mb-3 flex items-center gap-1.5 font-bold text-[#222A25]">
+              <Heart className="h-3.5 w-3.5 text-[#326B42]" /> relate.click
+            </p>
+            {["Home", "Feed", "Spaces", "Events", "Courses", "Directory", "Members"].map((item, i) => (
+              <p key={item} className={`rounded-md px-2 py-1.5 ${i === 0 ? "bg-[#E9EEE4] font-semibold text-[#326B42]" : ""}`}>
+                {item}
+              </p>
+            ))}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="h-32 bg-gradient-to-br from-[#9CC3A5] to-[#E9C9A8] sm:h-40">
+              {cover && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={cover} alt="" className="h-full w-full object-cover" />
+              )}
             </div>
-            <div>
-              <p className="text-xl font-bold">A place to belong</p>
-              <p className="text-sm text-[#526452]">Connect · Share · Grow</p>
+            <div className="flex items-center gap-3 px-4 pt-3">
+              <Avatar
+                src={community?.logo_url}
+                name={name}
+                initials={community?.logo_initials}
+                size={52}
+                className="-mt-8 border-4 border-white bg-white"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-[family-name:var(--font-display)] text-lg font-bold">{name}</p>
+                <p className="truncate text-xs text-[#637067]">{tagline}</p>
+              </div>
+              <span className="rounded-md bg-[#326B42] px-3 py-1.5 text-xs font-semibold text-white">+ Join</span>
+            </div>
+            <div className="mt-3 flex gap-4 overflow-hidden border-b border-[#EDEDE4] px-4 text-xs text-[#637067]">
+              {["Discussion", "Guides", "Events", "Directory", "Marketplace"].map((tab, i) => (
+                <span key={tab} className={`whitespace-nowrap pb-2 ${i === 0 ? "border-b-2 border-[#326B42] font-semibold text-[#326B42]" : ""}`}>
+                  {tab}
+                </span>
+              ))}
+            </div>
+            <div className="space-y-3 p-4">
+              {[0, 1].map((row) => (
+                <div key={row} className="rounded-xl border border-[#EDEDE4] p-3">
+                  <div className="flex items-center gap-2">
+                    <span className="h-7 w-7 rounded-full bg-[#E9EEE4]" />
+                    <span className="h-2.5 w-24 rounded-full bg-[#E4E4DA]" />
+                  </div>
+                  <span className="mt-3 block h-2 w-full rounded-full bg-[#EFEFE6]" />
+                  <span className="mt-2 block h-2 w-2/3 rounded-full bg-[#EFEFE6]" />
+                </div>
+              ))}
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2 border-b p-3 text-center text-xs font-semibold sm:grid-cols-6">
-          {["Feed", "Spaces", "Events", "Courses", "Guides", "Members"].map((item) => (
-            <span key={item} className="rounded-lg bg-[#F7F4EC] px-1 py-2">
+      </div>
+
+      <div className="absolute -bottom-2 right-0 hidden w-40 overflow-hidden rounded-[1.75rem] border-[6px] border-[#222A25] bg-white shadow-2xl sm:block">
+        <div className="h-24 bg-gradient-to-br from-[#9CC3A5] to-[#E9C9A8]">
+          {cover && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={cover} alt="" className="h-full w-full object-cover" />
+          )}
+        </div>
+        <div className="p-3">
+          <p className="truncate text-sm font-bold">{name}</p>
+          <span className="mt-2 block rounded-md bg-[#326B42] py-1 text-center text-[11px] font-semibold text-white">+ Join</span>
+          {["Home", "Discussion", "Guides", "Events"].map((item) => (
+            <p key={item} className="mt-2 text-[11px] text-[#637067]">
               {item}
-            </span>
+            </p>
           ))}
         </div>
-        <div className="grid gap-3 bg-[#FBFAF7] p-4 sm:grid-cols-2">
-          <MockupCard
-            icon={<MessageCircle className="mb-3 text-[#326B42]" />}
-            title="Start a conversation"
-            description="A welcoming place for your members to share ideas."
-          />
-          <MockupCard
-            icon={<CalendarDays className="mb-3 text-[#C96745]" />}
-            title="Upcoming gatherings"
-            description="Make it easy to connect beyond the feed."
-          />
-          <MockupCard
-            icon={<BookOpen className="mb-3 text-[#326B42]" />}
-            title="Resources & guides"
-            description="Keep useful knowledge in one place."
-          />
-          <MockupCard
-            icon={<Users className="mb-3 text-[#C96745]" />}
-            title="Your people"
-            description="Build lasting relationships in your community."
-          />
-        </div>
       </div>
-      <span className="absolute -bottom-4 -right-3 rounded-2xl bg-[#F6E6D6] px-5 py-3 text-sm font-bold text-[#9C492E] shadow-lg">
-        Your people. Your way.
-      </span>
     </div>
   );
 }
 
-function MockupCard({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
+function Feature({ icon, tone, title, description }: { icon: ReactNode; tone: string; title: string; description: string }) {
   return (
-    <div className="rounded-xl border bg-white p-4">
-      {icon}
-      <h3 className="font-semibold">{title}</h3>
-      <p className="mt-2 text-sm text-[#637067]">{description}</p>
-    </div>
-  );
-}
-
-function Feature({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
-  return (
-    <div className="rounded-2xl border border-[#E7E7DC] bg-white p-6 shadow-sm">
-      <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-[#DCE8D9] text-[#326B42]">
-        {icon}
-      </div>
-      <h3 className="font-bold">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-[#637067]">{description}</p>
+    <div className="rounded-2xl bg-white p-4 text-center shadow-sm ring-1 ring-[#E7E7DC]">
+      <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${tone}`}>{icon}</div>
+      <h3 className="mt-3 text-sm font-bold">{title}</h3>
+      <p className="mt-1 text-xs leading-5 text-[#637067]">{description}</p>
     </div>
   );
 }
@@ -415,21 +571,32 @@ function CommunityPreview({ community }: { community: Community }) {
       href={communityFrontDoor(community)}
       target="_blank"
       rel="noopener noreferrer"
-      className="group rounded-2xl border border-[#E7E7DC] bg-[#FBFAF7] p-6 transition hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#326B42]"
+      className="group flex w-[78%] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-[#E7E7DC] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#326B42] sm:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-3.75rem)/4)]"
     >
-      <Avatar
-        src={community.logo_url}
-        name={community.name}
-        initials={community.logo_initials}
-        size={56}
-        className="mb-4"
-      />
-      <h3 className="text-lg font-bold group-hover:text-[#326B42]">
-        {community.name} <ArrowRight className="inline h-4 w-4" />
-      </h3>
-      {community.description && (
-        <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#637067]">{community.description}</p>
-      )}
+      <div className="h-36 bg-gradient-to-br from-[#DCE8D9] to-[#F6E6D6]">
+        {community.cover_image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={community.cover_image_url} alt="" className="h-full w-full object-cover" />
+        )}
+      </div>
+      <div className="flex flex-1 flex-col p-5">
+        <Avatar
+          src={community.logo_url}
+          name={community.name}
+          initials={community.logo_initials}
+          size={48}
+          className="-mt-11 mb-3 border-4 border-white bg-white"
+        />
+        <h3 className="font-[family-name:var(--font-display)] text-lg font-bold group-hover:text-[#326B42]">
+          {community.name}
+        </h3>
+        {(community.tagline || community.description) && (
+          <p className="mt-1 line-clamp-3 text-sm leading-6 text-[#637067]">{community.tagline || community.description}</p>
+        )}
+        <span className="mt-auto inline-flex items-center gap-1 pt-4 text-sm font-semibold text-[#326B42]">
+          Visit community <ArrowRight className="h-4 w-4" />
+        </span>
+      </div>
     </a>
   );
 }
