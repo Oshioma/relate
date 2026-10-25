@@ -107,6 +107,7 @@ import { GuidedJourneySpaceView } from "@/components/guided-journey/space-view";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
+import { showsPostFeed } from "@/lib/post-move";
 
 // Posts longer than this (as plain text) show an excerpt in the feed rather
 // than their whole body.
@@ -261,33 +262,9 @@ export default async function SpaceDetailPage({
   // A standalone page: its description is the whole content (rendered as
   // sanitised HTML/Markdown), with no post form and no feed.
   const isCustomPageSpace = space.space_type === "custom";
-  const isDiscussionLike =
-    !isCustomPageSpace &&
-    !isResourceSpace &&
-    !isJournalSpace &&
-    !isGrowthJourneySpace &&
-    !isDirectorySpace &&
-    !isChallengeSpace &&
-    !isBusinessDirectorySpace &&
-    !isMapSpace &&
-    !isMarketplaceSpace &&
-    !isJobsSpace &&
-    !isAccommodationSpace &&
-    !isRecommendationsSpace &&
-    !isClubsSpace &&
-    !isGuidesSpace &&
-    !isVolunteerHubSpace &&
-    !isCourseSpace &&
-    !isCropGuidesSpace &&
-    !isPlantScannerSpace &&
-    !isMyCropsSpace &&
-    !isPlantIdSpace &&
-    !isLiveSpace &&
-    !isMeetupsSpace &&
-    !isLessonsSpace &&
-    !isBooksMediaSpace &&
-    !isArtsBoardSpace &&
-    !isGuidedJourneySpace;
+  // Every type above renders its own view; anything else is the post feed.
+  // The list lives in post-move.ts, which needs it to know where a post can go.
+  const isDiscussionLike = showsPostFeed(space.space_type);
   // The discussion composer's crop photo pickers and crop-flavoured tags hint
   // belong only in growing communities — not, say, a wellness journal.
   const offerCropTools = isDiscussionLike && (await isGrowingCommunity(supabase, community));
