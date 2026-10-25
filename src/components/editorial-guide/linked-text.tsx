@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 
+import { Anchor } from "@/components/ui/link";
 // Renders guide copy that refers to other parts of the page: `{dest:paje}`
 // becomes a link to the Paje section (named as the destination is currently
 // named), `{tides}` a link to the community's tides page. Unknown tokens are
@@ -29,9 +30,9 @@ export function LinkedText({
         }
         if (part === "{tides}") {
           return tidesHref ? (
-            <a key={i} href={tidesHref} className="font-medium text-accent hover:underline">
+            <Anchor key={i} href={tidesHref} className="font-medium text-accent hover:underline">
               Tides &amp; Weather
-            </a>
+            </Anchor>
           ) : (
             <Fragment key={i}>tides</Fragment>
           );

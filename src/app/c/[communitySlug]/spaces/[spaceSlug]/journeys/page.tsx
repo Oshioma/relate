@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { loadGuidedJourneyPage } from "@/lib/data/guided-journey-page";
 import { getMyJourneys } from "@/lib/data/guided-journey";
 import { JourneyGate, JourneyShell } from "@/components/guided-journey/journey-shell";

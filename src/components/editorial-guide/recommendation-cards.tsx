@@ -4,6 +4,7 @@ import { POSITION_LABELS } from "@/lib/guides/where-to-stay/labels";
 import type { GuideListing } from "@/lib/data/editorial-guides";
 import { GuideImage } from "./guide-image";
 
+import { Anchor } from "@/components/ui/link";
 // Restaurant and accommodation recommendation cards.
 //
 // When a recommendation matches one of the community's own listings, the
@@ -109,9 +110,9 @@ export function RestaurantCard({
       <Notes disclosure={rec.disclosure} verificationNote={rec.verificationNote} />
       <div className="mt-auto flex flex-wrap gap-2 pt-4">
         {listing && (
-          <a href={listing.href} className="inline-flex items-center gap-1 rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground hover:opacity-90">
+          <Anchor href={listing.href} className="inline-flex items-center gap-1 rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground hover:opacity-90">
             <Store className="h-3.5 w-3.5" aria-hidden /> Save, review &amp; details
-          </a>
+          </Anchor>
         )}
         {website && (
           <a href={website} target="_blank" rel="noopener noreferrer" className={linkClass}>
@@ -130,9 +131,9 @@ export function RestaurantCard({
       {!listing && listYourBusinessHref && (
         <p className="mt-3 text-xs text-muted-foreground">
           Run {rec.name}?{" "}
-          <a href={listYourBusinessHref} className="font-medium text-accent hover:underline">
+          <Anchor href={listYourBusinessHref} className="font-medium text-accent hover:underline">
             Add it to the Mzungu Zanzibar directory
-          </a>{" "}
+          </Anchor>{" "}
           — free, and never a condition of being recommended.
         </p>
       )}
@@ -174,9 +175,9 @@ export function StayCard({
       <Notes disclosure={rec.disclosure} verificationNote={rec.verificationNote} />
       <div className="mt-auto flex flex-wrap gap-2 pt-4">
         {listing && (
-          <a href={listing.href} className="inline-flex items-center gap-1 rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground hover:opacity-90">
+          <Anchor href={listing.href} className="inline-flex items-center gap-1 rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground hover:opacity-90">
             <BedDouble className="h-3.5 w-3.5" aria-hidden /> Save, review &amp; details
-          </a>
+          </Anchor>
         )}
         {website && (
           <a href={website} target="_blank" rel="noopener noreferrer" className={linkClass}>
@@ -187,9 +188,9 @@ export function StayCard({
       {!listing && listYourStayHref && (
         <p className="mt-3 text-xs text-muted-foreground">
           Run {rec.name}?{" "}
-          <a href={listYourStayHref} className="font-medium text-accent hover:underline">
+          <Anchor href={listYourStayHref} className="font-medium text-accent hover:underline">
             List it on Mzungu Zanzibar
-          </a>
+          </Anchor>
           .
         </p>
       )}
@@ -205,10 +206,10 @@ export function DirectoryChips({ title, listings }: { title: string; listings: G
       <ul className="mt-2 flex flex-wrap gap-2">
         {listings.map((l) => (
           <li key={`${l.kind}:${l.slug}`}>
-            <a href={l.href} className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-xs hover:bg-muted">
+            <Anchor href={l.href} className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-xs hover:bg-muted">
               {l.kind === "stay" ? <BedDouble className="h-3 w-3" aria-hidden /> : <Store className="h-3 w-3" aria-hidden />}
               {l.name}
-            </a>
+            </Anchor>
           </li>
         ))}
       </ul>

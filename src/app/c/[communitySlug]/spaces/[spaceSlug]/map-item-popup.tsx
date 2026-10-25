@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { ArrowRight, MapPin } from "lucide-react";
 import { MAP_ITEM_KINDS, dayStart, eventDayWord, type MapItem, type MapItemLink } from "@/lib/map-item-kinds";
 

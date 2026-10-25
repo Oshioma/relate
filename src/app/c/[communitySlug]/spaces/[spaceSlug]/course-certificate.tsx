@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Award, ChevronLeft, Printer } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 

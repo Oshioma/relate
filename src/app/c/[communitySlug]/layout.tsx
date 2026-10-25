@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { notFound, redirect } from "next/navigation";
 import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye, Compass, Lock } from "lucide-react";
 import { exitViewAsMember, startViewAsMember } from "./view-as-member-actions";
 import { ShareOriginProvider } from "@/components/ui/share-origin";
+import { CommunityHostProvider } from "@/components/ui/community-host";
 import { headers } from "next/headers";
 import { communityShareOrigin } from "@/lib/custom-domain";
 import { canonicalUrl, communityCanonicalOrigin, metaDescription, SEO_PATH_HEADER } from "@/lib/seo";
@@ -125,7 +126,20 @@ export async function generateMetadata({
 const TIMELINE_NAV_SORT = 99_000;
 const GUIDES_NAV_SORT = 98_000;
 
-export default async function CommunityLayout({
+// On the community's own host (the proxy passes the clean path only there),
+// its /c/<slug>/… links are written as the clean paths that host serves — see
+// src/components/ui/link.tsx.
+export default async function CommunityLayout(props: { children: React.ReactNode; params: Promise<{ communitySlug: string }> }) {
+  const { communitySlug } = await props.params;
+  const onOwnHost = Boolean((await headers()).get(SEO_PATH_HEADER));
+  return (
+    <CommunityHostProvider slug={onOwnHost ? communitySlug : null}>
+      <CommunityShell {...props} />
+    </CommunityHostProvider>
+  );
+}
+
+async function CommunityShell({
   children,
   params,
 }: {

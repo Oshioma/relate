@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import type { LucideIcon } from "lucide-react";
 import { Pin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useSyncExternalStore, useTransition } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { useRouter } from "next/navigation";
 import { Camera, Check, Loader2, Share2, X } from "lucide-react";
 import { PhotoPicker } from "@/components/guided-journey/photo-picker";

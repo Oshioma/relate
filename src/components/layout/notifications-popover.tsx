@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Bell, MessageSquare, Megaphone, Users, Store, Radio, Mail, Reply, Footprints, HeartHandshake, Sprout, PartyPopper, Flag } from "lucide-react";
 import { IconPopover } from "@/components/layout/icon-popover";
 import { Avatar } from "@/components/ui/avatar";

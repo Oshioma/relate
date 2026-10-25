@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { PlatformHomeLink } from "./platform-home-link";
 
 // The single, app-wide footer. Rendered once from the root layout so it sits at

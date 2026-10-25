@@ -1,5 +1,5 @@
 import { spaceImage } from "@/lib/space-images";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import {

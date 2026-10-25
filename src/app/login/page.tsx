@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoginForm } from "./login-form";
 import { safeReturnPath } from "@/lib/auth-return";

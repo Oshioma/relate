@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { usePathname } from "next/navigation";
 import { returnHereHref } from "@/lib/auth-return";
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { MessageSquare, Megaphone, Users, Store, Radio, Mail, Reply, Footprints, HeartHandshake, Sprout, PartyPopper, Flag } from "lucide-react";

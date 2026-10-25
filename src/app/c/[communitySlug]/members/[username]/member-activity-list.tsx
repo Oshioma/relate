@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { MessageSquare, FileText } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import type { ActivityItem } from "@/lib/data/member-activity";

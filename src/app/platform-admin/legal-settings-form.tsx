@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { useActionState } from "react";
 import { savePlatformLegal, type LegalFormState } from "./actions";
 import { RichEditor } from "@/components/ui/rich-editor";
