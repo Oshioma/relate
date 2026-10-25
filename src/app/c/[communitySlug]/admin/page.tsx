@@ -1,6 +1,6 @@
 import Link from "@/components/ui/link";
 import { notFound, redirect } from "next/navigation";
-import { CalendarDays, Sparkles, Inbox, BarChart3, Eye, Mail } from "lucide-react";
+import { CalendarDays, Sparkles, Inbox, BarChart3, Eye, Mail, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
@@ -47,10 +47,8 @@ import { countUnhandledCommunityContactMessages } from "@/lib/data/contact-messa
 import { ProfileFieldsSection } from "./profile-fields-section";
 import { NewNavLinkForm } from "./new-nav-link-form";
 import { NavLinksList } from "./nav-links-list";
-import { CirclePicturesSection } from "./circle-pictures-section";
 import { MovePostsSection } from "./move-posts-section";
 import { moveKindFor } from "@/lib/post-move";
-import { countCirclePictures } from "@/lib/data/circle-picture-count";
 import { NavGroupsSection } from "./nav-groups-section";
 import { CustomDomainSection } from "./custom-domain-section";
 import { isVercelDomainAutomationConfigured } from "@/lib/vercel-domains";
@@ -138,9 +136,6 @@ export default async function AdminPage({
 
   // Just the open count — the messages themselves live on the Inbox page.
   const openMessageCount = await countUnhandledCommunityContactMessages(db, community.id);
-
-  // Profile photos and guide pictures a Circle import left on Circle's servers.
-  const circlePictureCount = isAdmin ? await countCirclePictures(community.id) : 0;
 
   // Spaces that can take posts (feeds, or Guides as guides) and the tags in use,
   // for "Move posts between spaces".
@@ -315,11 +310,12 @@ export default async function AdminPage({
       { id: "marketplace", label: "Marketplace", group: "Plan & payments" },
       { id: "payments", label: "Payments", group: "Plan & payments" },
       { id: "tiers", label: "Tiers", group: "Plan & payments" },
-      { id: "domain", label: "Custom domain", group: "Settings" },
-      { id: "danger", label: "Danger zone", group: "Settings" },
+      { id: "domain", label: "Custom domain", group: "Domain & deletion" },
+      { id: "danger", label: "Danger zone", group: "Domain & deletion" },
     );
   }
   sections.push(
+    { id: "page-settings", label: "Settings", group: "Other admin pages", href: `${base}/admin/settings` },
     { id: "page-analytics", label: "Analytics", group: "Other admin pages", href: `${base}/admin/analytics` },
     { id: "page-access", label: "Access check", group: "Other admin pages", href: `${base}/admin/access` },
     { id: "page-emails", label: "Email editor", group: "Other admin pages", href: `${base}/admin/emails` },
@@ -564,8 +560,15 @@ export default async function AdminPage({
             </CardContent>
           </Card>
         </Link>
+        <Link href={`/c/${community.slug}/admin/settings`}>
+          <Card className="transition-shadow hover:shadow-sm">
+            <CardContent className="flex items-center gap-3 pt-5">
+              <Settings className="h-4 w-4 text-accent" />
+              <span className="text-sm font-medium text-foreground">Settings &amp; import from other platforms</span>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
-      {circlePictureCount > 0 && <CirclePicturesSection communitySlug={community.slug} waiting={circlePictureCount} />}
       <MovePostsSection communitySlug={community.slug} spaces={postSpaces} tags={postTags} />
 
       {isOwner && featureControls.length > 0 && (
