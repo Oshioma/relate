@@ -4,7 +4,8 @@ import { MembersOnlyGate } from "../../../../members-only-gate";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
-import { getSpaceBySlug, isGrowingCommunity } from "@/lib/data/spaces";
+import { getCommunitySpaces, getSpaceBySlug, isGrowingCommunity } from "@/lib/data/spaces";
+import { moveTargets } from "@/lib/post-move";
 import { getPostById, getPostComments, getPostReactionSummary } from "@/lib/data/posts";
 import { getCrops } from "@/lib/data/crop-guides";
 import { getMyFarmCrops } from "@/lib/farm-bridge";
@@ -62,6 +63,10 @@ export default async function PostDetailPage({
   const isActiveMember = membership?.status === "active";
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
   const isPostAuthor = post.author_id === user?.id;
+  // Staff can move a post to any other space that holds posts or guides.
+  const postMoveTargets = isStaff
+    ? moveTargets(await getCommunitySpaces(supabase, community.id), space.id).map(({ id, name, kind }) => ({ id, name, kind }))
+    : [];
   // In a one-way (staff_post_only) space only staff may comment — unless the
   // admin re-opened comments via allow_member_comments. Mirrors the
   // comments_insert_member RLS policy. Reactions stay open to every member, so
@@ -110,6 +115,7 @@ export default async function PostDetailPage({
               : null
           }
           canReact={isActiveMember}
+          moveTargets={postMoveTargets}
         />
 
         <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
