@@ -302,4 +302,6 @@ export const AREA = {
 } satisfies Record<string, GuidePhoto>;
 
 // The guide's hero.
-export const BOUTIQUE_HERO_PHOTO: GuidePhoto = AREA.jambianiBeach;
+// Served from the app's own copy: hot-linked Commons images are rate-limited
+// (HTTP 429), which left the guide's card and hero blank.
+export const BOUTIQUE_HERO_PHOTO: GuidePhoto = { ...AREA.jambianiBeach, src: "/guides/boutique-hotels/hero-jambiani-beach-1280.webp", width: 1280, height: 960 };

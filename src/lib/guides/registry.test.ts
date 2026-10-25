@@ -5,7 +5,7 @@ import { editorialGuideEntry } from "./registry";
 // Guide cards carry a short name; the full, imaginative title heads the guide.
 const CARD_TITLES: Record<string, string> = {
   "where-to-stay-in-zanzibar": "Where to Stay",
-  "best-boutique-hotels-zanzibar": "Boutique Villas",
+  "best-boutique-hotels-zanzibar": "Boutique Hotels",
   "best-luxury-resorts-zanzibar": "Luxury Hotels",
   "most-picturesque-places-zanzibar": "Picturesque",
   "best-restaurants-zanzibar": "Restaurants",

@@ -69,7 +69,16 @@ export default async function GuidesIndexPage({ params }: { params: Promise<{ co
             return (
               <li key={guide.id}>
                 <Link href={`/c/${community.slug}/guides/${guide.slug}`} className="group block overflow-hidden rounded-xl border border-border bg-card hover:shadow-md">
-                  {hero ? <GuideImage src={hero.src} alt={hero.alt} width={hero.width} sizes="(min-width: 640px) 440px, 100vw" className="aspect-[16/9]" /> : <div className="aspect-[16/9] bg-muted" />}
+                  {/* The card's heading is the guide's short name; its full title
+                      sits over the photo. */}
+                  <div className="relative">
+                    {hero ? <GuideImage src={hero.src} alt={hero.alt} width={hero.width} sizes="(min-width: 640px) 440px, 100vw" className="aspect-[16/9]" /> : <div className="aspect-[16/9] bg-muted" />}
+                    {entry && entry.cardTitle !== guide.title && (
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/40 to-transparent px-4 pb-3 pt-10">
+                        <p className="text-base font-semibold leading-snug text-white drop-shadow-sm sm:text-lg">{guide.title}</p>
+                      </div>
+                    )}
+                  </div>
                   <div className="p-4">
                     <h2 className="text-lg font-semibold text-foreground group-hover:text-accent">{entry?.cardTitle ?? guide.title}</h2>
                     {entry && <p className="mt-1 text-sm text-muted-foreground">{entry.blurb}</p>}
