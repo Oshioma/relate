@@ -10,7 +10,7 @@ import type { AdviceBlock, HotelGuideOverrides, HotelVerification, StayCategory 
 // verified against current sources on the date in `verification`. Nothing
 // here claims the editors visited, and there are never prices or fees.
 
-export type PlaceKind = "beach" | "sandbank" | "island" | "reef" | "town" | "historic" | "nature" | "cave" | "viewpoint" | "restaurant" | "street-food" | "bar";
+export type PlaceKind = "beach" | "sandbank" | "island" | "reef" | "town" | "historic" | "nature" | "cave" | "viewpoint" | "restaurant" | "street-food" | "bar" | "activity" | "transport";
 
 export type Place = {
   key: string;
@@ -38,6 +38,9 @@ export type Place = {
   websiteLabel?: string;
   // A search link, so it can never point at a made-up pin.
   mapsUrl: string;
+  // Approximate position (from its Google listing), for "near me" sorting.
+  // Never shown as a pin.
+  coords?: { lat: number; lng: number };
   photos: GuidePhoto[];
   verification: HotelVerification;
   // Restaurant guides: a relative price band (never a price), checked facts
@@ -62,6 +65,10 @@ export type PlaceSectionLabels = {
   fromStoneTown: string;
 };
 
+// A group of places close together ("Nungwi & Kendwa"), offered as a card
+// at the top of the guide that shows only those places.
+export type PlaceArea = { id: string; label: string; placeKeys: string[] };
+
 // A suggested day: an ordered list of places with what to do there.
 export type PlaceRoute = {
   id: string;
@@ -76,6 +83,8 @@ export type PlaceGuideDefinition = {
   subtitle: string;
   seoTitle: string;
   description: string;
+  // The short name on guide cards ("Transport"); the full title heads the guide.
+  cardTitle: string;
   cardBlurb: string;
   heroPhoto: GuidePhoto;
   introduction: string[];
@@ -99,6 +108,13 @@ export type PlaceGuideDefinition = {
   directorySection?: { title: string; navLabel: string; blurb: string; category: string } | null;
   // The hero's call-to-action button into the entries.
   heroCta?: string;
+  // Area cards at the top (in place of the photo row) and a "near me" card,
+  // for readers who want to see what's around them. `noun` names the places
+  // ("bars"). Every place should be in exactly one area and have coords.
+  // `nearPhoto` is the picture behind the "near me" card (default: none).
+  // `title`/`blurb` replace the default "Where are you?" heading, for guides
+  // whose cards group by something other than area (e.g. type of activity).
+  areaFinder?: { noun: string; areas: PlaceArea[]; nearPhoto?: { placeKey: string; photo?: number }; title?: string; blurb?: string } | null;
 };
 
 // Stored overrides use the hotel guides' shape, with `hotelPhotos` keyed by

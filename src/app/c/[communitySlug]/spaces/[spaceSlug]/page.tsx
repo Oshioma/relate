@@ -17,6 +17,7 @@ import { SMILE_EMOJI } from "@/lib/post-reactions";
 import { SmileStack } from "@/components/ui/smile-stack";
 import { DiscussionSpaceHeader } from "./discussion-space-header";
 import { SpaceCover } from "./space-cover";
+import { SpaceTypeBar } from "./space-type-bar";
 import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
 import { getMemberTimeline } from "@/lib/data/growth-journey";
@@ -114,10 +115,10 @@ export default async function SpaceDetailPage({
   searchParams,
 }: {
   params: Promise<{ communitySlug: string; spaceSlug: string }>;
-  searchParams: Promise<{ category?: string | string[]; subscribed?: string; import?: string | string[]; ended?: string }>;
+  searchParams: Promise<{ category?: string | string[]; subscribed?: string; import?: string | string[]; ended?: string; join?: string }>;
 }) {
   const { communitySlug, spaceSlug } = await params;
-  const { category: rawCategory, subscribed, import: rawImport, ended } = await searchParams;
+  const { category: rawCategory, subscribed, import: rawImport, ended, join } = await searchParams;
   // A link handed over from the directory's add form when what was pasted turned
   // out to be a place to stay — see the `handoff` on an import result.
   const importUrl = Array.isArray(rawImport) ? rawImport[0] : rawImport;
@@ -327,7 +328,7 @@ export default async function SpaceDetailPage({
   ]);
   const editorialGuides = editorialGuideRows.map((g) => {
     const entry = editorialGuideEntry(g.slug);
-    return { slug: g.slug, title: g.title, blurb: entry?.blurb ?? null, imageUrl: entry?.cardImage(g.content) ?? null, isDraft: g.status === "draft" };
+    return { slug: g.slug, title: entry?.cardTitle ?? g.title, blurb: entry?.blurb ?? null, imageUrl: entry?.cardImage(g.content) ?? null, isDraft: g.status === "draft" };
   });
 
   const { active: activeLiveSession, scheduled: scheduledLiveSessions, past: pastLiveSessions } = splitLiveSessions(liveSessions);
@@ -413,6 +414,17 @@ export default async function SpaceDetailPage({
   // admin-facing setup hint when the community has no usable location yet.
   const showLiveConditions = isResourceSpace && /tide|weather/i.test(space.name);
 
+  // A directory category page leads with one of the category's own photos —
+  // a featured listing's if there is one, else the best-illustrated listing —
+  // rather than a cover that suits the directory as a whole (a restaurant
+  // terrace over "Experiences").
+  const categoryCoverUrl =
+    isBusinessDirectorySpace && initialCategory
+      ? ([...businesses]
+          .filter(({ business: b }) => b.category === initialCategory && b.image_url)
+          .sort((a, b) => Number(b.business.featured) - Number(a.business.featured) || b.imageCount - a.imageCount)[0]?.business.image_url ?? null)
+      : null;
+
   const canPost = membership?.status === "active";
   // The composer offers the author's own photo as a one-tap image source, so
   // fetch their profile only when they can actually post in a discussion space.
@@ -462,7 +474,8 @@ export default async function SpaceDetailPage({
     {/* Every space opens with a full-width cover, the same size as the feed
         page's hero (its own upload, or its type's default photo), above
         whatever masthead (or none) the type renders. */}
-    <SpaceCover spaceId={space.id} communityId={community.id} spaceType={space.space_type} imageUrl={space.image_url} canEdit={Boolean(isAdmin)} />
+    <SpaceCover spaceId={space.id} communityId={community.id} spaceType={space.space_type} imageUrl={space.image_url} canEdit={Boolean(isAdmin)} categoryImageUrl={categoryCoverUrl} />
+    {isAdmin && <SpaceTypeBar communitySlug={community.slug} spaceId={space.id} spaceType={space.space_type} />}
     {/* A directory opens straight onto its own controls, so it also gives back
         the page's top padding — every line above the first listing is a line of
         the directory nobody can see.
@@ -475,7 +488,7 @@ export default async function SpaceDetailPage({
         // A Lessons space widens again past 1700px, where the shell has
         // 400px+ of empty margin doing nothing, so the side rail can appear
         // without taking a column off the library. See lessons-view.
-        isLessonsSpace ? "max-w-6xl rail:max-w-[103rem]" : isGuidedJourneySpace || isBooksMediaSpace || isArtsBoardSpace ? "max-w-6xl" : "max-w-3xl",
+        isLessonsSpace ? "max-w-6xl rail:max-w-[103rem]" : isGuidedJourneySpace || isBooksMediaSpace || isArtsBoardSpace ? "max-w-6xl" : isBusinessDirectorySpace ? "max-w-5xl" : "max-w-3xl",
         isBusinessDirectorySpace ? "pt-4 sm:pt-5" : isGuidedJourneySpace ? "pt-4 sm:pt-6" : "pt-8 sm:pt-10"
       )}
     >
@@ -971,6 +984,9 @@ export default async function SpaceDetailPage({
           canJoin={canPost}
           displayName={liveDisplayName}
           jaasConfigured={isJaasConfigured()}
+          // "Join now" on the live pop-up and the header "Live now!" badge link
+          // here with ?join=1, so the viewer lands straight in the call.
+          autoJoin={join === "1"}
         />
       ) : (
         <>

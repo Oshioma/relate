@@ -1415,3 +1415,592 @@ There are 24 entries for Scott-Elliot, each beginning "The book says" or "Sinnet
 - Scott-Elliot's maps 1 and 2 were not found in any 1896 copy; their titles are from the later printing.
 - The identification of Scott-Elliot's Plato as Taylor's translation rests on the wording, not on a statement in the book.
 - Donnelly's other chapters that quote Plato in passing are listed, not imported.
+
+## 25. Stage 19: Kingsford and Maitland's Virgin of the World (1885)
+
+The last full-text member of `modern.other-authors` (brief item 33), listed there as "Kingsford & Maitland 1885", is imported as its own work. It is *The Virgin of the World of Hermes Mercurius Trismegistus*, translated by Anna Kingsford and Edward Maitland (London: George Redway, 1885). That entry's proposed member now says "imported as its own work, modern.kingsford-maitland", and its full-text editions are now empty.
+
+- **`modern.kingsford-maitland`** (prefix `modern.vow`). Tradition class `modern`, corpus group `modern_esoteric`. Marker `virgin-of-the-world-published`.
+
+The inventory gained two sources:
+- `kingsford-maitland-1885`, the book, which describes the witnesses;
+- `menard-hermes-1866`, Louis Ménard's *Hermès Trismégiste*, the French version the translators "used, but not entirely followed" (p. ii). It is cited only and was not read.
+
+Files:
+- `corpus/virgin-of-the-world.ts`;
+- the generated `corpus/virgin-of-the-world-text.ts`, made by `scripts/texts/virgin-of-the-world.py`. The script records the method, the one reading the vote took, the wrong majorities rejected, and every correction by hand with the page it was read on;
+- `corpus/virgin-of-the-world-related-images.ts`;
+- plain words in `corpus/plain/virgin-of-the-world.ts`;
+- the marker's pictures in `marker-pictures.ts`.
+
+Copyright: public domain (1885; Kingsford died 1888, Maitland 1897, Ménard 1901). The text layers are `public_domain`.
+
+### What the book is
+
+A Victorian translation, not an ancient witness. It renders Greek and Latin texts through Ménard's French, so the English is at one remove from the originals.
+
+The translators wrote *The Perfect Way* (1882) and founded the Hermetic Society in London in 1884. The book was published "under the auspices of the Hermetic Society" (p. 154), for Robert H. Fryar's Bath Occult Reprint Series. Its essays and Kingsford's Introduction read the Hermetic writings as an esoteric wisdom one with "the creed of catholic Christendom". The archive records this aim as context in the work entry, the book record and the Introduction's notes and plain words. It is not given as the meaning of the ancient texts.
+
+### Source and checking
+
+No proofread transcription of an 1885 copy, and no Gutenberg or Wikisource text, could be reached (sacred-texts.com refused the requests).
+
+| Siglum | Witness |
+|---|---|
+| E | archive.org's OCR of the Global Grey e-book (2018), a typeset reissue of an e-text of the 1885 book. The base: the only e-text with the Introduction. |
+| T | archive.org's OCR of another PDF of the same e-text. It has no Introduction and no Tatios V. |
+| V | archive.org's OCR of Google's scan of an 1885 copy (`1885-kingsford-maitland-virgin-of-the-world`), read from its djvu.xml, with its page images. |
+
+E and T share the e-text's page markers and errors, so they are one transcription. **V is the only independent witness, and the only one of the 1885 printing.** In effect, then, two independent copies were compared word by word. The Introduction and Tatios V were compared on E and V alone.
+
+- **Taken by the vote:** one reading, '"I' for E's '"T]' (p. 9).
+- **Rejected majorities:** "Hyle" (the book prints "Hylé", p. 61, seen) and "Stobzus" (an OCR misreading of "Stobæus").
+- **Corrected by hand, on V's page images:**
+  - the one-letter words lost before drop capitals ("O MY", "A GREAT");
+  - errors E and T share ("hast", p. 18; "But", p. 135; "cucurbite"; "Kytheræa");
+  - the closing brackets of the translators' and the book's source notes;
+  - OCR of ornaments at the ends of parts;
+  - the Greek words βασιλεύς and βαίνειν (p. 112);
+  - spacing and line-break hyphens, each checked in V's word boxes.
+- **Kept 1885 misprint:** "corporealites" (p. 107).
+
+The text has not been proofread page by page. Punctuation and capitals were not voted, only checked where seen. Italic and small capitals are not marked. The footnotes are left out; the translators' bracketed notes printed in the text are kept.
+
+### Units
+
+`modern.vow.1885` (`book`) holds no text. It carries Ménard as a cited layer, the 1885 date, and notes on what is not imported.
+
+Under it come:
+- the Introduction's first section;
+- six `treatise` records, which hold no text and carry the composition dates;
+- 44 `part` units with the English (layer `eng-1885`; `primary_text` for the Introduction, `translation` for the rest).
+
+That makes 45 units and 52 passages.
+
+| Units | The book's title | Pages | Ancient text |
+|---|---|---|---|
+| `.intro` | An Introduction to the Virgin of the World, first section | xix–xxi | Kingsford's own |
+| `.kore.1`–`.3` | The Virgin of the World, Parts I–III | 1–39 | Korē Kosmou (Stobaeus) |
+| `.ascl.1`–`.15` | A Treatise on Initiations; or, Asclepios, Parts I–XV | 45–94 | Latin Asclepius |
+| `.def.1`–`.4` | The Definitions of Asclepios, Parts I–IV | 101–113 | Corpus Hermeticum XVI, XVII, XVIII (Parts III–IV) |
+| `.tat.1`–`.8` | Fragments of the Book of Hermes to his Son Tatios | 119–140 | Stobaean excerpts |
+| `.ammon.1`–`.6` | Fragments of the Writings of Hermes to Ammon | 141–148 | Stobaean excerpts |
+| `.frag.1`–`.8` | Various Hermetic Fragments | 148–154 | Stobaeus (I, II, VII), Cyril (III–V), the Suda (VI), Lactantius (VIII) |
+
+**Why only the first section of the Introduction.** The Introduction is twelve close pages (xix–xxx) without sections, so it is not short. Only its first section is imported, as the archive divides it: up to "the curse of Eva" (p. xxi), before the turn to the soul's "apostacy".
+
+**Listed, not imported:**
+- the rest of the Introduction;
+- Maitland's essays "The Hermetic Books" (pp. i–viii) and "The Hermetic System and the Significance of its Present Revival" (pp. ix–xviii);
+- the footnotes.
+
+### Dates
+
+- **Publication:** 1885, on `modern.vow.1885`, from the title page ("MDCCCLXXXV") and the prefatory note ("Bath; May, 1885"), both seen.
+- **Composition:** 100–300 CE (`century`, approximate, `copenhaver-hermetica`), on the treatise records for the Korē Kosmou, the Asclepius, the Definitions, Tatios and Ammon. It is carried across from the Mead records and is not a new dating. The various fragments are not dated, since they come from mixed sources.
+- **Marker:** carries the same composition range and 1885.
+
+### Links
+
+All 73 are `proposed`. None says one translation copied the other.
+
+**Parallels with Mead's English (68).** Each is a `direct_textual_parallel`, "two translations of one ancient text", with `wordingComparable` "partly" and the common source named.
+- **Korē Kosmou:** kore.1–3 → `herm.sh.ex25`, `ex26`, `ex27`.
+- **Definitions:** def.1 → `herm.ch.16`, def.2 → `herm.ch.17`, def.3 and def.4 → `herm.ch.18`.
+- **Tatios:** tat.1–8 → ex1, ex8, ex7, ex11, ex6, ex5, ex3, ex2.
+- **Ammon:**
+  - ammon.1–4 → ex13, ex12, ex14, ex16;
+  - ammon.5 → ex17 and ex18;
+  - ammon.6 → ex19.
+- **Various fragments:** frag.1 → ex20, frag.2 → ex4, frag.7 → ex24.
+- **Asclepius:** the 15 parts → all 41 chapters of `herm.ascl.*` (43 links). The 1885 division follows Ménard and does not fall at Mead's chapters, so each part is linked to the chapters whose matter it renders.
+
+**Where the two translations differ in meaning,** `meaningComparable` is "partly", and both the link and the plain words say how:
+
+| Part | 1885 English | Mead |
+|---|---|---|
+| def.2 | the King answers "Tat" | the speaker is Asclepius |
+| tat.4 | "a great and divine power" | "a very mighty Daimon" |
+| tat.6 | "the vehicle of becoming" | "the vase of genesis" |
+| ammon.2 | Providence is "the Free Will of the Supreme God" | "the Self-perfect Reason" |
+| frag.2 | the sun "governs fluid things" | "regulates the breaths" |
+| frag.7 | the planets' gifts shared out one way | shared out differently |
+
+**Other links (5).** All but the first say "None shown." for transmission.
+- ascl.15 → `herm.ascl.prayer-coptic`, `direct_textual_parallel`, with the Papyrus Mimaut as the common source.
+- ascl.9 → `modern.hpb.isis.2.360`, `close_conceptual_parallel`: Blavatsky's paraphrase of the lament.
+- ascl.9 → `modern.kyb.1908.2` and kore.1 → `modern.kyb.1908.intro`, `broad_thematic_resemblance`.
+- intro → `arab.comm.hort.7`, `symbolic_similarity`: the image of distillation.
+
+**Not linked:** the archive's `herm.definitions`, the Armenian Definitions, which is a different work.
+
+### Images
+
+All are from Commons file pages, and each was looked at; all have `licenceStatus` "open". The 1885 title page and frontispiece are not on Commons and are described only.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| Anna Kingsford, portrait | marker `virgin-of-the-world-published` | `UNVERIFIED`: date, photographer, source |
+| Edward Maitland, portrait | marker | `UNVERIFIED`: date, photographer, source |
+| Patrizi, *Nova de universis philosophia*, title page of the second edition ("1593"), listing the Hermetic books and "Asclepii discipuli tres libelli" | `modern.vow.1885.def` | secure |
+| Patrizi, *Nova de universis philosophia*, page listing the Hermetic books, from Google Books | `modern.vow.1885` | `UNVERIFIED`: edition (the file page says 1591) and copy |
+
+### Plain words
+
+There are 45 entries, one per unit:
+- The ancient texts' teachings are reported as theirs, and Kingsford's reading as hers.
+- Each entry for a part with a meaning difference says how the two translations differ.
+- "Other possible readings" cover:
+  - "corporealites" and the King's "Tat" (def.2);
+  - "God manifest" (ascl.2), and matter's standing beside God (ascl.7);
+  - the note's etymology of βασιλεύς (def.4);
+  - "fluid things" against "breaths" (frag.2);
+  - Cyril's wording (frag.5);
+  - Kingsford's "Kosmic Virgin" and her Eve and Mary reading (intro).
+
+### Not done
+
+- The text has not been proofread page by page, and only one independent witness to the e-text, V, was reached.
+- Ménard's French was not read. Where the 1885 English departs from the Greek or Latin, it is not established whether the cause is Ménard or the translators.
+- These have no partner English in the archive:
+  - frag.3–6 (Cyril and the Suda) and frag.8 (Lactantius) are not linked;
+  - Mead's excerpt XV is not in the 1885 book.
+- The rest of Kingsford's Introduction, Maitland's essays and the footnotes are listed, not imported.
+- The 1885 title page and frontispiece could not be shown.
+
+## 26. Stage 20: the "Mithras Liturgy" (PGM IV 475–829) in Mead's A Mithriac Ritual (1907)
+
+The first proposed member of `greek.related` (brief item 18), "Mithras Liturgy (PGM IV 475–829)", is imported as its own work. The English is G. R. S. Mead's, in *A Mithriac Ritual*, vol. VI of his series *Echoes from the Gnosis* (London and Benares: Theosophical Publishing Society, 1907). The `greek.related` entry's proposed member now ends "imported as its own work, greek.mithras-liturgy".
+
+- **`greek.mithras-liturgy`** (prefix `greek.mithras`). Tradition class `ancient_primary` (the text survives in a fourth-century papyrus), corpus group `greek_hermetic`. Marker `mithras-liturgy-papyrus`.
+
+The inventory gained three sources:
+- `mead-mithriac-ritual-1907`, the book, which describes the witnesses;
+- `dieterich-mithrasliturgie-1903`, Albrecht Dieterich's *Eine Mithrasliturgie* (Leipzig, 1903), the Greek text Mead translated. It is public domain but was not read, so it is cited only;
+- `bnf-suppl-grec-574`, the papyrus itself, in the BnF's digitisation as it appears on Wikimedia Commons.
+
+Files:
+- `corpus/mithras-liturgy.ts`;
+- the generated `corpus/mithras-liturgy-text.ts`, made by `scripts/texts/mead-mithriac-ritual.py`. The script records the method, the readings the vote took and every correction by hand with the page it was read on;
+- `corpus/mithras-liturgy-related-images.ts`;
+- plain words in `corpus/plain/mithras-liturgy.ts`;
+- the marker's picture in `marker-pictures.ts`.
+
+Copyright: public domain (1907; Mead died 1933). The text layers are `public_domain`.
+
+### What the text is
+
+A Greek ritual of ascent and immortalisation, in the first person, preserved only in the Great Paris Magical Papyrus (Bibliothèque nationale de France, Supplément grec 574), a fourth-century book of magical texts. Dieterich named it a "Mithrasliturgie" because its prayer names "Sun Mithras, the Great God". Mead agrees that it is Mithraic, but reports that Cumont rejected it "as a genuine Mithriac document" (p. 10). Whether it belongs to the Roman cult of Mithras is therefore recorded as disputed.
+
+Mead translates Dieterich's Greek and leaves out the magical names and vowel-strings that he takes for later insertions by "a school of Egyptian magicians". The names he keeps are marked by obeli (†), and he prints one block of vowels (VII.2). His Preamble and Comments read the rite in Theosophical terms, as "a yoga-rite" of "prāṇa's" and "Ātmic Energy". The archive records that reading as his: in the Preamble's notes and plain words, and in the work entry.
+
+### Source and checking
+
+No proofread transcription of the 1907 book, and no Gutenberg or Wikisource text, could be reached. Sacred-texts.com and Gallica refused the requests.
+
+| Siglum | Witness |
+|---|---|
+| H | archive.org's OCR of the University of Toronto copy (`amythicritu06meaduoft`). The base; its page images were read. |
+| G | archive.org's OCR of Google's scan of a copy from an unnamed library (`amithriacritual00meadgoog`). |
+| S | archive.org's OCR of the Servants of Knowledge scan (`ult.mithriacritualvo0000grsm`), of a copy stamped as a Bangalore library's. |
+
+A fourth item (`MeadGRSEchoesFromTheGnosisVolVIAMithriacRitual1907`) carries the same Robarts call number as H, so it is another OCR of the Toronto copy. It was not used.
+
+- **The vote.** H, G and S were aligned word by word. Where G and S agreed against H, their reading was taken: 42 times.
+- **Proofreading.** Because the text is short, every page of the Preamble and the Ritual (pp. 9–33) was then read line by line against H's page images. The 60 corrections made by hand are listed in the script with their pages. They include:
+  - the obeli, which the OCRs read as "f", "4" or "/";
+  - the Greek words ἄσημα ὀνόματα (p. 10) and συριγμὸς, ποππυσμός (p. 15);
+  - Æ, the Sanskrit diacritics of the Preamble, and "S̄! S̄!" (p. 23);
+  - the macrons of the vowel block (p. 26), read at high resolution;
+  - "leave me not" (p. 33), which H's OCR misread as "learn".
+- Ten line-end hyphens are kept as compounds ("vowel-combinations", "thunder-clap" and others); the rest are joined.
+
+Italic is not marked (Mead prints the prayers in italic and the instructions in roman). His square brackets, his supplements, are kept. So are his paragraph numbers.
+
+### Units
+
+`greek.mithras.1907` (`book`) holds no text. It carries Dieterich as a cited layer (`grc-dieterich-1903`, no content), the 1907 date, and notes on what is not imported.
+
+Under it come:
+- `greek.mithras.1907.preamble`, Mead's Preamble (pp. 9–17), layer `eng-1907`, kind `interpretation`: Mead's own words, not a translation;
+- `greek.mithras.1907.ritual` (`part`), which holds no text. It carries the papyrus as its witness (`PGM IV 475–829`) and the papyrus and composition dates;
+- `greek.mithras.1907.1`–`.14`, Mead's fourteen sections (pp. 18–33), layer `eng-1907`, kind `translation`, each with the papyrus as witness.
+
+That makes 15 `section` units and 17 passages.
+
+| Section | Mead's heading | Pages |
+|---|---|---|
+| I | [The Father's Prayer.] | 18 |
+| II | The Invocatory Utterance (Logos). | 18–21 |
+| III | [The First Instruction.] | 21–22 |
+| IV | [The First Utterance.] | 22–23 |
+| V | [The Second Instruction.] | 23 |
+| VI | The [Second] Utterance (Logos). | 24 |
+| VII | The Third Utterance (Logos). | 25–27 |
+| VIII–XIV | [The Fourth Utterance.] to [The Tenth Utterance.] | 27–33 |
+
+**Why the Preamble is imported.** It is nine small pages, and it is where Mead names the papyrus, gives its date and Dieterich's dating, and states his method.
+
+**Listed, not imported:**
+- Mead's Comments (pp. 34–77), a running commentary without headings. It compares the rite with the "Trismegistic sermons", the "Virgin of the World" (p. 44), the Naassene document, the Oracles, Plato, Proclus and Empedocles;
+- the front matter.
+
+The papyrus line numbers of Mead's sections were not established, and none are given. Whether his fourteen sections cover every line to PGM IV 829 was not checked against an edition of the Greek. For both reasons the inventory is not marked verified.
+
+### Manuscript
+
+`bnf-suppl-gr-574`: Paris, BnF, Supplément grec 574, papyrus, 300–400 CE (`century`, approximate). The date is the library's own, from its label ("IVe siècle"), seen on its digitisation; the label does not state its grounds. Mead narrows it to "the earliest years of the fourth century A.D." (p. 10). The label also gives "36 feuillets. 305 sur 130 millimètres ... Acquis en 1857". A printed note on the labels refers to the sale of d'Anastasi's collection in Paris, 23–27 June 1857, lot 1073. The BnF catalogue record was not reached.
+
+### Dates
+
+- **Publication:** 1907, on `greek.mithras.1907`, from the title page, seen in two scans.
+- **Manuscript:** 300–400 CE, on `greek.mithras.1907.ritual`, from the BnF's label. The papyrus is the only witness, so this is also the earliest evidence for the text.
+- **Composition:** 100–150 CE (`century`, approximate), on the same record. This is Dieterich's dating as Mead reports it (p. 13: "first made in Egypt about 100-150 A.D., and was used in the Mysteries until 200 A.D."). It is shown as one scholar's view. The date of composition is debated, and no other dating was read for this import.
+- **Marker:** carries all three.
+
+### Links
+
+All 7 are `proposed`, and all say "None shown." for transmission. None claims that one text knew another.
+
+| From | To | Class | What it rests on |
+|---|---|---|---|
+| 2 | `herm.ch.13.3` | `close_conceptual_parallel` | "re-born in Mind" / "I am born in Mind", into a body that cannot die |
+| 14 | `herm.ch.13.10` | `close_conceptual_parallel` | rebirth that lifts a mortal beyond birth / "by this Birth we are made into Gods" |
+| 2 | `herm.sh.ex25.4` | `symbolic_similarity` | "the Deep of the [New] Dawn" / "that New Dawn" (Korē Kosmou) |
+| 3 | `herm.ch.1.25` | `broad_thematic_resemblance` | ascent through the heavens; Poimandres' ascent is after death, through seven zones |
+| 7 | `gnostic.ps.136` | `symbolic_similarity` | vowel-strings in a prayer to the highest power, then a vision of the sky |
+| 7 | `modern.hall.2.s1.p3` | `broad_thematic_resemblance` | Hall's "the priests chanted the seven vowels" (Serapis) |
+| 11 | `modern.hall.36.s7.p2` | `broad_thematic_resemblance` | seven heavenly powers; Hall's Mithraic "seven steps" |
+
+**Mead translated both sides** of the three Hermetic links, so the shared English may be his. The links say so. In the Korē Kosmou link, the shared word "New" is Mead's own bracketed supplement in the Ritual; the link says that too. Mead himself sets the Ritual beside the Hermetic sermons (p. 43) and quotes the Korē Kosmou (p. 44). These are recorded as his view (`scholarlyView`, `sourceKey` Mead 1907), not as evidence of transmission.
+
+### Images
+
+All are from Commons file pages, and each was looked at; all have `licenceStatus` "open". None repeats a picture shown elsewhere in the archive. The Sidon and London tauroctonies are already with Hall's Mithras chapter.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| G. R. S. Mead, portrait | marker `mithras-liturgy-papyrus` | `UNVERIFIED`: photographer, date and source |
+| BnF labels of Supplément grec 574 ("IVe siècle", "Acquis en 1857"), Commons image 1 of 73 | `greek.mithras.1907.ritual` | secure |
+| Leaf "7" of the papyrus, Commons image 14 of 73, holding (as read here) the opening of the Ritual: "ἵλαθί μοι πρόνοια ... ψυχή, τάδε γράφοντι" and Ἥλιος Μίθρας | `greek.mithras.1907.1` | `UNVERIFIED`: the identification rests on reading the image, not on a catalogue or the edition's line numbers |
+| Fiano Romano relief (Louvre Ma 3441), Sol and Mithras banqueting, PD | `greek.mithras.1907.9` | secure; captioned "Related evidence, not the Ritual" |
+| Vatican tauroctony with heads of Helios and Selene (inv. 870), CC BY-SA 4.0 | `greek.mithras.1907.preamble` | secure; captioned "Related evidence, not the Ritual" |
+
+The papyrus's vowel block (p. 26 of Mead) was not found among the leaves examined. The Commons API rate-limited the search, and only leaves 1–9, 11–14, 16 and 17 were downloaded and examined.
+
+### Plain words
+
+There are 15 entries, one per unit:
+- The rite's instructions are reported as instructions ("The instructions say ..."), never as things that happen.
+- Mead's Theosophical reading in the Preamble is reported as his, "not history".
+- Where Mead leaves out a name, the paraphrase says so.
+- "Other possible readings" cover:
+  - Mead's bracketed "[a Son]" and "[as I am, by mine own self]" (I);
+  - "[New] Dawn" (II);
+  - "[O Lord]" and "[remain]" (XIII).
+
+### Not done
+
+- Dieterich's Greek, Preisendanz's edition and later scholarship were not read. The composition date is Dieterich's view as Mead reports it.
+- The papyrus line numbers of Mead's sections were not established. It was not checked whether Mead leaves out instructions from the end of the papyrus text.
+- The identification of the papyrus leaf with the Ritual's opening is the archive's own reading, so it is marked `UNVERIFIED`.
+- Mead's Comments (pp. 34–77) are listed, not imported.
+- Gallica and the BnF catalogue record could not be reached; the digitisation was seen through Commons.
+
+## 27. Stage 21: Irenaeus, Against Heresies I.29–31, in the Ante-Nicene Fathers (1885)
+
+The Apocryphon of John entry (brief item 19) listed "Irenaeus, Against Heresies I.29 (ANF 1885)" as its only full-text edition. Book I, chapters 29, 30 and 31 are now imported, whole, in the English of Alexander Roberts and W. H. Rambaut as reprinted in *The Ante-Nicene Fathers*, vol. I (Buffalo: The Christian Literature Publishing Company, 1885), pp. 353–358. The Apocryphon entry's full-text edition now reads "... a hostile report of a closely related system, not the Apocryphon; imported as its own work, gnostic.irenaeus-against-heresies", and its copyright summary says the same.
+
+- **`gnostic.irenaeus-against-heresies`** (prefix `gnostic.iren`). Tradition class `ancient_late_transmission` (Irenaeus wrote in Greek; these chapters survive in the old Latin version), corpus group `gnostic`. No marker of its own: it hangs off the existing `apocryphon-of-john` marker, as the Critias hangs off the Timaeus's.
+
+**Why a work of its own, and not the Apocryphon's own text.** Irenaeus's chapters are an opponent's summary of what others taught, in his words and with his judgements ("Such are the falsehoods which these people invent"). They are not the Apocryphon of John, and chapter 30 is not even about the same system. The archive's practice for a text that is related to an inventory item but is not that item is to import it as its own work and have the item point to it (the Mithras Liturgy for `greek.related`, Kingsford and Maitland for `modern.other-authors`). Putting Irenaeus's English under `gnostic.apocryphon-of-john` would present it as the Apocryphon's own wording. Hanging the work off the Apocryphon's marker, not a new one, keeps the timeline honest the other way: Irenaeus's report is the earliest evidence for the system the Apocryphon sets out, and it is dated there as such.
+
+The inventory gained five sources:
+- `anf-1885-irenaeus`, the 1885 volume, which describes the witnesses;
+- `ancl-1868-irenaeus`, the Edinburgh first printing (Ante-Nicene Christian Library, vol. V, 1868), compared only;
+- `schmidt-irenaeus-quelle-1907`, Carl Schmidt, "Irenäus und seine Quelle in adv. haer. I, 29", in *Philotesia: Paul Kleinert zum LXX. Geburtstag* (Berlin, 1907), pp. 315–336, read on archive.org;
+- `mead-fragments-1906`, G. R. S. Mead, *Fragments of a Faith Forgotten* (London, 1906), "The Akhmîm Codex", pp. 579–586, Mead's English summary of Schmidt's report of 1896;
+- `kirsch-eleutherius-1909`, J. P. Kirsch, "Pope St. Eleutherius", *Catholic Encyclopedia* vol. 5 (1909), for the dates of Eleutherius's episcopate.
+
+Files:
+- `corpus/irenaeus.ts`;
+- the generated `corpus/irenaeus-text.ts`, made by `scripts/texts/irenaeus-against-heresies.py`. The script records the method, the reading the vote took, the one it rejected, every correction by hand with its page, and the footnotes;
+- `corpus/irenaeus-related-images.ts`;
+- plain words in `corpus/plain/irenaeus.ts`.
+
+`marker-pictures.ts` is unchanged: the `apocryphon-of-john` marker keeps its two pictures (NHC II p. 32 and BG 8502 p. 19), and no new marker or marker picture was made.
+
+Copyright: public domain (the translation was printed in 1868 and reprinted in 1885). Schmidt (d. 1938) and Mead (d. 1933) are public domain too, and are cited and briefly quoted. The text layers are `public_domain`.
+
+### What the text is
+
+The last three chapters of Book I of *Against Heresies*, which Irenaeus, bishop of Lyons, wrote in Greek about 180 CE. Having refuted the Valentinians at length, he summarises further sects "from whom", he says (I.31.3), the Valentinians descend:
+
+- **Chapter 29** (4 sections): a system of "a multitude of Gnostics" built on Barbelos, the unnameable Father, Autogenes and the four luminaries, Adamas, and Sophia, whose unconsented work, the Protarchon, makes the lower world and says "I am a jealous God".
+- **Chapter 30** (15 sections): a different, related system: the first and second Man, the Holy Spirit as first woman, Christ, Sophia-Prunicus and her son Ialdabaoth, who begets six more rulers (Iao, Sabaoth, Adoneus, Eloeus, Oreus, Astanphaeus); the making of Adam, Eve and the serpent; the flood, Abraham and the prophets shared out among the seven; and Christ's descent through the seven heavens into Jesus.
+- **Chapter 31** (4 sections): the "Cainites", with their "Gospel of Judas", and Irenaeus's close to Book I.
+
+The chapter headings ("Barbeliotes or Borborians", "Ophites and Sethians", "Cainites") are the edition's. The text itself never names the teachers of chapters 29 and 30. The name "Ophites" comes from the heading and the translators' footnote at I.30.5. The archive says so in the chapter notes and in the Hall link.
+
+**The parallel with the Apocryphon of John** is the scholarly-standard one, and it is stated as Schmidt's:
+- Schmidt announced in 1896 that Irenaeus had excerpted a work in the Coptic Berlin codex (P. Berol. 8502);
+- in 1907 he set the Latin of I.29 beside his German of the Coptic, and concluded that the writing Irenaeus excerpts "mit unserm Apokryphon Johannis identisch ist" (p. 335);
+- he also lists the differences: Irenaeus "paraphrasiert mehr, als daß er exzerpiert" (p. 331); the Protarchon's offspring (Kakia, Zelos, Phthonos, Erinnys, Epithymia) have no parallel in the manuscript, while Irenaeus leaves out the seven planetary powers (p. 333); Irenaeus breaks off chapter 29, Schmidt thinks, to avoid repeating chapter 30, which excerpts a different writing of a related sect, the Sethians to whom Theodoret ascribes it (p. 334).
+
+Mead's 1906 summary of Schmidt's first report compares the two point by point but calls the Coptic work "The Gospel of Mary", which Schmidt corrected in 1907; it is cited for the history of the identification only. Because the Apocryphon has no passages in the archive, the parallel is in the notes of the work, of chapter 29 and of I.29.1 and I.29.4, and in the claim on the Apocryphon's marker. It is not a passage link.
+
+### Source and checking
+
+| Siglum | Witness |
+|---|---|
+| C | The CCEL transcription of ANF vol. I (`anf01.ix.ii.xxx`–`xxxii`). The base: it keeps the edition's page breaks, footnotes apart from the text, and its Æ and œ, and it carries Coxe's bracketed notes, so it is of the 1885 American printing. |
+| T | archive.org's OCR of the University of Toronto copy (`antenicenefather01buff`, title page 1885). Its page images (leaves n370–n375 = pp. 353–358) were read. |
+| R | archive.org's OCR of the UCLA copy (`antenicenefathers01robe`, title page 1887, "Copyright, 1885"), the same plates. |
+| S | archive.org's OCR of a third copy (`antenicenefather0001unse_s4g9`, title page 1885), with a later OCR engine. |
+| E | archive.org's OCR of the Edinburgh first printing (`AnteNiceneChristianLibraryV05`, 1868). Compared, not voted. |
+| N | New Advent's text (newadvent.org/fathers/0103129–0103131), "revised and edited" by Kevin Knight. Compared, not used. |
+
+- **Normalised before the vote:** the OCRs' systematic misreadings of Æ ("^", "/E", "JE"), œ ("c") and the capital I of Ialdabaoth and Iao ("l"), each seen on the page images and counted by the script.
+- **The vote.** C, T, R and S were aligned word by word. Where two or three scans agreed against C, their reading was taken: once, "begirt" for C's misprint "begin" (I.30.3, p. 355), confirmed on the page image. One majority was rejected: "conceptions" (I.29.1, p. 353), where the scans read the footnote mark 5 as an "s".
+- **Stops.** Where all three scans agree on a stop that C lacks, the script reports the place but does not apply it. Each place was looked up on the page image; three were real and are corrected by hand: "uttermost, and" (I.29.4, p. 354), "Zechariah, to Sabaoth" and "Sophia herself" without a comma (I.30.11, p. 357). All three agree with the 1868 printing.
+- **Proofreading.** Every column of pp. 353–358 was read against T's page images. There is no italic in these chapters' text. The dashes are closed up. The translators' square brackets, their supplements, are kept.
+- **Which printing.** Compared word by word, the 1868 and 1885 printings differ in these chapters in one place: I.29.1, 1868 "in the conception", 1885 "in conception". The text follows 1885. "Ill-conditioned" (I.31.4) is in both.
+- **New Advent** silently modernises the translation: "begot" for "begat" four times, "you"/"your" for "thou"/"thy", "carcass" for "carcase", "Son of Nun". It drops some quotation marks and sets scripture references into the text. It keeps C's misprint "begin" and C's three wrong stops: 39 places differ in all. It is not a witness of the printing.
+
+**The footnotes** are the editors', not Irenaeus's. There are 23:
+- 19 by the translators (citing the Latin and the editions of Grabe and Harvey);
+- 2 by Coxe alone, in square brackets ("[Cant. ii. 15; St. Luke xiii. 32.]" and "[Let the reader bear in mind ...]");
+- 2 by the translators with a bracketed addition by Coxe (I.30.7, "Philastr."; I.31.2, "Note the 'Americanism'").
+
+Every unbracketed note was found in the 1868 OCR. They are listed, not imported: each section's notes give each footnote's place (the words its mark follows), page and author. The eight that warn the reader that the Latin or the translation is doubtful are quoted there:
+
+| Section | The translators' warning |
+|---|---|
+| I.29.1 | "Both the text and meaning are here altogether doubtful" ("in conception [thus formed]") |
+| I.30.2 | "The punctuation is here difficult and doubtful" |
+| I.30.5 | the Latin *evertisse* implies Nous "was more degraded" ("imparted") |
+| I.30.9 | "We here follow the emendation of Grabe" |
+| I.30.10 | *ex quibus* is "exceedingly obscure"; the next sentence "seems unintelligible" |
+| I.30.11 | the common text's "et incorruptibili Æone" is left out as a gloss |
+| I.30.15 | "The text of this sentence is hopelessly corrupt" |
+| I.31.2 | "The text is here imperfect, and the translation only conjectural" |
+
+### Units
+
+- **`gnostic.iren.1`** (`book`) holds no text. It carries the old Latin version as a cited layer (`lat-vetus`, no content), the dates, and notes on what is not imported.
+- Under it come three **`chapter`** records, `gnostic.iren.1.29`, `.30` and `.31`. They hold no text and carry the edition's headings, summaries, and the notes on the Apocryphon parallel and the names.
+- Under these come 23 **`section`** units, `gnostic.iren.1.29.1` to `gnostic.iren.1.31.4`, each with layer `eng-1885`, kind `translation`.
+
+That makes 23 units and 27 passages. `expectedUnits` is 23: the edition's own sections of the three chapters, read on the page images. `inventoryVerified` stays false, because only three chapters of a five-book work are in scope and the section numbers are the editors'.
+
+**Listed, not imported:**
+- the rest of *Against Heresies*;
+- the ANF's Introductory Note;
+- the 23 footnotes.
+
+Every summary begins "Irenaeus reports", "says", "calls" or "gives". The layer evidence calls the text "Irenaeus's hostile report of what others taught".
+
+### Dates
+
+- **Composition:** 174–189 CE (`decade`, approximate), on `gnostic.iren.1`. The basis is documented:
+  - Irenaeus names Eleutherius as bishop of Rome "now" in III.3.3 (ANF p. 416: "Eleutherius does now, in the twelfth place from the apostles, hold the inheritance of the episcopate");
+  - Kirsch (*Catholic Encyclopedia*, 1909) gives Eleutherius's episcopate as "c. 174-189";
+  - the ANF's Introductory Note (p. 312) narrows the writing to "between A.D. 182 and A.D. 188".
+
+  Book I comes before Book III, since it ends by promising a refutation "in the following book" (I.31.4), so it may be a little earlier. The record says so, and gives "c. 180" as the usual round figure.
+- **Translation and publication:** 1868 (Edinburgh, the first printing) and 1885 (Buffalo, the printing used, from the title page seen in the Toronto scan).
+- **On the Apocryphon's marker:** one claim is added, `earliest_evidence`, "Irenaeus's report of a closely related system, Against Heresies I.29", 174–189. Its evidence says the report is not the Apocryphon itself. The Coptic copies (fourth and fifth centuries) are already dated on that marker and are not repeated.
+
+No manuscript of these chapters is dated in this import.
+
+### Links
+
+All 11 are `proposed`, all go from Irenaeus's sections, and all say "None shown." for transmission. Each link's similarities or differences say that Irenaeus's side is his report.
+
+| From | To | Class | What it rests on |
+|---|---|---|---|
+| 29.1 | `gnostic.ps.8` | `symbolic_similarity` | the name Barbelo(s) |
+| 29.4 | `gnostic.ps.31` | `close_conceptual_parallel` | Sophia goes below without her consort; a lower ruler comes from what she brings forth |
+| 30.5 | `gnostic.ps.31` | `symbolic_similarity` | the name Ialdabaoth / Yaldabaoth for the ruler born of Sophia |
+| 30.12 | `gnostic.ps.15` | `close_conceptual_parallel` | the saviour passes the rulers and takes away their power |
+| 30.9 | `herm.ch.1.9` | `symbolic_similarity` | seven rulers as the planets |
+| 30.4 | `herm.ch.1.26` | `symbolic_similarity` | an eighth above the seven |
+| 30.12 | `herm.ch.1.25` | `broad_thematic_resemblance` | passage through seven heavens (descent / ascent) |
+| 30.5 | `greek.mithras.1907.11` | `broad_thematic_resemblance` | seven powers in order in heaven |
+| 30.7 | `modern.hall.17.s2.p1` | `close_conceptual_parallel` | the serpent leads to knowledge against the Demiurge |
+| 30.15 | `modern.hall.19.s1.p3` | `symbolic_similarity` | "the Ophites (serpent worshipers) revered the Edenic snake" |
+| 30.4 | `modern.hpb.cosmo.4` | `broad_thematic_resemblance` | "the seven fighters, the one, the eighth left out" |
+
+**Not linked:** the Apocryphon of John, which has no passages in the archive. The parallel is stated in the notes, with Schmidt cited. Hall cites Irenaeus elsewhere but not in the two passages linked; the links say Hall gives no source there.
+
+### Images
+
+All are from Commons file pages, and each was looked at; all have `licenceStatus` "open". None repeats a picture shown elsewhere in the archive, and none repeats the Apocryphon marker's two pictures. No manuscript page of chapters 29–31 was found.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| Title page of Erasmus's first edition (Basel: Froben, 1526), Biblioteca Nazionale Centrale di Roma 14.18.P.9, PD | `gnostic.iren.1` | secure: the title and date read on the page, the library's stamp and shelfmark on it |
+| A Latin manuscript page with the opening of Book IV ("Incipit liber quartus"), said to be British Library, twelfth century, PD-Art | `gnostic.iren.1` | `UNVERIFIED`: no shelfmark on the file page; its catalogue link could not be reached; the text was identified by reading the image |
+| P. Oxy. 405 (Cambridge University Library Add. 4413), fragments of the Greek of Book III, chapter 9, PD-Art | `gnostic.iren.1` | secure: the frame's labels read "Ox. 405" and "Add 4413"; the identification as Irenaeus is Armitage Robinson's, as Grenfell and Hunt report (*Oxyrhynchus Papyri* IV, 1904, App. II). Captioned "Related evidence, not the chapters imported here". Its date was not checked. |
+| P. Berol. 8502, pages 22 and 127 (Staatliche Museen zu Berlin / Sandra Steiß, CC BY-SA 4.0) | `gnostic.iren.1.29.1` | `UNVERIFIED`: Mead (1906, p. 583) cites the codex's "p. 22" for the Father passage he sets beside I.29.1. Whether his numbering is the museum's was not established, and the Coptic was not read. Page 127's closing title, "The Sophia of Jesus Christ", was read on the image. Captioned "Related evidence, not Irenaeus". |
+
+No portrait of Irenaeus was added: any would be a later artist's imagining, and none was examined.
+
+### Plain words
+
+There are 23 entries, one per section:
+- Each begins "Irenaeus reports", "says" or "turns", and keeps the doctrines as what "they say" and the judgements as his.
+- None mentions the Apocryphon.
+- "Other possible readings" give the eight warnings of the translators' notes, and for I.29.1 the 1868 reading "in the conception".
+
+### Not done
+
+- The Latin version, the Greek fragments and the modern editions (Rousseau and Doutreleau) were not read. The English is checked against its own printing, not against the Latin.
+- No English of the Apocryphon of John is in the archive, so the I.29 parallel cannot be shown passage to passage. Schmidt's German of the Coptic is cited and quoted, not imported.
+- Only chapters 29–31 of Book I are imported. The rest of *Against Heresies*, including the earlier chapters on the Valentinians and on Simon, is not.
+- The 1868 page numbers (about pp. 101–115) come from the OCR's running heads and were not checked on the page images.
+- The Latin manuscript picture's shelfmark and date, P. Oxy. 405's date, and whether Mead's "p. 22" is the museum's page 22 were not established.
+- The Commons API rate-limited the image searches. Other candidate files (further Berlin codex pages, portraits) were not examined.
+
+## 28. Stage 22: Origen, Against Celsus VI.22–38, in the Ante-Nicene Fathers (1885)
+
+Brief item 23 ("Other ancient texts on planetary rulers, archons and ascent") listed "Origen, Contra Celsum VI.22–38 — the Ophite diagram and the seven archons" among its proposed members, and item 18 listed "Origen, Contra Celsum VI.22 — the Mithraic ladder of seven gates". Book VI, chapters 22–38 are now imported, whole, in the English of Frederick Crombie as reprinted in *The Ante-Nicene Fathers*, vol. IV (Buffalo: The Christian Literature Publishing Company, 1885), pp. 583–590. Both proposed-member lines now end "imported as its own work, gnostic.origen-contra-celsum" (item 18's: "imported with VI.23–38 as its own work, ...").
+
+- **`gnostic.origen-contra-celsum`** (prefix `gnostic.origen`), brief item 23. Tradition class `ancient_late_transmission`, corpus group `gnostic`. It has a marker of its own, `origen-against-celsus-ophite-diagram`: no record existed for Origen, Celsus or the Ophites.
+
+**Why a work of its own.** These chapters are not an Ophite text. They are a hostile report inside a refutation, and three voices run through them, which the archive keeps apart in every summary, note, plain-words entry and link:
+
+- **Celsus**, whose *True Word* (c. 175–180, debated) attacked the Christians. The book is lost and survives only in Origen's quotations. Celsus describes the Mithraic ladder (VI.22), a diagram of circles (VI.25, 38), a "seal" (VI.27), seven animal-faced ruling demons (VI.30) and a list of phrases (VI.34).
+- **Origen**, writing about 248. He says Celsus half understood "a very insignificant sect called Ophites" (VI.24), says he has seen the diagram himself, describes it (VI.25, 30, 33, 38), sets it beside Celsus's account, and rejects all of it as no part of Christian teaching.
+- **The prayers** at the gates of the rulers (VI.31), which Origen gives as what the sect's members "are taught to say". They are the nearest thing to the sect's own words here, and they come only through Origen.
+
+The inventory gained five sources:
+- `anf-1885-origen`, the 1885 volume, which describes the witnesses;
+- `ancl-1872-origen`, the Edinburgh first printing (Ante-Nicene Christian Library, vol. XXIII, 1872), compared only;
+- `eusebius-he-npnf-1890`, McGiffert's Eusebius (*Nicene and Post-Nicene Fathers*, 2nd series, vol. 1, 1890), VI.34 and VI.36 with his notes, read on CCEL;
+- `turner-celsus-1908`, William Turner, "Celsus the Platonist", *Catholic Encyclopedia* vol. 3 (1908);
+- `witte-ophitendiagramm-1993`, Bernd Witte, *Das Ophitendiagramm nach Origenes Contra Celsum* (Altenberge, 1993), cited only as the source of the reconstruction drawing, as its Commons file page asks; the book was not read.
+
+Files:
+- `corpus/origen-contra-celsum.ts`;
+- the generated `corpus/origen-contra-celsum-text.ts`, made by `scripts/texts/origen-contra-celsum.py`. The script records the method, the reading the vote took, the stops it reported and how each was settled, every correction by hand with its page, and the footnotes;
+- `corpus/origen-contra-celsum-related-images.ts`;
+- plain words in `corpus/plain/origen-contra-celsum.ts`;
+- the marker's pictures in `marker-pictures.ts`.
+
+Copyright: public domain (the translation was printed in 1872 and reprinted in 1885). McGiffert (1890) and Turner (1908) are public domain and briefly quoted. The text layers are `public_domain`.
+
+### Source and checking
+
+| Siglum | Witness |
+|---|---|
+| C | The CCEL transcription of ANF vol. IV (`anf04.vi.ix.vi.xxii`–`xxxviii`). The base. Its page anchors run one page ahead of the printed pages (checked on the page images: p. 584 begins "the book of Moses entitled Numbers"), so the script subtracts one. It carries the American edition's bracketed notes, so it is of the 1885 printing. |
+| T | archive.org's OCR of the University of Toronto copy (`antenicenefather04robeuoft`, Buffalo, 1885). Its page images (leaves n594–n601 = pp. 583–590) were read. |
+| Q | archive.org's OCR of a second copy of the 1885 printing (`antenicenefather0004reva_q8u8`). |
+| B | archive.org's OCR of a third copy (`bwb_S0-AWY-298_4`, with a University of the Pacific stamp). |
+| E | archive.org's OCR of the Edinburgh first printing (`writingsoforigen02origuoft`, 1872). Compared, not voted; pp. 367 and 373 were seen as page images. |
+| N | New Advent's text (newadvent.org/fathers/04166.htm). Compared, not used. |
+
+Two later printings found on archive.org (New York, 1890; Scribner's, 1913) were not used.
+
+- **Normalised before the vote:** the OCRs' misreadings of the Æ in Astaphæus, Aloæus, Horæus, Eloæus, Adonæus, Phænon and Ægina, and their reading of footnote marks as words or letters.
+- **The vote.** C, T, Q and B were aligned word by word. Where two or three scans agreed against C, their reading was taken: once, "takes" for C's "take" (VI.22, p. 583, "that which takes place among the planets"), confirmed on the page image.
+- **Stops.** Where the scans agree on a stop that C lacks, the script reports it and does not apply it. Each was looked up on the page images. Two were real and are corrected by hand: "uttered, instead" (VI.26, p. 585) and "was also different." (VI.32, p. 588). The others the scans proposed (around 'works of darkness', 'tree,' and 'a greater and a less,') are quotation marks the book prints and C keeps.
+- **Words split at a page break** in C, corrected by hand: "mat ters" (VI.32) and "efflu ent" (VI.35).
+- **Proofreading.** Every column of pp. 583–590 was read against T's page images. The translator's round brackets, his supplements, are kept. Italic is dropped: C marks four italic words (*rational*, *name*, *not*, *we*); the book also sets "seven" in VI.27 in italic; the small capitals of LORD are not marked.
+- **Which printing.** Compared word by word, the 1872 and 1885 printings differ in three places, each confirmed on the 1872 page images: VI.28, 1872 "or admit even that He was a wise man", 1885 "or omit even" (the 1885 reading looks like a misprint, but it is the printing imported and is kept); VI.34, 1872 "a carpenter by trade", 1885 "by craft"; VI.35, 1872 "show from the prophetic writings that the events", 1885 without "that". The 1872 printing puts the translator's supplements in square brackets, the 1885 in round. All three are in the chapter notes and in the plain words' "Other possible readings".
+- **New Advent** modernises the translation and drops some of the edition's quotation marks. It is not a witness of the printing.
+
+**The footnotes** are the editors', not Origen's. There are 79:
+- 74 by the translator (Scripture references and the Greek of words, with the editors' conjectures);
+- 3 in square brackets, added in the American edition of 1885 (two signed "S.", not identified);
+- 2 by the translator with a bracketed addition of 1885 (one signed "S.").
+
+They are listed, not imported: each chapter's notes give each footnote's place (the words its mark follows), page and author. The eight that say the Greek is uncertain or emended at that point are quoted there:
+
+| Chapter | The translator's note |
+|---|---|
+| VI.22 | κλίμαξ ἱψίπυλος (as the book prints it); "Boherellus conjectures ἑπτάπυλος" ("ladder with lofty gates") |
+| VI.22 | "For ὕλης, another reading is πύλης" ("the rest of matter") |
+| VI.22 | Spencer's οὐδ᾽ for ὡς "has been adopted in the translation" ("dissatisfied even with these") |
+| VI.29 | "Boherellus proposes φῇς for the textual reading φησί" ("as you say") |
+| VI.31 | "For καταλυθέν Boherellus conjectures καταγλυφθέν, which has been adopted" ("sculptured") |
+| VI.33 | "Guietus thinks that some word has been omitted here, as ξίφος" |
+| VI.36 | "Cf., however, Mark vi. 3", with the 1885 addition that some manuscripts read "the carpenter's son" |
+| VI.38 | Gelenius's emendation, "which has been followed in the translation" ("and another composed of two circles") |
+
+Two of the editors' notes compare Origen's Ophites with Irenaeus's chapter on them (VI.24, "[Vol. i. p. 354, this series.]"; VI.28, "cf. Irenæus"). The archive records them as modern cross-references, not as evidence that either writer used the other.
+
+### Units
+
+- **`gnostic.origen.6`** (`book`) holds no text. It carries the Greek as a cited layer (`grc`, no content), the dates, and notes on what is not imported.
+- Under it come 17 **`chapter`** units, `gnostic.origen.6.22` to `gnostic.origen.6.38`, each with layer `eng-1885`, kind `translation`. The edition prints each chapter as one paragraph, with a number and no title.
+
+That makes 17 units and 18 passages. `expectedUnits` is 17, the edition's own chapters in the brief's range, read on the page images. `inventoryVerified` stays false: only seventeen chapters of an eight-book work are in scope, the range is the brief's and not a division Origen makes, and the chapter numbers are the editors'.
+
+**Listed, not imported:**
+- the rest of *Against Celsus*;
+- the edition's introductory matter;
+- the 79 footnotes.
+
+Every summary begins "Origen says", "reports", "quotes", "describes", "sets", "gives", "offers" or "continues". Every chapter's notes begin "Voice:" or "Voices:" and say whose words are whose. The layer evidence calls the text "Origen's hostile report, in his reply to Celsus, not an Ophite text".
+
+### Dates
+
+On `gnostic.origen.6`, and as claims on the marker:
+
+- **Composition of Origen's reply:** 244–249 CE (`decade`, approximate). Eusebius (*Church History* VI.34–36, McGiffert's translation) puts it in the reign of Philip the Arab, when Origen was "as they say, over sixty years old": "He also at this time composed a work of eight books in answer to that entitled True Discourse, which had been written against us by Celsus" (VI.36.2). McGiffert's notes give Philip's reign as early 244 to 249, and say the time meant "must have been as late as 245". The record gives "c. 248" as the usual round figure; it was not separately sourced.
+- **Composition of Celsus's True Word,** which Origen quotes: 175–180 (`decade`, approximate, debated). Turner (1908) says Celsus's "literary activity falls between the years 175 and 180"; McGiffert reports Keim's 178 and says of Celsus "we know nothing with certainty, nor did Origen know any more". Turner also says a copy reached Origen "about the year 240", which does not square exactly with Eusebius; the record says so and leaves it.
+- **Translation and publication:** 1872 (Edinburgh, the first printing, from its title page) and 1885 (Buffalo, the printing used). The marker carries 1885.
+
+No manuscript of these chapters is dated in this import.
+
+### Links
+
+All 11 are `proposed`, all go from Origen's chapters, and all say "None shown." for transmission. Those to Irenaeus also say that the ANF editors' cross-references are a modern comparison and that Origen does not name Irenaeus here.
+
+| From | To | Class | What it rests on |
+|---|---|---|---|
+| 32 | `gnostic.iren.1.30.5` | `close_conceptual_parallel` | the same seven names (Ialdabaoth, Iao, Sabaoth, Adonaeus/Adoneus, Eloaeus/Eloeus, Horaeus/Oreus, Astaphaeus/Astanphaeus), in two hostile reports |
+| 30 | `gnostic.iren.1.30.9` | `symbolic_similarity` | the angel's name Michael given to a hostile power ("Michael the Lion-like"; the serpent "Michael and Samael") |
+| 31 | `gnostic.ps.31` | `symbolic_similarity` | Ialdabaoth and a lion-formed ruler |
+| 22 | `herm.ch.1.25` | `broad_thematic_resemblance` | the soul's passage through seven planetary levels |
+| 22 | `herm.ch.1.26` | `symbolic_similarity` | an eighth above the seven |
+| 31 | `greek.mithras.1907.7` | `broad_thematic_resemblance` | set words to make a closed heavenly way open |
+| 30 | `greek.mithras.1907.11` | `broad_thematic_resemblance` | seven powers in order, each named |
+| 22 | `modern.hall.1.s2.p4` | `symbolic_similarity` | "a ladder of seven rungs appears in the Mithraic initiation" |
+| 22 | `modern.hall.42.p4` | `symbolic_similarity` | the rungs of a Mithraic ladder, the seven planets and a door above |
+| 28 | `modern.hall.19.s1.p3` | `symbolic_similarity` | "the Ophites (serpent worshipers) revered the Edenic snake" |
+| 25 | `modern.hpb.cosmo.5` | `speculative_connection` | figures enclosed by a ring (Leviathan's circle; the ring "Pass Not") |
+
+Hall and Blavatsky name no ancient source in the passages linked, and the links say so.
+
+### Images
+
+All are from Commons file pages, and each was looked at (as a thumbnail; the image server rate-limited full-size downloads); all have `licenceStatus` "open". None repeats a picture shown elsewhere in the archive. No manuscript page of VI.22–38 was found, and no ancient copy of the diagram survives.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| A page of the Tura papyrus, "page 29 of papyrus Cairo, Egyptian Museum, JE 88747", "the earliest text witness of the treatise", late 6th or early 7th century (all the file page's; source "2d copy"), PD-Art | `gnostic.origen.6` | `UNVERIFIED`: identification, page and date are the file page's; the picture looks like a photograph of a printed reproduction; the Greek was not read, so which part of the work it holds is not known. Captioned as the work, not Book VI, chapters 22–38. |
+| BnF Grec 945, f. 48r, a fifteenth-century Greek manuscript of *Against Celsus* (the file page's), PD | `gnostic.origen.6`; the marker's cover | `UNVERIFIED`: shelfmark, date and text are the file page's; "48" is on the page; the red heading seems to name Origen and a book but was not read with confidence. |
+| A floor mosaic at Ostia that the file page identifies as the Mithraeum of the Seven Gates (c. 160–170, the file page's), photographed by MumblerJamie, CC BY-SA 2.0 | `gnostic.origen.6.22` | `UNVERIFIED`, captioned "Related evidence, not the ladder Celsus describes". The file page reads its gates as the planetary spheres; only part of the row is in the picture; no ancient writer connects the floor with Celsus's ladder. |
+| Jacques Matter's reconstruction of the diagram, *Histoire critique du Gnosticisme*, "Planche I. D., Fig. 5" (1826 by the file page), PD | `gnostic.origen.6.25` | `modern_interpretation`, `shows` "reconstruction"; the caption says it is a reconstruction and "not a copy of an ancient diagram", and describes what is drawn: Gehenna as a black band, the seven rulers' names in a circle headed "Leviathan", "Formulaires de Prières", the seven animal-formed angels above "Behemoth". |
+| Bernd Witte's reconstruction (1993), uploaded by its author, CC BY 3.0 / GFDL, citing his *Das Ophitendiagramm nach Origenes Contra Celsum* (Altenberge, 1993), p. 142 | `gnostic.origen.6.38`; the marker's second picture | `modern_interpretation`, `shows` "reconstruction"; the caption begins "A modern reconstruction" and says it is "not a copy of an ancient diagram". Matter's and Witte's arrangements differ, and the captions say both are readings of Origen's words. |
+
+The marker `origen-against-celsus-ophite-diagram` has two pictures: the Grec 945 page (cover, `UNVERIFIED`) and Witte's reconstruction. No portrait of Origen or Celsus was added: any would be a later artist's imagining.
+
+### Plain words
+
+There are 17 entries, one per chapter:
+- Each begins "Origen says", "reports", "quotes" or "describes".
+- Celsus's words are given as what Origen quotes or reports of him; the prayers in VI.31 as what the sect's members "are taught to say"; the descriptions of the diagram as what Origen says he saw.
+- "Other possible readings" give the eight quoted footnotes and the three readings of the 1872 printing.
+
+### Not done
+
+- The Greek was not read. The English is checked against its own printing, not against the Greek, and the manuscripts of the work (Vat. gr. 386 and others) were not looked into.
+- Only VI.22–38 is imported. The rest of *Against Celsus* is not, nor any other ancient account of the Ophites.
+- Who signed the American edition's notes "S." was not established.
+- "c. 248" is given as the usual figure without a source of its own; only the range from Eusebius is sourced.
+- The 1872 page range of these chapters was not checked.
+- The Commons API and image server rate-limited the picture searches. Other candidates (further pages of Grec 945, the Mithraeum of Felicissimus, a 1481 Latin edition, the other Seven Gates photographs) were not examined.

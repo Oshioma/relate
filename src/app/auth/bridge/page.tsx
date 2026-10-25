@@ -7,6 +7,7 @@ import { verifiedCommunityHost } from "@/lib/verified-community-host";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { continueToCommunityHost } from "./bridge-actions";
+import { safeReturnPath } from "@/lib/auth-return";
 
 // The community the visitor is continuing to, for the consent copy. Best
 // effort: a private community this anon-ish client can't read just renders
@@ -45,7 +46,7 @@ export default async function BridgePage({
   searchParams: Promise<{ host?: string; next?: string }>;
 }) {
   const params = await searchParams;
-  const next = params.next?.startsWith("/") ? params.next : "/";
+  const next = safeReturnPath(params.next, "/");
 
   const host = await verifiedCommunityHost(params.host ?? null);
   if (!host) {
@@ -98,7 +99,7 @@ export default async function BridgePage({
 
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Not you?{" "}
-          <a href={`${proto}://${host}/login?next=${encodeURIComponent(next)}`} className="font-medium text-accent hover:underline">
+          <a href={`${proto}://${host}/auth/bridge/finish?next=${encodeURIComponent(next)}`} className="font-medium text-accent hover:underline">
             Sign in with a different account
           </a>
         </p>

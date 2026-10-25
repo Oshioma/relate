@@ -19,6 +19,7 @@ import {
   deleteLiveSession,
   rsvpToLiveSession,
   cancelLiveRsvp,
+  saveLiveSessionSnapshot,
 } from "./live-events-actions";
 import { JitsiRoom } from "./jitsi-room";
 import { LiveSessionFields, localInputToIso } from "./live-session-fields";
@@ -44,6 +45,7 @@ export function LiveEventsView({
   canJoin,
   displayName,
   jaasConfigured,
+  autoJoin = false,
 }: {
   active: LiveSessionWithStarter | null;
   scheduled: LiveSessionWithStarter[];
@@ -66,6 +68,9 @@ export function LiveEventsView({
   // Whether JaaS env is set — decides which video backend the meeting uses.
   // Shown only to staff as a small status line.
   jaasConfigured: boolean;
+  // Open the room straight away (the page was reached through a "Join now" /
+  // "Live now!" link), so there's no second Join click.
+  autoJoin?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -73,7 +78,17 @@ export function LiveEventsView({
   // The room only ever renders inside the `active` branch, so when a session
   // ends and `active` goes null the iframe unmounts on its own. Set true up
   // front when staff go live so the host lands straight in the room.
-  const [roomOpen, setRoomOpen] = useState(false);
+  // Also true on arrival from a "Join now" link (autoJoin) for anyone who can
+  // take part.
+  const [roomOpen, setRoomOpen] = useState(autoJoin && canJoin);
+  // A "Join now" link followed while already on this page changes the prop
+  // without remounting; open the room then too. Adjusted during render, not in
+  // an effect, as React recommends for resetting state on a prop change.
+  const [prevAutoJoin, setPrevAutoJoin] = useState(autoJoin);
+  if (prevAutoJoin !== autoJoin) {
+    setPrevAutoJoin(autoJoin);
+    if (autoJoin && canJoin) setRoomOpen(true);
+  }
   // The scheduled session whose edit form is open, if any.
   const [editingId, setEditingId] = useState<string | null>(null);
   // The session the "invite members" picker is currently open for, if any.
@@ -281,6 +296,17 @@ export function LiveEventsView({
                   displayName={displayName}
                   subject={active.title}
                   onClose={() => setRoomOpen(false)}
+                  onSnapshot={
+                    isStaff
+                      ? (image) =>
+                          void saveLiveSessionSnapshot({
+                            sessionId: active.id,
+                            communitySlug,
+                            spaceSlug,
+                            image,
+                          })
+                      : undefined
+                  }
                 />
               </div>
             )}
@@ -488,10 +514,17 @@ function PastSessionCard({
 }) {
   const duration = formatSessionDuration(session.started_at, session.ended_at);
   const hostName = session.starter?.full_name || session.starter?.username;
+  // A still from the meeting, else the session's cover image, else the camera.
+  const picture = session.thumbnail_url || session.image_url;
   return (
     <Card className="group relative overflow-hidden">
-      <div className="relative flex h-24 items-center justify-center bg-gradient-to-br from-muted to-border">
-        <Video className="h-7 w-7 text-muted-foreground/70" />
+      <div className="relative flex h-24 items-center justify-center overflow-hidden bg-gradient-to-br from-muted to-border">
+        {picture ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={picture} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <Video className="h-7 w-7 text-muted-foreground/70" />
+        )}
         <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground backdrop-blur">
           <History className="h-3 w-3" /> Ended
         </span>

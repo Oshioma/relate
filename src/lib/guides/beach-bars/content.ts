@@ -102,6 +102,8 @@ export const BEACH_BARS_GUIDE: PlaceGuideDefinition = {
   seoTitle: "Best Beach Bars in Zanzibar | Sunset Bars, Full Moon Party, Nungwi, Kendwa & Paje",
   description:
     "The best beach bars in Zanzibar: sunset bars in Nungwi and Stone Town, the Kendwa Rocks full moon party, Kae Funk, Paje's beach clubs and chilled Jambiani bars — with party nights, entry rules and tide tips.",
+  // The short name on guide cards (Guides page and Guides space).
+  cardTitle: "Beach Bars",
   cardBlurb: "Sunsets over the sea, the full moon party, reggae by the fishing boats and hammocks on the lagoon — where to drink on the island, and when.",
   // Sunset from the rooftop of The Z Hotel, Nungwi.
   heroPhoto: (byKey.get("z-rooftops")?.photos ?? [])[1] ?? BARS.flatMap((p) => p.photos)[0],
@@ -183,4 +185,16 @@ export const BEACH_BARS_GUIDE: PlaceGuideDefinition = {
     considerations: "Worth knowing",
   },
   heroCta: "The bars",
+  areaFinder: {
+    noun: "bars",
+    nearPhoto: { placeKey: "bobo-beach", photo: 4 },
+    areas: [
+      { id: "stone-town", label: "Stone Town", placeKeys: ["mercurys", "livingstones", "tatu"] },
+      { id: "nungwi-kendwa", label: "Nungwi & Kendwa", placeKeys: ["kajibange", "kibanda", "mama-mia", "bobo-beach", "z-rooftops", "kendwa-rocks"] },
+      { id: "matemwe-kiwengwa", label: "Matemwe & Kiwengwa", placeKeys: ["marafiki-beach-bar", "the-beach-lounge", "il-pontile"] },
+      { id: "michamvi", label: "Michamvi", placeKeys: ["boho-lounge", "kae-funk", "michamvi-sunset-bay"] },
+      { id: "paje", label: "Paje", placeKeys: ["mr-kahawa", "mahali-beachbar", "b4-beach-club", "paje-by-night"] },
+      { id: "jambiani", label: "Jambiani", placeKeys: ["lost-soles", "new-teddys"] },
+    ],
+  },
 };

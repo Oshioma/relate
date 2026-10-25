@@ -108,6 +108,8 @@ export const RESTAURANTS_GUIDE: PlaceGuideDefinition = {
   seoTitle: "Best Restaurants in Zanzibar | Where to Eat in Stone Town, Nungwi & Paje",
   description:
     "The best restaurants in Zanzibar: The Rock, Stone Town rooftops, Forodhani night market, Nungwi seafood and local Swahili kitchens — with what to order, price bands and booking tips.",
+  // The short name on guide cards (Guides page and Guides space).
+  cardTitle: "Restaurants",
   cardBlurb: "From a restaurant on a rock in the sea to Stone Town's night market — where to eat on the island, and what to order.",
   heroPhoto: (byKey.get("the-rock")?.photos ?? [])[0] ?? RESTAURANTS.flatMap((p) => p.photos)[0],
   introduction: INTRODUCTION,
@@ -195,4 +197,14 @@ export const RESTAURANTS_GUIDE: PlaceGuideDefinition = {
     category: "restaurant",
   },
   heroCta: "The restaurants",
+  areaFinder: {
+    noun: "restaurants",
+    nearPhoto: { placeKey: "6-degrees-south", photo: 2 },
+    areas: [
+      { id: "stone-town", label: "Stone Town", placeKeys: ["emerson-spice-tea-house", "6-degrees-south", "cape-town-fish-market", "the-fifth", "lukmaan", "abyssinian-maritim", "forodhani-night-market"] },
+      { id: "nungwi-kendwa", label: "Nungwi & Kendwa", placeKeys: ["sexy-fish", "fishermans-seafood-grill", "fish-market-nungwi", "kajibange", "makofi", "hanoi-house-nungwi", "passion-thyme", "organzibar"] },
+      { id: "michamvi", label: "Michamvi", placeKeys: ["kae-funk", "boho-social", "the-rock"] },
+      { id: "south", label: "Paje, Jambiani & the south", placeKeys: ["mr-kahawa", "chez-hassan", "fahari-off-the-grid"] },
+    ],
+  },
 };

@@ -20,11 +20,16 @@ export function SpaceCover({
   spaceType,
   imageUrl,
   canEdit,
+  categoryImageUrl = null,
 }: {
   spaceId: string;
   communityId: string;
   spaceType: SpaceType;
   imageUrl: string | null;
+  // A directory category page (?category=activity) shows one of that
+  // category's own photos instead of the space cover; the cover controls are
+  // hidden there, since they'd change the whole directory's cover.
+  categoryImageUrl?: string | null;
   // Community admins only, matching the community-assets upload policy and
   // spaces_update_admin.
   canEdit: boolean;
@@ -81,19 +86,20 @@ export function SpaceCover({
   );
 
   const isDefault = !imageUrl;
-  if (isDefault && defaultBroken) return null;
+  if (isDefault && defaultBroken && !categoryImageUrl) return null;
+  const showControls = canEdit && !categoryImageUrl;
 
   return (
     <div>
       <div className="relative h-[340px] w-full overflow-hidden border-b border-border bg-muted sm:h-[400px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={imageUrl ?? defaultSpaceImage(spaceType)}
+          src={categoryImageUrl ?? imageUrl ?? defaultSpaceImage(spaceType)}
           alt=""
           className="h-full w-full object-cover"
-          onError={isDefault ? () => setDefaultBroken(true) : undefined}
+          onError={isDefault && !categoryImageUrl ? () => setDefaultBroken(true) : undefined}
         />
-        {canEdit && (
+        {showControls && (
           <div className="absolute right-3 top-3 flex gap-2 sm:right-4 sm:top-4">
             {picker}
             <button

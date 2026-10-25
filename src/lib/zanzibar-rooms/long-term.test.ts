@@ -38,7 +38,7 @@ test("asks for monthly stays in every area, up to 24", async () => {
   };
   const stays = await getLongTermStays({ env: {}, fetchImpl });
   assert.equal(stays?.length, 24);
-  assert.deepEqual(urls, ["https://www.zanzibarrooms.com/api/public/stays?type=monthly&limit=24"]);
+  assert.deepEqual(urls, ["https://www.zanzibarrooms.com/api/public/stays?type=monthly&per=room&limit=24"]);
   // Null coordinates and guests are fine.
   assert.equal(stays?.[0].maxGuests, null);
 });

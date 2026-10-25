@@ -40,6 +40,7 @@ import { SpacesManager, type NavManagerItem, type NavSubItem } from "./spaces-ma
 import { CommunityBrandingForm } from "./community-branding-form";
 import { CommunityDetailsForm } from "./community-details-form";
 import { CommunityHeroForm } from "./community-hero-form";
+import { CommunityTestimonialsForm } from "./community-testimonials-form";
 import { CommunityGuidelinesForm } from "./community-guidelines-form";
 import { CommunityContactInfoForm } from "./community-contact-info-form";
 import { countUnhandledCommunityContactMessages } from "@/lib/data/contact-messages";
@@ -54,6 +55,7 @@ import { BillingSection } from "./billing-section";
 import { PlanSection } from "./plan-section";
 import { MarketplaceSection } from "./marketplace-section";
 import { TiersSection } from "./tiers-section";
+import { CurrencySection } from "./currency-section";
 import { getActivePlatformPlans } from "@/lib/data/platform-plans";
 import { communityHasFeature } from "@/lib/data/plan-limits";
 import { getActiveFeaturePacks, getCommunityAddons } from "@/lib/data/feature-packs";
@@ -407,6 +409,18 @@ export default async function AdminPage({
         <CommunityHeroForm community={community} spaces={spaces} />
       </div>
 
+      <h2 id="testimonials" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Testimonials</h2>
+      <div className="mb-8">
+        <CommunityTestimonialsForm
+          community={community}
+          members={members.map((m) => ({
+            id: m.user_id,
+            name: m.profile?.full_name || "Unnamed member",
+            avatarUrl: m.profile?.avatar_url ?? null,
+          }))}
+        />
+      </div>
+
       <h2 id="guidelines" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Community guidelines</h2>
       <div className="mb-8">
         <CommunityGuidelinesForm community={community} />
@@ -598,6 +612,7 @@ export default async function AdminPage({
               <p className="mb-3 text-sm text-muted-foreground">
                 Connect Stripe to charge members a monthly fee for individual spaces. Once payments are connected, set a
                 price on a space in the <a href="#spaces" className="text-accent underline-offset-2 hover:underline">Spaces</a> section.
+                Every price is charged in the currency you pick below.
               </p>
               <div className="mb-8">
                 <BillingSection
@@ -608,6 +623,9 @@ export default async function AdminPage({
                   platformConfigured={isStripeConfigured()}
                   justReturned={stripeReturn === "return"}
                 />
+              </div>
+              <div className="mb-8">
+                <CurrencySection communityId={community.id} communitySlug={community.slug} currency={community.currency} />
               </div>
             </>
           ) : (
@@ -632,6 +650,7 @@ export default async function AdminPage({
                   tiers={tiers}
                   sales={tierSales}
                   spaces={tierAssignableSpaces}
+                  currency={community.currency}
                 />
               </div>
             </>

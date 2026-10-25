@@ -1,9 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { photoSchema } from "../where-to-stay/content";
 import { RESTAURANTS_GUIDE, RESTAURANTS_SLUG } from "./content";
+import { BEACH_BARS_GUIDE } from "../beach-bars/content";
+import { RESTAURANTS as WHERE_TO_STAY_RESTAURANTS } from "../where-to-stay/restaurants";
 import { ADVICE, CALL_TO_ACTION, INTRODUCTION } from "./advice";
 import { loadPlaceGuide, placeGuideCardImage, placePhotoCount } from "../place-guide/content";
 import { placeGuideFor } from "../place-guide/registry";
@@ -35,6 +37,13 @@ const DIRECTORY_SLUGS = new Set([
   "sunbird-seafood-cafe",
   "sunset-kendwa-hotel",
   "the-fifth",
+  // Listed under Activities, but it is the Kendwa Rocks the bars guide means.
+  "kendwa-rocks-beach-hotel",
+  // Every place to eat the guides pick that wasn't listed yet, added by the
+  // guide_places_to_eat_in_directory migration (one values row per place).
+  ...readFileSync(join(process.cwd(), "supabase/migrations/20261024004101_guide_places_to_eat_in_directory.sql"), "utf8")
+    .matchAll(/^  \('([a-z0-9-]+)', /gm)
+    .map((m) => m[1]),
 ]);
 
 test("the guide has 21 restaurants with unique keys, The Rock and Forodhani among them", () => {
@@ -63,6 +72,19 @@ test("directory links point at real directory listings", () => {
     assert.ok(DIRECTORY_SLUGS.has(p.listing!.slug), `${p.key} → ${p.listing!.slug}`);
   }
   assert.equal(RESTAURANTS_GUIDE.directorySection?.category, "restaurant");
+});
+
+test("every place to eat in the guides links to its directory listing", () => {
+  const picks = [
+    ...RESTAURANTS_GUIDE.places.map((p) => ({ name: `restaurants#${p.key}`, listing: p.listing })),
+    ...BEACH_BARS_GUIDE.places.map((p) => ({ name: `beach-bars#${p.key}`, listing: p.listing })),
+    ...Object.entries(WHERE_TO_STAY_RESTAURANTS).flatMap(([d, recs]) => recs.map((r) => ({ name: `where-to-stay#${d}/${r.name}`, listing: r.listing }))),
+  ];
+  for (const p of picks) {
+    assert.ok(p.listing, `${p.name} has no directory listing`);
+    // A hotel restaurant may point at its stay instead (it has the photos).
+    if (p.listing.kind === "business") assert.ok(DIRECTORY_SLUGS.has(p.listing.slug), `${p.name} → ${p.listing.slug}`);
+  }
 });
 
 test("Organzibar carries its disclosure", () => {

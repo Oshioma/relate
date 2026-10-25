@@ -902,6 +902,79 @@ export const MARKER_PICTURES: Record<string, SeedPicture[]> = {
       depictsActualRemains: false,
     },
   ],
+  "virgin-of-the-world-published": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/9/90/Anna_Kingsford_2.JPG",
+      kind: "image",
+      shows: "portrait",
+      caption:
+        "UNVERIFIED — A half-length photograph of a young woman with her hair piled high in curls, in a dark brocade dress with a high black collar, a medal hanging from a ribbon on her breast. The file page identifies her as Anna Kingsford (1846–1888), co-translator of The Virgin of the World, and takes the picture from Maitland's life of her; that book, its date and the photographer are not verified.",
+      credit: "Wikimedia Commons (from a book by Edward Maitland, as the file page states)",
+      licence: "Public domain (PD-1923, PD-US), as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Anna_Kingsford_2.JPG",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/f/fc/Edward_Maitland.JPG",
+      kind: "image",
+      shows: "portrait",
+      caption:
+        "UNVERIFIED — A head-and-shoulders photograph of an elderly man with white hair and a white moustache, in a dark coat, waistcoat and bow tie. The file page identifies him as Edward Maitland (1824–1897), co-translator of The Virgin of the World; its source is given as Maitland's life of Anna Kingsford, but the date and the photographer are unknown and not verified.",
+      credit: "Wikimedia Commons (unknown photographer, as the file page states)",
+      licence: "Public domain (PD-1923), as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Edward_Maitland.JPG",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+  ],
+  "mithras-liturgy-papyrus": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/c/c8/George_Robert_Stow_Mead.001.jpg",
+      kind: "image",
+      shows: "portrait",
+      caption:
+        "UNVERIFIED — A half-length photograph of a man with dark hair, a moustache and a pointed beard, in a light jacket, with his arms folded. The file page identifies him as G. R. S. Mead (1863–1933), whose English of the ritual (1907) is the one given here, and takes the picture from a website; the photographer, the date and the original source are unknown and not verified. Mead is not an ancient witness; the papyrus itself is shown on the Ritual's records.",
+      credit: "Wikimedia Commons (photographer unknown, as the file page states)",
+      licence: "Public domain (PD-old), as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:George_Robert_Stow_Mead.001.jpg",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+  ],
+  "origen-against-celsus-ophite-diagram": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/1/1c/Grec_945_48r.jpg",
+      kind: "image",
+      shows: "manuscript",
+      caption:
+        "UNVERIFIED — A page of a Greek manuscript in a cursive hand, numbered 48, opening with a red heading and a tall red decorated initial. The file page identifies it as the Bibliothèque nationale de France's Grec 945, a fifteenth-century copy of Origen's eight books Against Celsus; the shelfmark, the date and which book begins here were not checked. It shows the work, not the chapters on the Ophite diagram.",
+      credit: "Bibliothèque nationale de France, Public domain, via Wikimedia Commons",
+      licence: "Public domain, as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Grec_945_48r.jpg",
+      institution: "Bibliothèque nationale de France (as the file page says)",
+      accessionNumber: "Grec 945, f. 48r (as the file page says)",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Ophitendiagramm2.jpg",
+      kind: "image",
+      shows: "reconstruction",
+      caption:
+        "A modern reconstruction of the Ophite diagram Origen describes in Against Celsus VI.25–38, drawn by Bernd Witte for his book of 1993: circles inside a serpent labelled 'Leviathan', the seven rulers' names down the left, Paradise with the tree of knowledge and of life at the centre, a dark band labelled Tartarus (Gehenna), and below, seven winged animals named Michael to Thaphabaoth (Onoel). It is Witte's reading of Origen's words, not a copy of an ancient diagram, none of which survives.",
+      credit: "Bernd Witte, Das Ophitendiagramm nach Origenes Contra Celsum (Altenberge, 1993), p. 142, CC BY 3.0, via Wikimedia Commons",
+      licence: "CC BY 3.0 or GFDL, as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Ophitendiagramm2.jpg",
+      identificationStatus: "modern_interpretation",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+  ],
   "story-of-atlantis-published": [
     {
       url: "https://upload.wikimedia.org/wikipedia/commons/d/d3/ELLIOT%281896%29_Atlantis%2C_Map4.jpg",

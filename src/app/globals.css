@@ -234,6 +234,12 @@ body {
 
 /* MapLibre popup + control chrome for the Explore Map, matched to the app's
    card tokens (the Leaflet rules above still serve the location picker). */
+/* Above the map controls (z-index 2), so the attribution line can never
+   sit on top of an open popup. */
+.maplibregl-popup {
+  z-index: 3;
+}
+
 .maplibregl-popup-content {
   background: var(--card);
   color: var(--card-foreground);

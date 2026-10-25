@@ -25,7 +25,16 @@ export async function getSpaceLiveSessions(supabase: Client, spaceId: string): P
 // (live_sessions_select → can_view_space) means a viewer only sees a session in
 // a space they're allowed into, so this is safe to call for anyone. If more
 // than one space is live at once, the most recently started wins.
-export type CommunityLiveSession = { id: string; title: string; spaceSlug: string };
+export type CommunityLiveSession = {
+  id: string;
+  title: string;
+  spaceSlug: string;
+  description: string | null;
+  imageUrl: string | null;
+  startedBy: string | null;
+  starterName: string | null;
+  starterAvatarUrl: string | null;
+};
 
 export async function getCommunityLiveSession(
   supabase: Client,
@@ -33,7 +42,7 @@ export async function getCommunityLiveSession(
 ): Promise<CommunityLiveSession | null> {
   const { data, error } = await supabase
     .from("live_sessions")
-    .select("id, title, space:space_id (slug)")
+    .select("id, title, description, image_url, started_by, space:space_id (slug), starter:started_by (full_name, username, avatar_url)")
     .eq("community_id", communityId)
     .eq("status", "live")
     .order("started_at", { ascending: false })
@@ -43,9 +52,26 @@ export async function getCommunityLiveSession(
   if (error) throw error;
   if (!data) return null;
 
-  const space = (data as unknown as { space: { slug: string } | null }).space;
-  if (!space?.slug) return null;
-  return { id: data.id, title: data.title, spaceSlug: space.slug };
+  const row = data as unknown as {
+    id: string;
+    title: string;
+    description: string | null;
+    image_url: string | null;
+    started_by: string | null;
+    space: { slug: string } | null;
+    starter: { full_name: string | null; username: string; avatar_url: string | null } | null;
+  };
+  if (!row.space?.slug) return null;
+  return {
+    id: row.id,
+    title: row.title,
+    spaceSlug: row.space.slug,
+    description: row.description,
+    imageUrl: row.image_url,
+    startedBy: row.started_by,
+    starterName: row.starter ? row.starter.full_name || row.starter.username : null,
+    starterAvatarUrl: row.starter?.avatar_url ?? null,
+  };
 }
 
 // Splits sessions into the single active one (if any), the upcoming scheduled

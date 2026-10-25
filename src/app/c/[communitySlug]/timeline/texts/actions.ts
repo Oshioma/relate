@@ -9,6 +9,7 @@ import { chronologyLabel, evidenceLayerLabel } from "@/lib/timeline/taxonomy";
 import { OUR_TRANSLATION_LAYER_KEY } from "@/lib/timeline/texts/corpus/plain";
 import { importWorkChunk, installLibrary, type ChunkResult, type InstallResult } from "@/lib/timeline/texts/importer";
 import { textsPath } from "@/lib/timeline/texts/paths";
+import { layerDisplayOrder } from "@/lib/timeline/texts/reading";
 import type { TimelinePassageImage } from "@/types/database";
 import { copyArchivePictures, type PictureCopyResult } from "@/lib/timeline/texts/pictures";
 
@@ -126,10 +127,9 @@ export async function readPassageInline(
           : layer === "modern_summary"
             ? 2
             : null;
-    const layers = passage.layers
-      .filter((l) => rank(l.layer) != null)
-      .sort((a, b) => rank(a.layer)! - rank(b.layer)!)
-      .map((l): InlinePassageLayer => {
+    const layers = layerDisplayOrder(
+      passage.layers.filter((l) => rank(l.layer) != null).sort((a, b) => rank(a.layer)! - rank(b.layer)!)
+    ).map((l): InlinePassageLayer => {
         const source = l.source_id ? sourcesById.get(l.source_id) : undefined;
         return {
           id: l.id,

@@ -963,6 +963,189 @@ export const INVENTORY_SOURCES: SeedSource[] = [
       "In copyright; cited only. Deslippe's introduction is the fullest study of the book's origins and is the usual citation for its attribution to William Walker Atkinson and its place in New Thought; it was not read for this import, so nothing here is quoted from it.",
   },
   {
+    key: "kingsford-maitland-1885",
+    title: "The Virgin of the World of Hermes Mercurius Trismegistus",
+    author: "Anna Kingsford and Edward Maitland (translators)",
+    publisher: "George Redway, York Street, Covent Garden, London",
+    publishedYear: 1885,
+    publishedDisplay: "MDCCCLXXXV (title page); a prefatory note is signed 'Bath; May, 1885'",
+    reference:
+      "'The Hermetic Works. The Virgin of the World of Hermes Mercurius Trismegistus ... Now first rendered into English, with essay, introductions and notes, by Dr. Anna Kingsford and Edward Maitland, authors of \"The Perfect Way\"' (title page): two essays by Maitland (pp. i–xviii), Kingsford's Introduction (pp. xix–xxx), and the treatises (pp. 1–154); cited by printed page. Read in Google's scan of an 1885 copy (archive.org 1885-kingsford-maitland-virgin-of-the-world)",
+    url: "https://archive.org/details/1885-kingsford-maitland-virgin-of-the-world",
+    sourceType: "modern_interpretation",
+    notes:
+      "The first English version of the Korē Kosmou, the Asclepius, Corpus Hermeticum XVI–XVIII (as 'The Definitions of Asclepios') and fragments of Stobaeus, Cyril, Suidas and Lactantius, translated, as its footnote on p. ii says, with Louis Ménard's French version 'used, but not entirely followed'; the notes not initialled are Ménard's. It was 'Translated and published for, and all rights reserved by, Robt. H. Fryar, Ed. Bath Occult Reprint Series', and its last page reads '[Published under the auspices of the Hermetic Society.]', the society Kingsford and Maitland had founded in London in 1884. The import is taken from an e-text of the book (the Global Grey edition, archive.org virgin-of-the-world-of-hermes-mercurius-trismagistus), voted word by word against a second OCR of the same e-text (archive.org the-virgin-of-the-world-of-hermes-mercurius-trismagistus) and against the archive.org OCR of the 1885 scan; every reading the vote took and every correction made by hand, read on the page images of the 1885 scan, is listed in scripts/texts/virgin-of-the-world.py. Public domain: published in 1885; Kingsford died in 1888 and Maitland in 1897.",
+  },
+  {
+    key: "menard-hermes-1866",
+    title: "Hermès Trismégiste: traduction complète, précédée d'une étude sur l'origine des livres hermétiques",
+    author: "Louis Ménard",
+    publisher: "Didier, Paris",
+    publishedYear: 1866,
+    reference: "The French version Kingsford and Maitland worked from; its notes, uninitialled, are carried into their book",
+    sourceType: "modern_interpretation",
+    notes:
+      "Cited as the intermediary of the 1885 English: Kingsford and Maitland say on p. ii that they used Ménard's version 'but not entirely followed' it, and that the notes not initialled are his. It was not read for this import; nothing here is quoted from it, and which of its editions (1866, or the second of 1867) they used is not established.",
+  },
+  {
+    key: "mead-mithriac-ritual-1907",
+    title: "A Mithriac Ritual",
+    author: "G. R. S. Mead",
+    publisher: "The Theosophical Publishing Society, London and Benares",
+    publishedYear: 1907,
+    publishedDisplay: "1907 (title page)",
+    reference:
+      "Echoes from the Gnosis, vol. VI: Preamble (pp. 9–17), The Ritual in fourteen sections (pp. 18–33), Comments (pp. 34–77); cited by printed page. Read in the University of Toronto copy (archive.org amythicritu06meaduoft), with the Google scan (amithriacritual00meadgoog) and the Servants of Knowledge scan (ult.mithriacritualvo0000grsm)",
+    url: "https://archive.org/details/amythicritu06meaduoft",
+    sourceType: "primary",
+    notes:
+      "Mead's English of the Greek ritual from the Great Paris Magical Papyrus that Dieterich published as 'Eine Mithrasliturgie' (1903), translated from Dieterich's text ('Text: Dieterich (A.), Eine Mithrasliturgie (Leipzig, 1903)', contents page), with the magical names and most vowel-strings left out and the rest marked by obeli. Its Preamble and Comments read the rite in Theosophical terms, as a 'yoga-rite'. The import is taken from the archive.org OCR of the three scans, voted word by word and read page by page against the Toronto page images; every correction made by hand is listed in scripts/texts/mead-mithriac-ritual.py. No e-text was found on Project Gutenberg or Wikisource, and sacred-texts.com and Gallica refused the requests, so the three scans of the printed book are the witnesses. Public domain: published in 1907; Mead died in 1933.",
+  },
+  {
+    key: "dieterich-mithrasliturgie-1903",
+    title: "Eine Mithrasliturgie",
+    author: "Albrecht Dieterich",
+    publisher: "Leipzig",
+    publishedYear: 1903,
+    reference: "The Greek text Mead translated, as his contents page names it ('Text: Dieterich (A.), Eine Mithrasliturgie (Leipzig, 1903)')",
+    sourceType: "academic_book",
+    notes:
+      "The edition of the ritual as a work of its own; Dieterich gave it the name 'Mithrasliturgie'. Public domain (Dieterich died in 1908), but not read for this import: its dating of the ritual is given only as Mead reports it (A Mithriac Ritual, p. 13), and nothing here is quoted from it.",
+  },
+  {
+    key: "bnf-suppl-grec-574",
+    title: "Supplément grec 574 (Grand papyrus magique, PGM IV)",
+    author: "Bibliothèque nationale de France, Département des Manuscrits",
+    publisher: "Bibliothèque nationale de France (Gallica digitisation, also on Wikimedia Commons)",
+    reference:
+      "The papyrus itself, in the library's digitisation (Gallica ark:/12148/btv1b525030475), 73 images on Wikimedia Commons, category 'Grand papyrus magique (PGM IV) - btv1b525030475'; the library's labels are image 1",
+    url: "https://commons.wikimedia.org/wiki/Category:Grand_papyrus_magique_(PGM_IV)_-_btv1b525030475",
+    sourceType: "historical_document",
+    notes:
+      "The only witness of the ritual. The library's label reads 'Opuscules magiques (Papyrus Anastasi) (IVe siècle.) Ms. Supplément grec 574. Papyrus. 36 feuillets. 305 sur 130 millimètres. Demi-reliure. Acquis en 1857'. The Commons file pages give the licence as public domain (PD-France) and cite Preisendanz's edition (Papyri Graecae Magicae I, 1928, pp. 64–180) for the text. Gallica itself and the BnF catalogue record were not reached (the requests were refused), so the digitisation was seen through Commons.",
+  },
+  {
+    key: "anf-1885-irenaeus",
+    title: "The Ante-Nicene Fathers, vol. I: The Apostolic Fathers. Justin Martyr. Irenaeus",
+    author: "Alexander Roberts and W. H. Rambaut (trans. of Irenaeus); Alexander Roberts and James Donaldson (eds.); A. Cleveland Coxe (American edition)",
+    publisher: "The Christian Literature Publishing Company, Buffalo",
+    publishedYear: 1885,
+    publishedDisplay: "1885 (title page of the Toronto copy; 'Copyright, 1885')",
+    reference:
+      "Irenaeus, Against Heresies, Book I, chapters 29–31, pp. 353–358, cited by the edition's chapter and section numbers and printed page; the Introductory Note to Irenaeus (its dating of the work, p. 312); III.3.3, p. 416. Read in the CCEL transcription (ccel.org/ccel/schaff/anf01, anf01.ix.ii.xxx–xxxii) and in three scans of the 1885 plates on archive.org: the University of Toronto copy (antenicenefather01buff, title page 1885), the UCLA copy (antenicenefathers01robe, title page 1887) and a copy scanned by the Internet Archive (antenicenefather0001unse_s4g9, title page 1885)",
+    url: "https://archive.org/details/antenicenefather01buff",
+    sourceType: "primary",
+    notes:
+      "The American reprint, 'revised and chronologically arranged, with brief prefaces and occasional notes, by A. Cleveland Coxe', of Roberts and Rambaut's translation first printed in Edinburgh in 1868; Coxe's notes are in square brackets. The text of I.29–31 is the CCEL transcription voted against the archive.org OCR of the three scans and read column by column against the Toronto page images; every correction made by hand is listed in scripts/texts/irenaeus-against-heresies.py. New Advent's text of the same translation silently modernises it and was compared, not used. The editors' footnotes are listed, not imported. Its Introductory Note dates the work to the episcopate of Eleutherus at Rome, 'between A.D. 182 and A.D. 188', and calls the old Latin version, in which these chapters survive, 'barbarous'. Public domain: published in 1885, and the translation first in 1868.",
+  },
+  {
+    key: "ancl-1868-irenaeus",
+    title: "Ante-Nicene Christian Library, vol. V: The Writings of Irenaeus, vol. I",
+    author: "Alexander Roberts and W. H. Rambaut (trans.); Alexander Roberts and James Donaldson (eds.)",
+    publisher: "T. and T. Clark, Edinburgh",
+    publishedYear: 1868,
+    reference: "Against Heresies I.29–31, about pp. 101–115 (from the running heads of the OCR, not checked on the page images); archive.org AnteNiceneChristianLibraryV05",
+    url: "https://archive.org/details/AnteNiceneChristianLibraryV05",
+    sourceType: "primary",
+    notes:
+      "The translators' own first printing, compared word by word (on its archive.org OCR) with the 1885 text to see which printing the CCEL transcription follows. In these chapters the two differ in one place only: I.29.1, 1868 'in the conception', 1885 'in conception'. The translators' unbracketed footnotes are all in it. Public domain.",
+  },
+  {
+    key: "schmidt-irenaeus-quelle-1907",
+    title: "Irenäus und seine Quelle in adv. haer. I, 29",
+    author: "Carl Schmidt",
+    publisher: "Philotesia: Paul Kleinert zum LXX. Geburtstag (Trowitzsch, Berlin)",
+    publishedYear: 1907,
+    reference: "pp. 315–336; read in the University of Chicago copy on archive.org (MN40088ucmf_0)",
+    url: "https://archive.org/details/MN40088ucmf_0",
+    sourceType: "academic_book",
+    notes:
+      "The study that set Irenaeus's chapter 29 beside the Apocryphon of John in the Coptic Berlin codex (P. Berol. 8502), which Schmidt had announced in 1896. He corrects his first report: the work's title is 'Apocryphon Johannis', not 'Evangelium Mariä' (p. 318); sets the Latin of I.29 beside his German of the Coptic (pp. 318–333); notes that the Protarchon's offspring Kakia, Zelos, Phthonos, Erinnys and Epithymia have no parallel in the manuscript, and that Irenaeus leaves out the seven planetary powers (p. 333); holds that chapter 30 excerpts another writing of a related sect, the Sethians to whom Theodoret ascribes it, and that this is why Irenaeus broke off chapter 29 'um der lästigen Wiederholung zu entgehen' (p. 334); and concludes that 'es nach den obigen Parallelen keinem Zweifel [unterliegt], daß die von Irenäus exzerpierte gnostische Schrift mit unserm Apokryphon Johannis identisch ist' (p. 335). He suggests Egypt as its place of origin and that the Greek reached Irenaeus 'um 185' (p. 336). Public domain (Schmidt died in 1938).",
+  },
+  {
+    key: "mead-fragments-1906",
+    title: "Fragments of a Faith Forgotten",
+    author: "G. R. S. Mead",
+    publisher: "The Theosophical Publishing Society, London and Benares",
+    publishedYear: 1906,
+    reference: "'The Akhmîm Codex', pp. 579–586; read in the University of Toronto copy on archive.org (fragmentsoffaith00meaduoft)",
+    url: "https://archive.org/details/fragmentsoffaith00meaduoft",
+    sourceType: "modern_interpretation",
+    notes:
+      "Mead's English summary of Schmidt's communication to the Prussian Academy of 16 July 1896, 'Ein vorirenäisches gnostisches Originalwerk in koptischer Sprache': that the Berlin codex holds 'a work which was known to Irenaeus ... from which he made extracts' for Against Heresies I.29 (p. 583), with a comparison of the two point by point. Following Schmidt's first report, Mead calls the work 'The Gospel of Mary' and takes it and the Apocryphon of John to be one piece (p. 580); Schmidt corrected this in 1907. Cited for the history of the identification, not for its conclusions. Public domain (Mead died in 1933).",
+  },
+  {
+    key: "kirsch-eleutherius-1909",
+    title: "Pope St. Eleutherius (Eleutheros)",
+    author: "Johann Peter Kirsch",
+    publisher: "The Catholic Encyclopedia, vol. 5 (Robert Appleton Company, New York)",
+    publishedYear: 1909,
+    url: "https://www.newadvent.org/cathen/05378a.htm",
+    sourceType: "encyclopedia",
+    notes:
+      "Gives Eleutherius's episcopate at Rome as 'c. 174-189', succeeding Soter 'about 174'. Cited for the range within which Irenaeus wrote Against Heresies III, which names Eleutherius as the bishop of Rome 'now' (III.3.3). Read in New Advent's transcription.",
+  },
+  {
+    key: "anf-1885-origen",
+    title: "The Ante-Nicene Fathers, vol. IV: Tertullian, Part Fourth; Minucius Felix; Commodian; Origen, Parts First and Second",
+    author: "Frederick Crombie (trans. of Origen, Against Celsus I–VI); Alexander Roberts and James Donaldson (eds.); A. Cleveland Coxe (American edition)",
+    publisher: "The Christian Literature Publishing Company, Buffalo",
+    publishedYear: 1885,
+    reference:
+      "Origen, Against Celsus, Book VI, chapters 22–38, pp. 583–590, cited by the edition's chapter numbers and printed page. Read in the CCEL transcription (ccel.org/ccel/schaff/anf04, anf04.vi.ix.vi.xxii–xxxviii, whose page anchors run one page ahead of the printed pages) and in three scans of the 1885 plates on archive.org: the University of Toronto copy (antenicenefather04robeuoft, page images n594–n601), antenicenefather0004reva_q8u8 and bwb_S0-AWY-298_4",
+    url: "https://archive.org/details/antenicenefather04robeuoft",
+    sourceType: "primary",
+    notes:
+      "The American reprint of Crombie's translation, first printed in Edinburgh in 1872; the bracketed notes are the American edition's, three of them signed 'S.' (not identified for this import). The text of VI.22–38 is the CCEL transcription voted against the archive.org OCR of the three scans and read column by column against the Toronto page images; every correction made by hand is listed in scripts/texts/origen-contra-celsum.py. New Advent's text of the same translation modernises it and was compared, not used. Later printings found on archive.org (New York, 1890; Scribner's, 1913) were not used. The editors' footnotes are listed, not imported. Public domain: published in 1885, and the translation first in 1872.",
+  },
+  {
+    key: "ancl-1872-origen",
+    title: "Ante-Nicene Christian Library, vol. XXIII: The Writings of Origen, vol. II: Origen contra Celsum, Books II.–VIII.",
+    author: "Frederick Crombie (trans.; Books VII and VIII by W. H. Cairns); Alexander Roberts and James Donaldson (eds.)",
+    publisher: "T. and T. Clark, Edinburgh",
+    publishedYear: 1872,
+    reference: "Book VI, chapters 22–38 (the full page range was not checked); read in the archive.org OCR of the University of Toronto copy (writingsoforigen02origuoft), with pp. 367 and 373 seen as page images",
+    url: "https://archive.org/details/writingsoforigen02origuoft",
+    sourceType: "primary",
+    notes:
+      "The translator's own first printing, compared word by word (on its OCR) with the 1885 text. In these chapters the two differ in three places, all confirmed on the 1872 page images: VI.28, 1872 'or admit even that He was a wise man', 1885 'or omit even' (the 1885 reading looks like a misprint, but it is the text of the printing imported and is kept); VI.34, 1872 'a carpenter by trade', 1885 'by craft'; VI.35, 1872 'show from the prophetic writings that the events', 1885 without 'that'. The 1872 printing puts the translator's supplements in square brackets, the 1885 in round. A note in the front matter says Books VII and VIII were translated by W. H. Cairns 'and the rest by Professor Crombie'. Public domain.",
+  },
+  {
+    key: "eusebius-he-npnf-1890",
+    title: "The Church History of Eusebius, translated with prolegomena and notes",
+    author: "Arthur Cushman McGiffert (trans. and notes)",
+    publisher: "Nicene and Post-Nicene Fathers, Second Series, vol. 1 (The Christian Literature Company, New York)",
+    publishedYear: 1890,
+    reference: "Book VI, chapters 34 and 36, with McGiffert's notes; read in the CCEL transcription (ccel.org/ccel/schaff/npnf201, npnf201.iii.xi.xxxiv and npnf201.iii.xi.xxxvi)",
+    url: "https://ccel.org/ccel/schaff/npnf201/npnf201.iii.xi.xxxvi.html",
+    sourceType: "primary",
+    notes:
+      "Eusebius's account of when Origen wrote against Celsus. VI.34 begins the reign of Philip ('Gordianus had been Roman emperor for six years when Philip, with his son Philip, succeeded him'); VI.36.1–2 says that 'at this time', Origen 'being, as they say, over sixty years old', 'composed a work of eight books in answer to that entitled True Discourse, which had been written against us by Celsus'. McGiffert's notes give Philip's reign as early 244 to 249; say that since Origen was born in 185 or 186 the time 'must have been as late as 245'; and on Celsus, that 'we know nothing with certainty, nor did Origen know any more', that he wrote 'probably in the reign of Marcus Aurelius (Keim fixes the date of the work at 178 a.d.)'. Public domain.",
+  },
+  {
+    key: "witte-ophitendiagramm-1993",
+    title: "Das Ophitendiagramm nach Origenes Contra Celsum",
+    author: "Bernd Witte",
+    publisher: "Altenberge (title, place and year as the Commons file page gives them)",
+    publishedYear: 1993,
+    reference: "p. 142, as the Commons file page of its reconstruction drawing (File:Ophitendiagramm2.jpg) cites it; the book itself was not read for this import",
+    url: "https://commons.wikimedia.org/wiki/File:Ophitendiagramm2.jpg",
+    sourceType: "academic_book",
+    notes:
+      "A monograph on the diagram Origen describes in Against Celsus VI.22–38. Cited only as the source of the modern reconstruction drawing shown with this work, which its author uploaded to Wikimedia Commons in his own name under GFDL and CC BY 3.0, asking that the book be quoted as its source. The reconstruction is Witte's reading of Origen's description, not a copy of an ancient diagram, none of which survives; its arguments were not read or checked.",
+  },
+  {
+    key: "turner-celsus-1908",
+    title: "Celsus the Platonist",
+    author: "William Turner",
+    publisher: "The Catholic Encyclopedia, vol. 3 (Robert Appleton Company, New York)",
+    publishedYear: 1908,
+    url: "https://www.newadvent.org/cathen/03490a.htm",
+    sourceType: "encyclopedia",
+    notes:
+      "Says that 'very little is known about his personal history except that he lived during the reign of Marcus Aurelius, that his literary activity falls between the years 175 and 180', and that he wrote the True Word against the Christians, which survives only in Origen's reply; also that 'about the year 240 a copy of the work was sent to Origen by his friend Ambrosius', which does not square exactly with Eusebius's placing of the reply under Philip (244–249). Cited for the date of Celsus's work, which is debated. Read in New Advent's transcription.",
+  },
+  {
     key: "hall-secret-teachings",
     title: "The Secret Teachings of All Ages",
     author: "Manly P. Hall",
@@ -2300,14 +2483,92 @@ export const INVENTORY: InventoryWork[] = [
     imageCollections: [],
     anchor: null,
     proposedMembers: [
-      "Mithras Liturgy (PGM IV 475–829) — ascent through the heavens; Mead 1907 public domain",
+      "Mithras Liturgy (PGM IV 475–829) — ascent through the heavens; Mead 1907 public domain; imported as its own work, greek.mithras-liturgy",
       "Plutarch, On Isis and Osiris — already a timeline record (plutarch-on-isis-and-osiris)",
       "Iamblichus, On the Mysteries — Taylor 1821 public domain",
       "Chaldean Oracles",
       "Ptolemy, Tetrabiblos — planetary rulers",
       "Macrobius, Commentary on the Dream of Scipio I.12 — descent of the soul through the seven spheres",
-      "Origen, Contra Celsum VI.22 — the Mithraic ladder of seven gates",
+      "Origen, Contra Celsum VI.22 — the Mithraic ladder of seven gates; imported with VI.23–38 as its own work, gnostic.origen-contra-celsum",
     ],
+  },
+  {
+    workKey: "greek.mithras-liturgy",
+    passagePrefix: "greek.mithras",
+    briefItem: 18,
+    title: "The 'Mithras Liturgy' (PGM IV 475–829), in Mead's A Mithriac Ritual (1907)",
+    alternativeTitles: ["A Mithriac Ritual", "Eine Mithrasliturgie", "PGM IV 475–829"],
+    corpusGroup: "greek_hermetic",
+    traditionClass: "ancient_primary",
+    civilisation: "Roman Egypt",
+    geographicalOrigin: "Egypt",
+    originalLanguage: "Koine Greek",
+    attribution: "Anonymous; the rite's own prayer names 'Sun Mithras, the Great God'",
+    attributionNote:
+      "A Greek ritual of ascent and immortalisation preserved in one papyrus, the Great Paris Magical Papyrus (BnF, Supplément grec 574), a fourth-century book of magical texts. Albrecht Dieterich edited it in 1903 as 'Eine Mithrasliturgie' and took it for a Mithraic rite; Mead (1907) agrees, and thinks it was later worked over by Egyptian magicians, but reports that Cumont rejected it 'as a genuine Mithriac document', so whether it belongs to the Roman cult of Mithras is disputed. The English here is Mead's, from Dieterich's Greek, with most of the magical names and vowels left out; his Preamble and Comments read it in Theosophical terms, and the archive records that reading as his.",
+    summary:
+      "Mead's A Mithriac Ritual (London, 1907): his Preamble and his English of the Ritual in fourteen sections, from the Father's prayer to the final utterance 'being born again, I pass away ... I die'.",
+    referenceEdition:
+      "Mead's English (London, 1907), cited by printed page and by his section numbers; the papyrus lines as PGM IV 475–829 (Preisendanz's numbering, not checked against the edition)",
+    expectedUnits: 15,
+    unitLabel: "sections (with the Preamble)",
+    unitDivisionKind: "section",
+    inventoryBasis:
+      "The book's own divisions: the Preamble (pp. 9–17) and The Ritual in sections I–XIV (pp. 18–33), each with its heading, all imported and each checked against its opening on the page images, 15 units. Not imported, and listed here: Mead's Comments (pp. 34–77), which have no sections of their own, and the front matter. Whether Mead's fourteen sections cover every line of PGM IV 475–829 was not checked against an edition of the Greek, and including the Preamble is the archive's choice, so the count is not marked verified.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Public domain: Mead's book was published in 1907 and he died in 1933; Dieterich's edition (1903) is public domain too (he died in 1908) but is cited only. The papyrus images are public domain (PD-France), as their Commons file pages state.",
+    fullTextEditions: ["Mead, A Mithriac Ritual (London, 1907): the Preamble and the Ritual"],
+    referenceOnlyEditions: ["Dieterich, Eine Mithrasliturgie (Leipzig, 1903), the Greek text Mead translated, cited only"],
+    imageCollections: ["Wikimedia Commons: the BnF's digitisation of Supplément grec 574 (73 images); Mithraic reliefs in the Louvre and the Vatican Museums; a photograph identified as Mead"],
+    anchor: {
+      event: {
+        slug: "mithras-liturgy-papyrus",
+        title: "The 'Mithras Liturgy' survives in the Great Paris Magical Papyrus",
+        summary: "A Greek ritual of ascent to the Sun-god and of rebirth into immortality, copied in a fourth-century Egyptian book of magic.",
+        description:
+          "The ritual survives in one papyrus book of the fourth century CE, now in the Bibliothèque nationale de France (Supplément grec 574). When it was composed is debated: Dieterich, as Mead reports him, put its making in Egypt about 100–150 CE. Whether it is a rite of the Roman cult of Mithras is also disputed. It reached English readers in G. R. S. Mead's translation of 1907, made for his Theosophical series 'Echoes from the Gnosis'.",
+        category: "religion",
+        eventType: "historical",
+        tags: ["ancient texts", "greek magical papyri", "mithras", "ascent", "immortality"],
+        civilisations: ["Roman Egypt"],
+        people: ["Albrecht Dieterich", "G. R. S. Mead"],
+        claims: [
+          dated("composition", {
+            qualifier: "Dieterich's dating, as Mead reports it",
+            sourceKey: "mead-mithriac-ritual-1907",
+            startYear: 100,
+            endYear: 150,
+            datePrecision: "century",
+            originalDateText: "'Dieterich thinks that this Greek ritual was first made in Egypt about 100-150 A.D.' (Mead, p. 13)",
+            evidence:
+              "One scholar's judgement of 1903, read only in Mead's report of it; the date of composition is debated and no other dating was read for this import.",
+          }),
+          dated("manuscript", {
+            qualifier: "the Great Paris Magical Papyrus, BnF Supplément grec 574",
+            sourceKey: "bnf-suppl-grec-574",
+            startYear: 300,
+            endYear: 400,
+            datePrecision: "century",
+            originalDateText: "'Opuscules magiques (Papyrus Anastasi) (IVe siècle.)' (the BnF's label)",
+            evidence:
+              "The date the holding library gives the papyrus on its label, seen on its digitisation; the label does not state its grounds. Mead (p. 10) puts it in 'the earliest years of the fourth century A.D.'. The only witness of the ritual.",
+          }),
+          dated("translation_publication", {
+            qualifier: "Mead's English",
+            sourceKey: "mead-mithriac-ritual-1907",
+            startYear: 1907,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "'The Theosophical Publishing Society, London and Benares, 1907' (title page)",
+            datingMethod: "historical_record",
+            evidence: "The title page of the 1907 book, seen in two of the scans.",
+          }),
+        ],
+      },
+    },
+    prominence: 2,
   },
 
   // ======================================================================
@@ -2331,8 +2592,9 @@ export const INVENTORY: InventoryWork[] = [
     inventoryBasis: "About eighty synoptic sections, each held separately for NHC II,1 and IV,1 (long) and NHC III,1 and BG 8502,2 (short); exact counts per version to be fixed from the synopsis.",
     inventoryConfidence: "medium",
     inventoryVerified: false,
-    copyrightSummary: "No public-domain English of the Coptic. Irenaeus (ANF, public domain) for the parallel in Against Heresies I.29.",
-    fullTextEditions: ["Irenaeus, Against Heresies I.29 (ANF 1885)"],
+    copyrightSummary:
+      "No public-domain English of the Coptic. Irenaeus's report of a closely related system, Against Heresies I.29 (ANF 1885, public domain), is not the Apocryphon itself; it is imported as a work of its own, gnostic.irenaeus-against-heresies, together with chapters 30 and 31.",
+    fullTextEditions: ["Irenaeus, Against Heresies I.29 (ANF 1885), a hostile report of a closely related system, not the Apocryphon; imported as its own work, gnostic.irenaeus-against-heresies"],
     referenceOnlyEditions: ["Waldstein & Wisse 1995", "Robinson NHL 1977", "King 2006"],
     imageCollections: ["Coptic Museum, Cairo / Claremont Colleges Digital Library", "Staatliche Museen zu Berlin: BG 8502"],
     anchor: {
@@ -2362,6 +2624,146 @@ export const INVENTORY: InventoryWork[] = [
             originalDateText: "Nag Hammadi Codices II, III and IV, fourth century CE",
             datingMethod: "archaeological",
             evidence: "Codices dated by documents reused in their covers.",
+          }),
+        ],
+      },
+    },
+    prominence: 2,
+  },
+  {
+    // Irenaeus's report is not the Apocryphon of John, so it is a work of its
+    // own; but it is the earliest evidence for the system the Apocryphon sets
+    // out, so it hangs off the Apocryphon's marker rather than making a second
+    // one (as the Critias hangs off the Timaeus's).
+    workKey: "gnostic.irenaeus-against-heresies",
+    passagePrefix: "gnostic.iren",
+    briefItem: 19,
+    title: "Irenaeus, Against Heresies I.29–31: his report of the Barbeliotes, the Ophites and Sethians, and the Cainites",
+    alternativeTitles: ["Adversus haereses I.29–31", "A Refutation and Subversion of Knowledge Falsely So Called"],
+    corpusGroup: "gnostic",
+    traditionClass: "ancient_late_transmission",
+    civilisation: "Roman Gaul",
+    geographicalOrigin: "Lyons (Lugdunum), Gaul",
+    originalLanguage: "Greek (these chapters survive in the old Latin version)",
+    attribution: "Irenaeus, bishop of Lyons",
+    attributionNote:
+      "A hostile report, not a Gnostic text. Irenaeus, bishop of Lyons, wrote Against Heresies in Greek about 180 CE to expose and refute the Gnostic teachers; the last three chapters of Book I summarise the doctrines of further sects, in his words and to his purpose ('Such are the falsehoods which these people invent'). Chapter 29's report of the Barbelo system is the scholarly-standard parallel to the Apocryphon of John: Carl Schmidt, who announced it in 1896 from the Coptic Berlin codex, concluded in 1907 that the writing Irenaeus excerpts there is the Apocryphon of John, while noting where the two differ. Chapter 30 reports a different, related system; chapter 31 the 'Cainites'. The English is Roberts and Rambaut's, as reprinted in The Ante-Nicene Fathers, vol. I (1885), from the old Latin version, in which these chapters survive.",
+    summary:
+      "Irenaeus's hostile summary (c. 180 CE) of three Gnostic systems, in the English of The Ante-Nicene Fathers (1885): the Barbelo system of chapter 29, which Schmidt (1907) identified with the source of the Apocryphon of John; the Ialdabaoth myth of chapter 30, with its seven rulers, Sophia and the serpent; and the Cainites of chapter 31.",
+    referenceEdition: "The Ante-Nicene Fathers, vol. I (Buffalo, 1885), Book I, chapters 29–31, by the edition's chapter and section numbers",
+    expectedUnits: 23,
+    unitLabel: "sections (I.29.1–4, I.30.1–15, I.31.1–4)",
+    unitDivisionKind: "section",
+    inventoryBasis:
+      "The edition's own sections of the three chapters, read on the page images of the 1885 printing (pp. 353–358): four in chapter 29, fifteen in chapter 30 and four in chapter 31, 23 in all, all imported. The rest of Against Heresies (five books) is outside this import and is not inventoried, and the section numbers are the editors', not Irenaeus's, so the count is not marked verified. Listed, not imported: the editors' 23 footnotes.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Public domain: Roberts and Rambaut's translation was printed in 1868 and reprinted in 1885. Schmidt's study (1907) and Mead's summary (1906) are public domain too and are cited. The pictures are public domain or CC BY-SA 4.0, as their Commons file pages state.",
+    fullTextEditions: ["Roberts and Rambaut's English, The Ante-Nicene Fathers, vol. I (Buffalo, 1885): Book I, chapters 29–31"],
+    referenceOnlyEditions: [
+      "The old Latin version, in the editions of Grabe (1702) and Harvey (1857) the translators' notes cite, not read",
+      "Ante-Nicene Christian Library, vol. V (Edinburgh, 1868), the first printing, compared only",
+    ],
+    imageCollections: [
+      "Wikimedia Commons: Erasmus's first edition (Basel, 1526); a Latin manuscript page; P. Oxy. 405 (Cambridge University Library); P. Berol. 8502 (Staatliche Museen zu Berlin)",
+    ],
+    anchor: {
+      existingSlug: "apocryphon-of-john",
+      extraClaims: [
+        dated("earliest_evidence", {
+          qualifier: "Irenaeus's report of a closely related system, Against Heresies I.29",
+          sourceKey: "anf-1885-irenaeus",
+          startYear: 174,
+          endYear: 189,
+          datePrecision: "decade",
+          originalDateText: "'Eleutherius does now, in the twelfth place from the apostles, hold the inheritance of the episcopate' (Against Heresies III.3.3)",
+          evidence:
+            "Irenaeus names Eleutherius as bishop of Rome at the time of writing Book III (III.3.3, ANF vol. I, p. 416), so the work was written during his episcopate, c. 174–189 (Kirsch, Catholic Encyclopedia, 1909); the ANF's Introductory Note (p. 312) narrows it to 'between A.D. 182 and A.D. 188'. Book I came before Book III (it ends by promising to refute these teachers 'in the following book', I.31.4), so it may be somewhat earlier than the date III.3.3 gives; the range is approximate, and 'c. 180' is the usual round figure. Irenaeus reports a system closely related to the Apocryphon of John, which Schmidt (1907) identified with his source; his report is not the Apocryphon itself.",
+        }),
+      ],
+    },
+  },
+  {
+    // Origen's chapters on the Ophite diagram are a report inside a reply, so
+    // they are a work of their own, listed under item 23 (and item 18 for the
+    // Mithraic ladder of VI.22). No marker existed for Origen, Celsus or the
+    // Ophites, so the work has its own.
+    workKey: "gnostic.origen-contra-celsum",
+    passagePrefix: "gnostic.origen",
+    briefItem: 23,
+    title: "Origen, Against Celsus VI.22–38: the Mithraic ladder, the Ophite diagram and the prayers at the gates",
+    alternativeTitles: ["Contra Celsum VI.22–38", "Κατὰ Κέλσου"],
+    corpusGroup: "gnostic",
+    traditionClass: "ancient_late_transmission",
+    civilisation: "Roman Empire",
+    originalLanguage: "Greek",
+    attribution: "Origen of Alexandria, answering Celsus",
+    attributionNote:
+      "A hostile report inside a refutation, not an Ophite text. Origen wrote his eight books against Celsus's True Word about 248 CE, in the reign of Philip the Arab (Eusebius, Church History VI.36). Celsus's book (c. 175–180, debated) is lost and survives only in Origen's quotations. In VI.22–38 Origen quotes Celsus on a Mithraic ladder of seven gates and on a diagram of circles and seven animal-faced rulers; says the diagram belongs to 'a very insignificant sect called Ophites'; describes the copy he says he saw himself; and gives the prayers its followers are taught to say at the gates of the rulers. Three voices are kept apart throughout: Celsus's claims, Origen's description and judgements, and the quoted prayers. The English is Frederick Crombie's, as reprinted in The Ante-Nicene Fathers, vol. IV (1885).",
+    summary:
+      "Origen's reply (c. 248 CE) to Celsus's lost True Word, in the English of The Ante-Nicene Fathers (1885): Celsus's Mithraic ladder of seven metal gates and an eighth; the Ophite diagram of circles, Leviathan and Gehenna, with its seven animal-formed rulers named Michael, Suriel, Raphael, Gabriel, Thauthabaoth, Erataoth and Onoel; and the prayers to Ialdabaoth, Iao, Sabaoth, Astaphaeus, Aloaeus and Horaeus.",
+    referenceEdition: "The Ante-Nicene Fathers, vol. IV (Buffalo, 1885), Book VI, chapters 22–38, by the edition's chapter numbers",
+    expectedUnits: 17,
+    unitLabel: "chapters (VI.22–38)",
+    unitDivisionKind: "chapter",
+    inventoryBasis:
+      "The edition's own chapters, read on the page images of the 1885 printing (pp. 583–590): chapters XXII to XXXVIII of Book VI, one paragraph each, 17 in all, all imported. The range is the brief's (the Ophite diagram and the seven archons, with the Mithraic ladder that leads into it), not a division Origen makes; the rest of Against Celsus (eight books) is outside this import and is not inventoried, and the chapter numbers are the editors', so the count is not marked verified. Listed, not imported: the editors' 79 footnotes.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Public domain: Crombie's translation was printed in 1872 and reprinted in 1885; McGiffert's Eusebius (1890) and Turner's article (1908) are cited. The pictures carry the licences their Commons file pages state.",
+    fullTextEditions: ["Crombie's English, The Ante-Nicene Fathers, vol. IV (Buffalo, 1885): Book VI, chapters 22–38"],
+    referenceOnlyEditions: [
+      "The Greek text, in the editions the translator's notes cite (with conjectures of Boherellus, Spencer, Guietus and Gelenius), not read",
+      "Ante-Nicene Christian Library, vol. XXIII (Edinburgh, 1872), the first printing, compared only",
+    ],
+    imageCollections: [
+      "Wikimedia Commons: a page of the Tura papyrus (Cairo JE 88747) and of BnF Grec 945, both as the file pages identify them; a floor mosaic of the Mithraeum of the Seven Gates, Ostia; reconstructions of the Ophite diagram by Jacques Matter (19th century) and Bernd Witte (1993)",
+    ],
+    anchor: {
+      event: {
+        slug: "origen-against-celsus-ophite-diagram",
+        title: "Origen describes the Ophite diagram in his reply to Celsus",
+        summary: "Answering Celsus's lost attack on the Christians, Origen quotes his account of a Mithraic ladder of seven gates and describes a diagram of the seven rulers that he says he saw.",
+        description:
+          "Origen of Alexandria wrote his eight books Against Celsus in the reign of Philip the Arab (244–249), when, Eusebius says, he was over sixty; c. 248 CE is the usual figure. Celsus's True Word, written c. 175–180 (the date is debated), survives only in Origen's quotations. In Book VI, chapters 22–38, Origen quotes Celsus on the mysteries of Mithras and on a diagram of circles and seven animal-faced rulers, says the diagram belongs to a small sect called the Ophites, describes the copy he says he saw, and gives the prayers its followers were taught to say at each ruler's gate. It is a hostile report: what is known of the diagram and the prayers comes only through Origen.",
+        category: "religion",
+        eventType: "historical",
+        tags: ["ancient texts", "gnostic", "ophites", "archons", "mithras", "ascent"],
+        civilisations: ["Roman Empire"],
+        people: ["Origen", "Celsus"],
+        claims: [
+          dated("composition", {
+            qualifier: "Origen's Against Celsus",
+            sourceKey: "eusebius-he-npnf-1890",
+            startYear: 244,
+            endYear: 249,
+            datePrecision: "decade",
+            originalDateText:
+              "'He also at this time composed a work of eight books in answer to that entitled True Discourse, which had been written against us by Celsus' (Eusebius, Church History VI.36.2)",
+            evidence:
+              "Eusebius puts the work in the reign of Philip the Arab, when Origen was 'as they say, over sixty years old' (VI.34–36); McGiffert's notes (1890) give Philip's reign as early 244 to 249, and the time meant as 'as late as 245' at the earliest. 'c. 248' is the usual round figure; the range is approximate.",
+          }),
+          dated("composition", {
+            qualifier: "Celsus's True Word, which Origen quotes",
+            sourceKey: "turner-celsus-1908",
+            startYear: 175,
+            endYear: 180,
+            datePrecision: "decade",
+            originalDateText: "'his literary activity falls between the years 175 and 180' (Turner, Catholic Encyclopedia, 1908)",
+            evidence:
+              "Turner (1908) puts Celsus's literary activity between 175 and 180, under Marcus Aurelius; McGiffert (1890) reports Keim's date of 178 and says that of Celsus 'we know nothing with certainty, nor did Origen know any more'. The date is debated. Celsus's book is lost; it survives only in Origen's quotations.",
+          }),
+          dated("translation_publication", {
+            qualifier: "Crombie's English, in The Ante-Nicene Fathers, vol. IV",
+            sourceKey: "anf-1885-origen",
+            startYear: 1885,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "The Ante-Nicene Fathers, vol. IV (Buffalo: The Christian Literature Publishing Company, 1885)",
+            datingMethod: "historical_record",
+            evidence: "The printing imported, read in three scans; the translation was first printed in Edinburgh in 1872 (Ante-Nicene Christian Library, vol. XXIII).",
           }),
         ],
       },
@@ -2670,7 +3072,7 @@ export const INVENTORY: InventoryWork[] = [
     anchor: null,
     proposedMembers: [
       "Irenaeus, Against Heresies I (c. 180) — Gnostic systems and their archons",
-      "Origen, Contra Celsum VI.22–38 — the Ophite diagram and the seven archons",
+      "Origen, Contra Celsum VI.22–38 — the Ophite diagram and the seven archons; imported as its own work, gnostic.origen-contra-celsum",
       "Ascension of Isaiah 6–11 — ascent through seven heavens",
       "2 Enoch — the seven heavens",
     ],
@@ -3408,6 +3810,72 @@ export const INVENTORY: InventoryWork[] = [
     prominence: 2,
   },
   {
+    workKey: "modern.kingsford-maitland",
+    passagePrefix: "modern.vow",
+    briefItem: 33,
+    title: "Anna Kingsford and Edward Maitland, The Virgin of the World (1885)",
+    alternativeTitles: ["The Virgin of the World of Hermes Mercurius Trismegistus", "The Hermetic Works: The Virgin of the World"],
+    corpusGroup: "modern_esoteric",
+    traditionClass: "modern",
+    civilisation: "Victorian Britain",
+    geographicalOrigin: "London and Bath",
+    originalLanguage: "English",
+    attribution: "Anna Kingsford and Edward Maitland, translators; Louis Ménard's French used as their intermediary",
+    attributionNote:
+      "A nineteenth-century English translation of ancient Hermetic writings, not an ancient text. Kingsford (1846–1888) and Maitland (1824–1897), authors of The Perfect Way (1882), founded the Hermetic Society in London in 1884, and the book was 'Published under the auspices of the Hermetic Society' (p. 154) for Robert H. Fryar's Bath Occult Reprint Series. They made it, as their footnote on p. ii says, with Louis Ménard's French version (1866) 'used, but not entirely followed', so the English is at one remove from the Greek and the Latin; the notes not initialled are Ménard's, those signed 'A. K.' Kingsford's. Their aim was esoteric, and the archive records it as context, not as a reading of the texts: Maitland's second essay is 'The Hermetic System and the Significance of its Present Revival', and Kingsford's Introduction finds in the title Korē Kosmou 'the wonderful identity subsisting between the ancient wisdom-religion of the old world, and the creed of catholic Christendom', and reads the treatise as a parable of the soul's fall and return. The ancient texts are dated by the existing Hermetica records, not by this book.",
+    summary:
+      "The Virgin of the World (London, 1885), the treatises in full and the opening of Kingsford's Introduction: the Korē Kosmou in three parts, the Asclepius ('A Treatise on Initiations') in fifteen, 'The Definitions of Asclepios' (Corpus Hermeticum XVI–XVIII) in four, and the fragments of Hermes to Tatios and to Ammon and the various fragments from Stobaeus, Cyril, Suidas and Lactantius.",
+    referenceEdition: "First edition, London: George Redway, 1885, cited by printed page; read in Google's scan of an 1885 copy",
+    expectedUnits: 45,
+    unitLabel: "parts (with the opening of the Introduction)",
+    unitDivisionKind: "part",
+    inventoryBasis:
+      "The book's own headings: the Virgin of the World in three parts ('I.', 'Part II.', 'Part III.', pp. 1–39), A Treatise on Initiations, or Asclepios, Parts I–XV (pp. 45–94), The Definitions of Asclepios, Parts I–IV (pp. 101–113), Fragments of the Book of Hermes to his son Tatios, I–VIII (pp. 119–140), Fragments of the Writings of Hermes to Ammon, I–VI (pp. 141–148), and Various Hermetic Fragments, I–VIII (pp. 148–154): 44 parts, all imported, each checked against its opening on the page images. With them the first section of Kingsford's Introduction (pp. xix–xxi, to 'the curse of Eva'), 45 units. Not imported, and listed here: the rest of the Introduction (pp. xxi–xxx, twelve pages without sections in all), Maitland's essays 'The Hermetic Books' (pp. i–viii) and 'The Hermetic System and the Significance of its Present Revival' (pp. ix–xviii), and the notes at the foot of the pages, Ménard's, Kingsford's and Fryar's. The units are the book's, but the selection from the front matter is the archive's, so the count is not marked verified.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary: "Public domain: published in 1885; Kingsford died in 1888, Maitland in 1897 and Ménard in 1901.",
+    fullTextEditions: ["The Virgin of the World (London, 1885): the treatises and the opening of the Introduction"],
+    referenceOnlyEditions: ["Louis Ménard, Hermès Trismégiste (Paris, 1866), the French intermediary, cited only"],
+    imageCollections: ["Wikimedia Commons: portraits of Anna Kingsford and Edward Maitland, Patrizi's Nova de universis philosophia (1591 and the second edition)"],
+    anchor: {
+      event: {
+        slug: "virgin-of-the-world-published",
+        title: "Kingsford and Maitland publish The Virgin of the World",
+        summary: "The first English version of the Korē Kosmou and of other Hermetic writings, made from the French by two founders of the Hermetic Society.",
+        description:
+          "A Victorian esoteric translation, not an ancient text: the Hermetic writings it renders are of the first to third centuries CE, and those dates are shown with the book's own. Kingsford and Maitland translated with Ménard's French beside them, for a revival of Hermetic teaching that Kingsford's Introduction sets beside 'the creed of catholic Christendom'.",
+        category: "culture",
+        eventType: "historical",
+        tags: ["modern esoteric", "hermetica", "kore kosmou", "asclepius", "hermetic society"],
+        civilisations: ["Victorian Britain"],
+        people: ["Anna Kingsford", "Edward Maitland"],
+        claims: [
+          dated("composition", {
+            qualifier: "the Hermetic writings it translates",
+            sourceKey: "copenhaver-hermetica",
+            startYear: 100,
+            endYear: 300,
+            datePrecision: "century",
+            originalDateText: "First to third centuries CE",
+            evidence:
+              "The date the archive already gives the Korē Kosmou and the other Stobaean excerpts, the Greek Asclepius and Corpus Hermeticum XVI–XVIII, by their language, ideas and the earliest quotations; carried across, not a new dating. The book itself dates the Hermetic books far earlier, which is its translators' view, not a date.",
+          }),
+          dated("translation_publication", {
+            qualifier: "the first edition",
+            sourceKey: "kingsford-maitland-1885",
+            startYear: 1885,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "'London: George Redway, York Street, Covent Garden. MDCCCLXXXV' (title page); 'Bath; May, 1885' (prefatory note)",
+            datingMethod: "historical_record",
+            evidence: "The title page and the prefatory note of an 1885 copy, seen on the page images of Google's scan.",
+          }),
+        ],
+      },
+    },
+    prominence: 2,
+  },
+  {
     workKey: "modern.other-authors",
     passagePrefix: "modern.other",
     briefItem: 33,
@@ -3425,14 +3893,14 @@ export const INVENTORY: InventoryWork[] = [
     inventoryConfidence: "medium",
     inventoryVerified: false,
     copyrightSummary: "The proposed members are public domain.",
-    fullTextEditions: ["Kingsford & Maitland 1885"],
+    fullTextEditions: [],
     referenceOnlyEditions: [],
     imageCollections: [],
     anchor: null,
     proposedMembers: [
       "Ignatius Donnelly, Atlantis: The Antediluvian World (1882); five chapters imported as its own work, modern.donnelly",
       "W. Scott-Elliot, The Story of Atlantis (1896); imported as its own work, modern.scott-elliot",
-      "Anna Kingsford and Edward Maitland, The Virgin of the World (1885) — English of the Korē Kosmou and Asclepius",
+      "Anna Kingsford and Edward Maitland, The Virgin of the World (1885) — English of the Korē Kosmou and Asclepius; imported as its own work, modern.kingsford-maitland",
       "Three Initiates, The Kybalion (1908) — 'as above, so below'; imported as its own work, modern.kybalion",
     ],
   },

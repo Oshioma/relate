@@ -17,6 +17,10 @@ import { PLAIN_STEINER } from "./steiner";
 import { PLAIN_KYBALION } from "./kybalion";
 import { PLAIN_DONNELLY } from "./donnelly";
 import { PLAIN_SCOTT_ELLIOT } from "./scott-elliot";
+import { PLAIN_VIRGIN_OF_THE_WORLD } from "./virgin-of-the-world";
+import { PLAIN_MITHRAS_LITURGY } from "./mithras-liturgy";
+import { PLAIN_IRENAEUS } from "./irenaeus";
+import { PLAIN_ORIGEN_CONTRA_CELSUM } from "./origen-contra-celsum";
 import { PLAIN_STOBAEUS } from "./stobaeus";
 import { PLAIN_HERMETICA } from "./hermetica";
 import { PLAIN_KAGEMNI } from "./kagemni";
@@ -58,6 +62,10 @@ const PLAIN: Record<string, Record<string, string>> = {
   "modern.kybalion": PLAIN_KYBALION,
   "modern.donnelly": PLAIN_DONNELLY,
   "modern.scott-elliot": PLAIN_SCOTT_ELLIOT,
+  "modern.kingsford-maitland": PLAIN_VIRGIN_OF_THE_WORLD,
+  "greek.mithras-liturgy": PLAIN_MITHRAS_LITURGY,
+  "gnostic.irenaeus-against-heresies": PLAIN_IRENAEUS,
+  "gnostic.origen-contra-celsum": PLAIN_ORIGEN_CONTRA_CELSUM,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -124,6 +132,70 @@ test("the Introduction and every chapter of the Kybalion have plain words, and o
   assert.match(PLAIN_KYBALION["modern.kyb.1908.3"], /Other possible readings:\n- 'If the Universal is Mental in its nature': a 1908 misprint/);
   assert.match(PLAIN_KYBALION["modern.kyb.1908.9"], /'Principle', a 1908 misprint/);
   assert.match(PLAIN_KYBALION["modern.kyb.1908.14"], /'stream', a 1908 misprint/);
+});
+
+test("the Introduction's first section and every part of The Virgin of the World have plain words, and only those", () => {
+  const vow = ALL_CORPORA.find((c) => c.workKey === "modern.kingsford-maitland")!;
+  const withText = vow.passages.filter((p) => p.layers.some((l) => l.key === "eng-1885")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_VIRGIN_OF_THE_WORLD).sort(), [...withText].sort());
+  assert.equal(withText.length, 45);
+  // Kingsford's esoteric reading is reported as hers, not as the ancient text's.
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.intro"], /translator's own esoteric reading/);
+  // Where the 1885 English and Mead's differ in meaning, the plain words say so.
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.def.2"], /disagree over who is speaking/);
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.tat.4"], /'a very mighty Daimon'/);
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.tat.6"], /'the vase of genesis'/);
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.ammon.2"], /'the Self-perfect Reason'/);
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.frag.2"], /'regulates the breaths'/);
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.frag.7"], /share out the gifts differently/);
+  // The kept misprint is shown as another reading.
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.def.2"], /Other possible readings:\n- 'Incorporeal corporealites' \(p\. 107\) is a misprint of 1885/);
+});
+
+test("the Preamble and every section of the Mithras Liturgy have plain words, and only those", () => {
+  const ml = ALL_CORPORA.find((c) => c.workKey === "greek.mithras-liturgy")!;
+  const withText = ml.passages.filter((p) => p.layers.some((l) => l.key === "eng-1907")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_MITHRAS_LITURGY).sort(), [...withText].sort());
+  assert.equal(withText.length, 15);
+  // Mead's Theosophical reading is reported as his, not as the rite's.
+  assert.match(PLAIN_MITHRAS_LITURGY["greek.mithras.1907.preamble"], /In his own interpretation, which is a Theosophical one and not history/);
+  // The instructions are reported as instructions, and Mead's bracketed words as his.
+  assert.match(PLAIN_MITHRAS_LITURGY["greek.mithras.1907.3"], /^The instructions say/);
+  assert.match(PLAIN_MITHRAS_LITURGY["greek.mithras.1907.2"], /Other possible readings:\n- 'the Deep of the \[New\] Dawn': the word 'New' is Mead's addition/);
+});
+
+test("every section of Irenaeus, Against Heresies I.29–31 has plain words, kept as his report, and only those", () => {
+  const iren = ALL_CORPORA.find((c) => c.workKey === "gnostic.irenaeus-against-heresies")!;
+  const withText = iren.passages.filter((p) => p.layers.some((l) => l.key === "eng-1885")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_IRENAEUS).sort(), [...withText].sort());
+  assert.equal(withText.length, 23);
+  // A hostile report: every entry says it is Irenaeus's report or his own words, never the Gnostics' own.
+  for (const [key, words] of Object.entries(PLAIN_IRENAEUS)) assert.match(words, /^Irenaeus (says|reports|turns)/, key);
+  for (const words of Object.values(PLAIN_IRENAEUS)) assert.doesNotMatch(words, /Apocryphon/);
+  // Where the translators warn that the text is doubtful, the other readings say so.
+  for (const ref of ["29.1", "30.2", "30.5", "30.9", "30.10", "30.11", "30.15", "31.2"]) {
+    assert.match(PLAIN_IRENAEUS[`gnostic.iren.1.${ref}`], /\n\nOther possible readings:\n- /, ref);
+  }
+  assert.match(PLAIN_IRENAEUS["gnostic.iren.1.29.1"], /the 1868 printing reads 'in the conception'/);
+  assert.match(PLAIN_IRENAEUS["gnostic.iren.1.30.15"], /'hopelessly corrupt'/);
+});
+
+test("every chapter of Origen, Against Celsus VI.22–38 has plain words, with Celsus, Origen and the prayers kept apart, and only those", () => {
+  const origen = ALL_CORPORA.find((c) => c.workKey === "gnostic.origen-contra-celsum")!;
+  const withText = origen.passages.filter((p) => p.layers.some((l) => l.key === "eng-1885")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_ORIGEN_CONTRA_CELSUM).sort(), [...withText].sort());
+  assert.equal(withText.length, 17);
+  // A hostile report: every entry is framed as what Origen says, reports, quotes or describes.
+  for (const [key, words] of Object.entries(PLAIN_ORIGEN_CONTRA_CELSUM)) assert.match(words, /^Origen (says|reports|quotes|describes)/, key);
+  // Celsus's words are reported as his, and the prayers as what the sect is taught to say.
+  assert.match(PLAIN_ORIGEN_CONTRA_CELSUM["gnostic.origen.6.22"], /he quotes Celsus's words/);
+  assert.match(PLAIN_ORIGEN_CONTRA_CELSUM["gnostic.origen.6.31"], /what they are taught to say/);
+  assert.match(PLAIN_ORIGEN_CONTRA_CELSUM["gnostic.origen.6.31"], /In this English no prayer is given to a fourth gate/);
+  // Where the editors say the Greek is uncertain or emended, or the 1872 printing differs, the other readings say so.
+  for (const n of [22, 28, 29, 31, 33, 34, 35, 36, 38]) {
+    assert.match(PLAIN_ORIGEN_CONTRA_CELSUM[`gnostic.origen.6.${n}`], /\n\nOther possible readings:\n- /, String(n));
+  }
+  assert.match(PLAIN_ORIGEN_CONTRA_CELSUM["gnostic.origen.6.28"], /the 1872 printing reads 'or admit even that He was a wise man'/);
 });
 
 test("the Preface and every section of Scott-Elliot's Story of Atlantis have plain words, and only those", () => {

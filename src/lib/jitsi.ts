@@ -1,4 +1,4 @@
-import { createSign } from "node:crypto";
+import { createHmac, createSign } from "node:crypto";
 
 // JaaS (Jitsi as a Service, by 8x8) config — the production video backend for
 // Live Events. Unlike the free public meet.jit.si server (demo-only: 5-minute
@@ -60,6 +60,10 @@ export interface JaasTokenInput {
   name: string;
   // Staff join as moderators (can mute others, manage the room); members don't.
   moderator: boolean;
+  // Whether this participant gets the Record button. Only hosts of a course's
+  // live lesson on a plan with session_recording; the JaaS account must have
+  // recording switched on too.
+  recording?: boolean;
   email?: string | null;
   avatar?: string | null;
 }
@@ -93,7 +97,7 @@ export function mintJaasToken(input: JaasTokenInput): string {
     context: {
       features: {
         livestreaming: false,
-        recording: false,
+        recording: Boolean(input.recording),
         transcription: false,
         "outbound-call": false,
       },
@@ -114,4 +118,14 @@ export function mintJaasToken(input: JaasTokenInput): string {
   signer.end();
   const signature = signer.sign(privateKeyPem()).toString("base64url");
   return `${signingInput}.${signature}`;
+}
+
+// The room for a course's live lesson. Tokens authorise every room in the
+// tenant, so the name itself is what keeps people out: derived from the lesson
+// with a server secret, it can't be guessed from the lesson id, and it's only
+// handed to people allowed to join (see joinCourseLiveLesson).
+export function courseLessonRoomName(lessonId: string): string {
+  const secret = RAW_PRIVATE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "relate-dev-rooms";
+  const digest = createHmac("sha256", secret).update(`course-lesson:${lessonId}`).digest("hex").slice(0, 24);
+  return `course-${digest}`;
 }

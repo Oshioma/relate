@@ -30,6 +30,9 @@ import { getPublicCrops } from "@/lib/data/public-crops";
 import { getCommunityPosts } from "@/lib/data/posts";
 import { NaturesGardenersLanding } from "./natures-gardeners-landing";
 import { joinPolicyOf } from "@/lib/join-policy";
+import { readTestimonials } from "@/lib/testimonials";
+import { getTestimonialMemberPhotos } from "@/lib/data/testimonial-photos";
+import { TestimonialsSection } from "./testimonials-section";
 
 // Communities with their own designed front page instead of the generic one.
 const BESPOKE_LANDINGS = new Set(["naturesgardeners"]);
@@ -133,11 +136,13 @@ export default async function CommunityWelcomePage({
   const teaserCards = (await getSpaceTeasers(supabase, community.id, spaces.map((s) => s.id)))
     .filter((t) => t.show_as_card)
     .map(teaserAsSpace);
-  const [customCategories, labelOverrides, featuredCategories, eventGoing] = await Promise.all([
+  const testimonials = readTestimonials(community.testimonials);
+  const [customCategories, labelOverrides, featuredCategories, eventGoing, testimonialPhotos] = await Promise.all([
     getCommunityBusinessCustomCategories(supabase, community.id),
     getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
     getCommunityFeaturedBusinessCategories(supabase, community.id),
     getEventRsvpCounts(supabase, upcoming.filter((e) => e.capacity !== null).map((e) => e.id)),
+    getTestimonialMemberPhotos(community.id, testimonials.flatMap((t) => (t.memberId ? [t.memberId] : []))),
   ]);
   const categoryPreviews = await getFeaturedCategoryPreviews(
     supabase,
@@ -254,6 +259,8 @@ export default async function CommunityWelcomePage({
 
       <main className="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
         <SpaceCards spaces={[...cardSpaces, ...teaserCards]} base={base} carousels={categoryCarousels} showOnMobile />
+
+        <TestimonialsSection communityName={community.name} testimonials={testimonials} memberPhotos={testimonialPhotos} />
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <Card className="flex flex-col justify-center gap-5 bg-accent-soft p-6 sm:p-8">

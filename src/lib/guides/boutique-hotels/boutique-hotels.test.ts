@@ -60,6 +60,11 @@ test("every Commons photo validates, is credited and licensed, and UNVERIFIED ca
   for (const p of all) {
     assert.ok(photoSchema.safeParse(p).success, p.src);
     assert.ok(p.licence && p.credit && p.sourceUrl.startsWith("https://commons.wikimedia.org/"), `${p.src} lacks licence, credit or Commons source`);
+    // The hero is the app's own copy (hot-linked Commons images are rate-limited).
+    if (p === BOUTIQUE_HERO_PHOTO) {
+      for (const size of [640, 1280]) assert.ok(existsSync(join("public", "guides", "boutique-hotels", `hero-jambiani-beach-${size}.webp`)), `hero ${size} missing`);
+      continue;
+    }
     assert.ok(p.src.startsWith("https://upload.wikimedia.org/wikipedia/commons/") && !p.src.includes("/thumb/"), `${p.src} should be a Commons original`);
     if (p.identificationStatus === "unverified") assert.match(p.caption, /^UNVERIFIED —/, `${p.src} must say UNVERIFIED`);
     else assert.doesNotMatch(p.caption, /^UNVERIFIED/, `${p.src} is secure but captioned UNVERIFIED`);
@@ -169,9 +174,9 @@ test("admin hotel photos replace the built-in ones; bad or unknown entries are i
   assert.ok(photoCount(resolved) > 0);
 });
 
-test("the feed card uses the hero as a 960px Commons thumbnail, honouring an admin override", () => {
+test("the feed card uses the app's own copy of the hero, honouring an admin override", () => {
   const card = boutiqueCardImage({});
-  assert.ok(card && card.includes("/thumb/") && card.includes("960px-"), String(card));
+  assert.ok(card && card.startsWith("/guides/boutique-hotels/hero-jambiani-beach-"), String(card));
   assert.equal(boutiqueCardImage({ heroPhoto: photo("https://example.org/hero.jpg") }), "https://example.org/hero.jpg");
 });
 

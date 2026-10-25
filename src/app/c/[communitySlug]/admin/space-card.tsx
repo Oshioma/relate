@@ -20,7 +20,7 @@ import { spaceImage } from "@/lib/space-images";
 import { RowMenu, type RowMenuItem } from "./row-menu";
 import { AccessBox, DragHandle, ROW_ABOUT, ROW_GRID, ROW_MENU, ROW_SETTINGS, TypeChip } from "./space-row-parts";
 import { SpaceAccessForm } from "./access/space-access-editor";
-import { SPACE_TYPES, groupSpaceTypesByCategory } from "@/lib/space-types";
+import { SPACE_TYPES, SPACE_TYPE_CATEGORIES, groupSpaceTypesByCategory } from "@/lib/space-types";
 import { AccessSelector } from "@/components/community/access-selector";
 import { spaceAccessCard, type AccessCommunity, type AccessTier } from "@/lib/access/model";
 import type { Space, SpaceJournalField, SpaceType } from "@/types/database";
@@ -79,11 +79,14 @@ export function SpaceCard({
   const [showJournalFields, setShowJournalFields] = useState(false);
   const [showSubNav, setShowSubNav] = useState(false);
   const [showAccess, setShowAccess] = useState(false);
+  // The type picked in the edit form, so its description shows under the picker.
+  const [chosenType, setChosenType] = useState<SpaceType>(space.space_type);
   // Cover image lives in state so the uploader's result is submitted with the
   // form via a hidden input; empty string means "no cover" (the action → null).
   const [imageUrl, setImageUrl] = useState<string | null>(space.image_url);
   const [updateState, updateAction, isUpdating] = useActionState<SpaceFormState, FormData>(updateSpace, undefined);
   const meta = SPACE_TYPES[space.space_type];
+  const TypeIcon = meta.icon;
 
   // Type choices: the allowed pool, plus this space's current type if the super
   // admin has since removed it from the pool (so it stays selectable/keepable).
@@ -116,7 +119,8 @@ export function SpaceCard({
   if (editing) {
     return (
       <div
-        className={`rounded-lg border p-3 ${isDragging ? "border-accent" : "border-border"} bg-card`}
+        id={`space-${space.id}`}
+        className={`scroll-mt-20 rounded-lg border p-3 ${isDragging ? "border-accent" : "border-border"} bg-card`}
         {...dragHandlers}
       >
         <form action={updateAction} className="space-y-3">
@@ -175,7 +179,8 @@ export function SpaceCard({
             <select
               id={`type-${space.id}`}
               name="space_type"
-              defaultValue={space.space_type}
+              value={chosenType}
+              onChange={(e) => setChosenType(e.target.value as SpaceType)}
               className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             >
               {typeGroups.map((group) => (
@@ -188,6 +193,10 @@ export function SpaceCard({
                 </optgroup>
               ))}
             </select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {SPACE_TYPE_CATEGORIES.find((c) => c.key === SPACE_TYPES[chosenType].category)?.label} · {SPACE_TYPES[chosenType].description}
+              {chosenType !== space.space_type && ` (now ${meta.label}; changes when you save)`}
+            </p>
           </div>
 
           <AccessSelector
@@ -294,7 +303,8 @@ export function SpaceCard({
 
   return (
     <div
-      className={`rounded-2xl border ${isDragging ? "border-accent" : "border-border"} bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)]`}
+      id={`space-${space.id}`}
+      className={`scroll-mt-20 rounded-2xl border ${isDragging ? "border-accent" : "border-border"} bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)]`}
       {...dragHandlers}
     >
       <div className={ROW_GRID}>
@@ -305,8 +315,17 @@ export function SpaceCard({
         <div className={ROW_ABOUT}>
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <p className="text-base font-semibold leading-snug text-foreground">{space.name}</p>
-            <TypeChip tone={meta.category}>{meta.label}</TypeChip>
           </div>
+          {/* The type, spelled out with its "Add a space" category, so it's
+              never a guess what kind of space this is. */}
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+            <span>Type</span>
+            <TypeChip tone={meta.category}>
+              <TypeIcon className="mr-1 h-3.5 w-3.5" aria-hidden />
+              {meta.label}
+            </TypeChip>
+            <span>in {SPACE_TYPE_CATEGORIES.find((c) => c.key === meta.category)?.label}</span>
+          </p>
           {blurb && <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{blurb}</p>}
           {stats.length > 0 && (
             <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">

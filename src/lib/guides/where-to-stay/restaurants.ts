@@ -17,6 +17,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
   kendwa: [
     {
       name: "Fisherman Local Restaurant",
+      listing: { kind: "business", slug: "fisherman-local-restaurant" },
       cuisine: "Local Zanzibari and seafood",
       price: "$",
       why: "A plain back-street restaurant that reviewers repeatedly say beats the beach restaurants on food and value. Recent diners praise fresh seafood curry, grilled octopus and prawn masala at very fair prices. Expect a simple setting and some waiting.",
@@ -40,6 +41,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
   nungwi: [
     {
       name: "Mama Mia",
+      listing: { kind: "business", slug: "mama-mia" },
       cuisine: "Italian: pizza, pasta, seafood and gelato",
       price: "$$",
       why: "A long-running beachfront Italian with a terrace and tables on the sand, popular at sunset. Reviewers praise the pizza, seafood dishes and gelato, and the generous portions. Prices are above average for Nungwi and it gets busy at peak times.",
@@ -48,6 +50,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
     },
     {
       name: "Sexy Fish",
+      listing: { kind: "business", slug: "sexy-fish" },
       cuisine: "Seafood with African and European influences",
       price: "$$$",
       why: "A dinner-only seafood restaurant at The Z Hotel, with tables on the sand or on an upper deck facing the sea. Recent reviewers consistently praise the seafood, the elegant setting and the friendly staff. It is one of Nungwi's special-occasion choices; booking is recommended.",
@@ -59,6 +62,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
   paje: [
     {
       name: "Mapacha Food Court",
+      listing: { kind: "business", slug: "mapacha-food-court" },
       cuisine: "Street-food court: seafood, pizza, sushi, falafel, salads and bakery",
       price: "$",
       why: "A casual food court on Paje's main roundabout where several stalls cook different cuisines to order. Recent reviewers praise friendly staff, fair prices and generous portions. It is a good choice for groups with mixed tastes, and for vegetarian, vegan or gluten-free diners.",
@@ -67,6 +71,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
     },
     {
       name: "ZanziBarista",
+      listing: { kind: "business", slug: "zanzibarista" },
       cuisine: "Speciality coffee, brunch, seafood and cocktails",
       price: "$$",
       why: "A coffee shop, restaurant and beach bar right on Paje beach, from breakfast through to evening drinks. Reviewers consistently praise the sea view, warm and efficient staff and the seafood, and many come back daily for coffee. It costs a little more than places nearby.",
@@ -77,6 +82,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
   jambiani: [
     {
       name: "Fadhil Restaurant",
+      listing: { kind: "business", slug: "fadhil-restaurant" },
       cuisine: "Local Zanzibari and seafood",
       price: "$",
       why: "A small family-run restaurant in a village alley, with a handwritten daily menu and a few tables on a sand floor. Reviewers praise the seafood, large portions and fair prices. Service is slow, so locals advise ordering a few hours ahead; no alcohol is served.",
@@ -86,6 +92,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
     },
     {
       name: "Ocean Boho House Restaurant",
+      listing: { kind: "business", slug: "ocean-boho-house-restaurant" },
       cuisine: "International with fresh seafood and good vegetarian options",
       price: "$$",
       why: "A guesthouse restaurant with bohemian décor, a lush garden and live music. Reviewers praise fresh ingredients that work for vegetarians and meat-eaters alike, and good value. Service is usually warm and attentive.",
@@ -96,6 +103,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
   matemwe: [
     {
       name: "Marlin Restaurant",
+      listing: { kind: "business", slug: "marlin-restaurant" },
       cuisine: "Swahili and local seafood",
       price: "$",
       why: "A small local restaurant with a Swahili menu that reviewers often call a hidden gem. They consistently praise the fresh seafood — the octopus in particular — friendly service and very good value. Vegetarian and vegan options are available.",
@@ -117,6 +125,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
   michamvi: [
     {
       name: "Kae Funk Sunset Beach Bar",
+      listing: { kind: "business", slug: "kae-funk-sunset-beach-bar" },
       cuisine: "Beach bar: drinks and simple food",
       price: "$$",
       why: "Go for the sunset rather than the food. Reviewers consistently praise the view, the beach setting and the party atmosphere with DJs, while rating the food as ordinary. It can be crowded and service slow.",
@@ -125,6 +134,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
     },
     {
       name: "Baladin Zanzibar Beach Hotel & Restaurant",
+      listing: { kind: "business", slug: "baladin-zanzibar-beach-hotel-restaurant" },
       cuisine: "Italian (house-made pizza and pasta), seafood and Baladin craft beer",
       price: "$$",
       why: "A beachfront hotel restaurant from the Italian Baladin brewery, serving its craft beer on draught alongside house-made pizza, pasta and seafood. Recent reviewers praise the varied menu and quality ingredients and describe it as a romantic dinner spot. It is a few steps from The Rock.",
@@ -136,6 +146,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
   kiwengwa: [
     {
       name: "La Capannina Zanzibar",
+      listing: { kind: "business", slug: "la-capannina-zanzibar" },
       cuisine: "Italian: homemade pasta, pizza and seafood",
       price: "$$",
       why: "A small Italian restaurant whose owners and Italian chef reviewers describe as warm and attentive. Diners consistently praise the fresh homemade pasta, pizza and desserts, at prices seen as reasonable for the quality. It fills up, so book ahead for dinner.",
@@ -145,6 +156,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
     },
     {
       name: "La Base JungleKite",
+      listing: { kind: "business", slug: "la-base-junglekite" },
       cuisine: "Italian and seafood",
       price: "$$",
       why: "A beachfront terrace restaurant at the JungleKite kitesurfing school that welcomes non-kiters too. Recent reviewers praise the Italian dishes, the seafood and the owners' hospitality. It is a relaxed lunch spot with a view of the kites.",
@@ -155,6 +167,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
   bwejuu: [
     {
       name: "Leo Beach Bar & Restaurant",
+      listing: { kind: "business", slug: "leo-beach-bar-restaurant" },
       cuisine: "Seafood, grills and local Zanzibari dishes",
       price: "$",
       why: "A casual beachfront spot whose reviewers single out the grilled fish, octopus and lobster, along with good cocktails and fresh juices. The welcome is warm and prices reasonable. It has fewer reviews than longer-established places, so treat it as a promising casual choice.",
@@ -163,6 +176,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
     },
     {
       name: "Sahari Zanzibar",
+      listing: { kind: "business", slug: "sahari-zanzibar" },
       cuisine: "European, Asian and Zanzibari",
       price: "$$",
       why: "A boutique-hotel restaurant with dinner tables set around the pool and on the beach. Reviewers praise the friendly staff, the seafood platter and the pizza, and say dietary requests are handled well. It is pricier than the local places in Bwejuu or Paje.",
@@ -173,6 +187,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
   pongwe: [
     {
       name: "The Island – Pongwe Restaurant",
+      listing: { kind: "business", slug: "the-island-pongwe-restaurant" },
       cuisine: "Seafood-led international",
       price: "$$$",
       why: "A restaurant on a small coral-rock islet just off Pongwe beach, open to non-residents for lunch and dinner. Reviewers consistently describe the setting as spectacular and praise the fresh, well-presented seafood. Be ready to get your feet wet or take a boat at high tide.",
@@ -181,6 +196,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
     },
     {
       name: "Pongwe Beach Hotel restaurant",
+      listing: { kind: "business", slug: "pongwe-beach-hotel-restaurant" },
       cuisine: "Daily-changing seafood and Swahili cooking",
       price: "$$",
       why: "The hotel's oceanfront kitchen builds its menu around the morning catch and local produce. Its Swahili buffet and beach barbecue nights are open to non-residents who book ahead. Reviewers describe a quiet setting and helpful service.",
@@ -193,6 +209,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
   "pwani-mchangani": [
     {
       name: "Blue Moon Villa Restaurant",
+      listing: { kind: "business", slug: "blue-moon-villa-restaurant" },
       cuisine: "Italian and African, with a focus on seafood",
       price: "$$",
       why: "A guesthouse restaurant a short walk from the sea. Reviewers consistently praise the lobster, octopus, prawns and mixed fish grill, and say the quiet setting suits families. Service and value both get strong marks.",
@@ -201,6 +218,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
     },
     {
       name: "The Breeze (TUI BLUE Bahari Zanzibar)",
+      listing: { kind: "business", slug: "the-breeze-tui-blue-bahari" },
       cuisine: "Seafood-focused à la carte",
       price: "$$$",
       why: "The resort's speciality restaurant for candlelit dinners. Reviewers praise the seafood platter, fish of the day and attentive staff. It opens for dinner on set nights and needs a reservation.",
@@ -212,6 +230,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
   dongwe: [
     {
       name: "Blue Pontile Dongwe",
+      listing: { kind: "business", slug: "blue-pontile-dongwe" },
       cuisine: "Italian-Mediterranean seafood",
       price: "$$$",
       why: "A restaurant at the end of Dongwe Club's long jetty over the lagoon. Reviewers consistently praise the setting, the shellfish pasta and the lobster, and describe it as romantic. Staff are often called attentive and welcoming.",
@@ -220,6 +239,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
     },
     {
       name: "Fishers Restaurant",
+      listing: { kind: "business", slug: "fishers-restaurant" },
       cuisine: "Fresh local seafood",
       price: "$",
       why: "A small, family-run beach spot serving fish straight from the boats at around half resort prices. The setting is simple but atmospheric. Reviews are mixed on service and food can take a long time.",
@@ -243,6 +263,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
     },
     {
       name: "Kameleon Blue Bar & Restaurant",
+      listing: { kind: "business", slug: "kameleon-blue-bar-restaurant" },
       cuisine: "Italian and Mediterranean, plus Swahili dishes",
       price: "$$",
       why: "A garden bar and restaurant with a pool at a small, independent arts lodge. Reviewers praise the seafood platter and the Zanzibari calamari curry, and several recommend the Swahili dishes. It hosts live-music evenings.",
@@ -254,6 +275,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
   uroa: [
     {
       name: "Kambakocho Bar & Beach Restaurant",
+      listing: { kind: "business", slug: "kambakocho-bar-beach-restaurant" },
       cuisine: "Seafood, pizza, pasta and cocktails",
       price: "$$",
       why: "A beachfront restaurant with ocean views. Reviewers praise the grilled lobster, octopus carpaccio and cocktails, and the multilingual staff. Recurring complaints are slow service and billing, so check your bill before paying.",
@@ -263,6 +285,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
     },
     {
       name: "Zan Taste Restaurant",
+      listing: { kind: "business", slug: "zan-taste-restaurant" },
       cuisine: "Local Zanzibari, seafood, juices and smoothies",
       price: "$",
       why: "A small, locally run spot praised for octopus, fresh fish, juices and smoothies at low prices for the area. Staff are consistently described as friendly.",
@@ -274,6 +297,7 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
   "stone-town": [
     {
       name: "Lukmaan Restaurant",
+      listing: { kind: "business", slug: "lukmaan" },
       cuisine: "Zanzibari canteen: biryani, pilau, curries, fried fish and fresh juices",
       price: "$",
       why: "Widely described as one of the best places in Stone Town for authentic local food at low prices. You choose from counters of curries, fish and meat and pay up front. It is busy and hurried; check prices before ordering.",
