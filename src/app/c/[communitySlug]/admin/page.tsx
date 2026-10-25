@@ -263,20 +263,25 @@ export default async function AdminPage({
     { label: "Bundle a membership tier", hint: "Group spaces into one recurring price.", done: tiers.length > 0, href: "#tiers" },
   ];
 
-  // Sections shown in the admin nav, in page order and grouped under headings.
-  // Owner-only sections are appended only when they actually render below, so
-  // a link never points at a missing anchor.
+  // Sections shown in the admin nav, grouped under headings. Listed in the
+  // exact order they appear on the page, groups included: the highlight follows
+  // the page as you scroll, so a section listed out of order sends it jumping
+  // up and down the nav. Owner-only sections are added only when they actually
+  // render below, so a link never points at a missing anchor. The last group
+  // links to the admin pages of their own.
+  const base = `/c/${community.slug}`;
   const sections: NavSection[] = [
     { id: "overview", label: "Overview", group: "Community" },
+    { id: "who-can-see-what", label: "Who can see what?", group: "Community" },
     { id: "members", label: "Members", group: "Community" },
-    // Access settings in their four groups, after the summary that links to them.
-    { id: "who-can-see-what", label: "Who can see what?", group: "Access" },
-    { id: "spaces", label: "Spaces & Content", group: "Access" },
     { id: "details", label: "Details", group: "Profile & pages" },
     { id: "landing", label: "Landing page", group: "Profile & pages" },
+    { id: "testimonials", label: "Testimonials", group: "Profile & pages" },
     { id: "guidelines", label: "Guidelines", group: "Profile & pages" },
     { id: "contact", label: "Contact", group: "Profile & pages" },
     { id: "emails", label: "Emails", group: "Profile & pages" },
+    { id: "spaces", label: "Spaces & Content", group: "Spaces & sidebar" },
+    { id: "add-space", label: "Add a space", group: "Spaces & sidebar" },
     { id: "sidebar-sections", label: "Sidebar sections", group: "Spaces & sidebar" },
     { id: "profile-fields", label: "Profile fields", group: "Spaces & sidebar" },
     { id: "sidebar-links", label: "Sidebar links", group: "Spaces & sidebar" },
@@ -287,7 +292,7 @@ export default async function AdminPage({
   }
   if (isOwner) {
     sections.push(
-      { id: "set-up-membership", label: "Memberships & payments", group: "Access" },
+      { id: "set-up-membership", label: "Memberships & payments", group: "Plan & payments" },
       { id: "plan", label: "Plan", group: "Plan & payments" },
       { id: "marketplace", label: "Marketplace", group: "Plan & payments" },
       { id: "payments", label: "Payments", group: "Plan & payments" },
@@ -296,6 +301,13 @@ export default async function AdminPage({
       { id: "danger", label: "Danger zone", group: "Settings" },
     );
   }
+  sections.push(
+    { id: "page-analytics", label: "Analytics", group: "Other admin pages", href: `${base}/admin/analytics` },
+    { id: "page-access", label: "Access check", group: "Other admin pages", href: `${base}/admin/access` },
+    { id: "page-emails", label: "Email editor", group: "Other admin pages", href: `${base}/admin/emails` },
+    { id: "page-inbox", label: "Inbox", group: "Other admin pages", href: `${base}/inbox` },
+    { id: "page-concierge", label: "Concierge queries", group: "Other admin pages", href: `${base}/admin/concierge` },
+  );
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:grid lg:max-w-6xl lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-10">
