@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { CheckCircle2 } from "lucide-react";
 import { updatePassword, type UpdatePasswordState } from "@/app/auth/actions";
 import { Input, Label } from "@/components/ui/input";

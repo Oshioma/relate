@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { notFound, redirect } from "next/navigation";
 import { CalendarDays, Sparkles, Inbox, BarChart3, Eye, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";

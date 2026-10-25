@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { ArrowRight } from "lucide-react";
 import type { Space } from "@/types/database";
 import { toPlainText } from "@/components/ui/rich-text";

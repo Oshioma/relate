@@ -7,6 +7,7 @@ import { QUIZ_QUESTIONS, recommendDestinations, type QuizAnswers } from "@/lib/g
 import { GuideImage } from "./guide-image";
 import type { DestinationSummary } from "./types";
 
+import { Anchor } from "@/components/ui/link";
 // "Find Your Zanzibar": five questions, a deterministic top three. The answers
 // are a handful of radio buttons kept in component state — nothing is typed,
 // so there is no draft to save — and changing any answer re-ranks instantly.
@@ -101,9 +102,9 @@ export function FindYourZanzibar({
                       <a href={`#${d.key}`} className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:opacity-90">
                         View the {d.name} guide <ArrowRight className="h-4 w-4" aria-hidden />
                       </a>
-                      <a href={accommodationHref ? accommodationHref : `#${d.key}-stay`} className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted">
+                      <Anchor href={accommodationHref ? accommodationHref : `#${d.key}-stay`} className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted">
                         <BedDouble className="h-4 w-4" aria-hidden /> Explore accommodation
-                      </a>
+                      </Anchor>
                     </div>
                   </div>
                 </div>

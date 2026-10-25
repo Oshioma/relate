@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Package } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getActivePlatformPlans } from "@/lib/data/platform-plans";

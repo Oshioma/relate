@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { useActionState } from "react";
 import { updatePrivacy, type PrivacyFormState } from "./actions";
 import { SubmitButton } from "@/components/ui/submit-button";

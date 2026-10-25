@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { notFound } from "next/navigation";
 import { ExternalLink, CalendarDays, BookOpen, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";

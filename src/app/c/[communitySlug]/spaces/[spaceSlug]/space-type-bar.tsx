@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Settings2 } from "lucide-react";
 import { SPACE_TYPES, SPACE_TYPE_CATEGORIES } from "@/lib/space-types";
 import { TypeChip } from "../../admin/space-row-parts";

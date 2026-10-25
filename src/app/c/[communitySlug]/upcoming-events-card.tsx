@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { CalendarDays } from "lucide-react";
 import type { UpcomingLiveSession } from "@/lib/data/live-events";
 import type { Event } from "@/types/database";

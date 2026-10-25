@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { useActionState } from "react";
 import { ArrowRight, Bookmark, EyeOff, Telescope } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { ShieldCheck, AlertTriangle, Info, ArrowRight, Check, Lock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { describeSpaceAccess, findAccessIssues, type AccessCommunity, type AccessSpace, type AccessTier } from "@/lib/access/model";

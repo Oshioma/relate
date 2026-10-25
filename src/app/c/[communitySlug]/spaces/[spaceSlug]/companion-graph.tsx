@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import type { CompanionRelationship } from "@/types/database";
 import type { CropCompanionWithLink } from "@/lib/data/crop-guides";
 

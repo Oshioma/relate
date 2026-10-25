@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { BookOpenText, Check, MapPin, Pencil, Scale, Sparkles, Trash2, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RichText } from "@/components/ui/rich-text";

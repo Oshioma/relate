@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { ArrowUpRight, ChevronDown } from "lucide-react";
 
 /**

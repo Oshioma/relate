@@ -1,5 +1,5 @@
 import { spaceImage } from "@/lib/space-images";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { notFound } from "next/navigation";
 import { History, Layers, Lock, Users as UsersIcon, Globe } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";

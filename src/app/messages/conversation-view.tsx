@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useRef, useState, useTransition } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Video, CalendarClock, Phone, X, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { ArrowRight, CalendarDays, Lock, MapPin, MessageSquare, Store, UsersRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { absoluteUrl, canonicalUrl, communityCanonicalOrigin, communitySiteJsonLd, jsonLd, metaDescription } from "@/lib/seo";
+import { absoluteUrl, canonicalUrl, communityCanonicalOrigin, communitySiteJsonLd, jsonLd, metaDescription, SEO_PATH_HEADER } from "@/lib/seo";
+import { CommunityHostProvider } from "@/components/ui/community-host";
 import { getCommunityBySlug, getCommunityStats } from "@/lib/data/community";
 import { getCommunityEditorialGuides } from "@/lib/data/editorial-guides";
 import { getCommunitySpaces, getSpaceTeasers, teaserAsSpace } from "@/lib/data/spaces";
@@ -102,7 +103,20 @@ function welcomeDescription(community: { name: string; description: string | nul
   return metaDescription(community.description) ?? `${community.name} — its spaces, events, members and local businesses, all in one place.`;
 }
 
-export default async function CommunityWelcomePage({
+// Served at "/" on the community's own host (the proxy passes the clean path
+// only there), where its /c/<slug>/… links are written as the clean paths that
+// host serves — see src/components/ui/link.tsx.
+export default async function CommunityWelcomePage(props: { params: Promise<{ communitySlug: string }> }) {
+  const { communitySlug } = await props.params;
+  const onOwnHost = Boolean((await headers()).get(SEO_PATH_HEADER));
+  return (
+    <CommunityHostProvider slug={onOwnHost ? communitySlug : null}>
+      <WelcomePage {...props} />
+    </CommunityHostProvider>
+  );
+}
+
+async function WelcomePage({
   params,
 }: {
   params: Promise<{ communitySlug: string }>;

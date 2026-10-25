@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { ArrowRight, HeartHandshake, Sprout, Inbox, Clock, Settings2, ShieldCheck, Hourglass } from "lucide-react";
 import type { GuidedJourneyContext, JourneySummary, StoryWithPeople } from "@/lib/data/guided-journey";
 import type { JourneyBeginnerProfile, JourneyMentorProfile, JourneyTemplate } from "@/types/database";

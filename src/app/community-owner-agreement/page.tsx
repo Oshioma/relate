@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { RichText } from "@/components/ui/rich-text";
 import { OWNER_AGREEMENT_MARKDOWN, OWNER_AGREEMENT_UPDATED_LABEL } from "@/lib/owner-agreement";
 

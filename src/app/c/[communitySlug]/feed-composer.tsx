@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import type { Space } from "@/types/database";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { Avatar } from "@/components/ui/avatar";
