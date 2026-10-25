@@ -6,19 +6,20 @@ import { circlePicturesInHtml, isCirclePictureUrl } from "@/lib/circle-pictures"
 export async function countCirclePictures(communityId: string): Promise<number> {
   try {
     const admin = createAdminClient();
-    const [{ data: members }, { data: guides }] = await Promise.all([
+    const [{ data: members }, { data: guides }, { data: posts }] = await Promise.all([
       admin
         .from("community_memberships")
         .select("profile:user_id (avatar_url)")
         .eq("community_id", communityId)
         .eq("status", "active"),
       admin.from("guides").select("body").eq("community_id", communityId),
+      admin.from("posts").select("body").eq("community_id", communityId),
     ]);
     let count = 0;
     for (const row of (members ?? []) as unknown as { profile: { avatar_url: string | null } | null }[]) {
       if (isCirclePictureUrl(row.profile?.avatar_url)) count++;
     }
-    for (const guide of guides ?? []) count += circlePicturesInHtml(guide.body).length;
+    for (const piece of [...(guides ?? []), ...(posts ?? [])]) count += circlePicturesInHtml(piece.body).length;
     return count;
   } catch {
     return 0;

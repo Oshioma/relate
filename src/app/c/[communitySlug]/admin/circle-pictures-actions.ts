@@ -8,13 +8,13 @@ import { storeExternalImage } from "@/lib/timeline/bring-in-image";
 import { circlePictureKey, circlePicturesInHtml, isCirclePictureUrl, withCopiedPictures } from "@/lib/circle-pictures";
 
 // Copies the pictures a Circle import left on Circle's servers (members'
-// profile photos, pictures inside guides) into our own storage and points the
+// profile photos, pictures inside guides and posts) into our own storage and points the
 // rows at the copies. See src/lib/circle-pictures.ts for why.
 //
 // Profile photos belong to other people, so the writes use the service role;
 // that is why only the owner or an admin may press it, and why it only ever
 // touches the avatars of this community's own active members and this
-// community's own guides. Each copy is filed under its owner's folder in the
+// community's own guides and posts. Each copy is filed under its owner's folder in the
 // uploads bucket, the same place their own uploads go.
 
 export type CirclePicturesResult =
@@ -68,15 +68,20 @@ export async function bringCirclePicturesIn(communitySlug: string): Promise<Circ
     else copied++;
   }
 
-  // Pictures inside this community's guides.
-  const { data: guides, error: guidesError } = await admin
-    .from("guides")
-    .select("id, title, body, created_by")
-    .eq("community_id", community.id);
-  if (guidesError) return { error: guidesError.message };
+  // Pictures inside this community's guides and posts.
+  const [guidesResult, postsResult] = await Promise.all([
+    admin.from("guides").select("id, title, body, created_by").eq("community_id", community.id),
+    admin.from("posts").select("id, title, body, author_id").eq("community_id", community.id),
+  ]);
+  if (guidesResult.error) return { error: guidesResult.error.message };
+  if (postsResult.error) return { error: postsResult.error.message };
+  const pieces = [
+    ...(guidesResult.data ?? []).map((g) => ({ table: "guides" as const, id: g.id, title: g.title, body: g.body, ownerId: g.created_by })),
+    ...(postsResult.data ?? []).map((p) => ({ table: "posts" as const, id: p.id, title: p.title, body: p.body, ownerId: p.author_id })),
+  ];
 
-  for (const guide of guides ?? []) {
-    const urls = circlePicturesInHtml(guide.body);
+  for (const piece of pieces) {
+    const urls = circlePicturesInHtml(piece.body);
     if (urls.length === 0) continue;
     const swaps = new Map<string, string>();
     for (const [index, url] of urls.entries()) {
@@ -86,19 +91,19 @@ export async function bringCirclePicturesIn(communitySlug: string): Promise<Circ
       }
       const result = await storeExternalImage(admin, {
         url,
-        userId: guide.created_by ?? user.id,
-        folder: "guides",
-        key: circlePictureKey(`circle-${guide.id}`, index),
+        userId: piece.ownerId ?? user.id,
+        folder: piece.table,
+        key: circlePictureKey(`circle-${piece.id}`, index),
       });
       if ("url" in result) swaps.set(url, result.url);
-      else failures.push(`A picture in "${guide.title}": ${result.reason}`);
+      else failures.push(`A picture in "${piece.title}": ${result.reason}`);
     }
     if (swaps.size === 0) continue;
     const { error } = await admin
-      .from("guides")
-      .update({ body: withCopiedPictures(guide.body ?? "", swaps) })
-      .eq("id", guide.id);
-    if (error) failures.push(`"${guide.title}" had pictures copied but couldn't be saved: ${error.message}`);
+      .from(piece.table)
+      .update({ body: withCopiedPictures(piece.body ?? "", swaps) })
+      .eq("id", piece.id);
+    if (error) failures.push(`"${piece.title}" had pictures copied but couldn't be saved: ${error.message}`);
     else copied += swaps.size;
   }
 

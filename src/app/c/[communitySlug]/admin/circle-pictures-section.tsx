@@ -5,7 +5,7 @@ import { ImageDown } from "lucide-react";
 import { bringCirclePicturesIn, type CirclePicturesResult } from "./circle-pictures-actions";
 
 // Admin card for a community that moved from Circle: copies the profile photos
-// and guide pictures still served by Circle into our own storage. Shown only
+// and the guide and post pictures still served by Circle into our own storage. Shown only
 // while there are some left (the page passes the count).
 export function CirclePicturesSection({ communitySlug, waiting }: { communitySlug: string; waiting: number }) {
   const [result, setResult] = useState<CirclePicturesResult | null>(null);
@@ -19,7 +19,7 @@ export function CirclePicturesSection({ communitySlug, waiting }: { communitySlu
           <p className="text-sm font-medium text-foreground">Pictures from Circle</p>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {waiting} {waiting === 1 ? "picture is" : "pictures are"} still loading from Circle (members&apos; profile photos and
-            pictures in guides). Copy them here so they keep working after the Circle community closes.
+            pictures in guides and posts). Copy them here so they keep working after the Circle community closes.
           </p>
           <button
             type="button"
