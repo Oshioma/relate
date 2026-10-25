@@ -3,6 +3,7 @@ import type { Community, Database, EditorialGuide, Space } from "@/types/databas
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getEditorialGuideUpdates } from "@/lib/data/editorial-guides";
 import { isPlatformHost, platformSubdomainSlug } from "@/lib/custom-domain";
+import { servingOrigin } from "@/lib/seo";
 import { parseOverrides, resolveGuideContent, WHERE_TO_STAY_SLUG } from "./content";
 import type { CommunityLinks } from "@/components/editorial-guide/destination-section";
 
@@ -24,7 +25,9 @@ export function guideUrl(
 ): { path: string; absolute: string | null } {
   const onCommunityHost = Boolean(host) && (Boolean(platformSubdomainSlug(host!)) || !isPlatformHost(host!));
   const path = onCommunityHost ? `/guides/${guideSlug}` : `/c/${communitySlug}/guides/${guideSlug}`;
-  if (shareOrigin) return { path, absolute: `${shareOrigin}/guides/${guideSlug}` };
+  // On the domain's other www / bare form (the one its host redirects to),
+  // that form: a canonical pointing at a redirect is a weak signal.
+  if (shareOrigin) return { path, absolute: `${servingOrigin(host, shareOrigin)}/guides/${guideSlug}` };
   const isLocal = !host || /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host) || host.endsWith(".localhost");
   return { path, absolute: host && !isLocal ? `https://${host}${path}` : null };
 }

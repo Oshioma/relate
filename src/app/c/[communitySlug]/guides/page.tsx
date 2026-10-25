@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, BookOpenCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { metaDescription } from "@/lib/seo";
 import { getCommunityBySlug, getMembership, isCommunityAdmin } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCurrentUser } from "@/lib/data/profile";
@@ -12,7 +13,23 @@ import { GuideImage } from "@/components/editorial-guide/guide-image";
 import { EmptyState } from "@/components/ui/empty-state";
 import { GuideViewStatsBadge } from "@/components/editorial-guide/guide-view-stats";
 
-export const metadata: Metadata = { title: "Guides" };
+// The guides index's own description, naming the guides it lists, so the
+// search snippet says what's here rather than repeating the community's.
+export async function generateMetadata({ params }: { params: Promise<{ communitySlug: string }> }): Promise<Metadata> {
+  const { communitySlug } = await params;
+  const supabase = await createClient();
+  const community = await getCommunityBySlug(supabase, communitySlug);
+  if (!community) return { title: "Guides" };
+  const guides = (await getCommunityEditorialGuides(supabase, community.id)).filter((g) => g.status === "published");
+  const names = guides.map((g) => editorialGuideEntry(g.slug)?.cardTitle).filter((name): name is string => Boolean(name));
+  const description =
+    metaDescription(names.length ? `Local guides from ${community.name}: ${names.join(", ")}.` : null) ?? `Local guides from ${community.name}.`;
+  return {
+    title: "Guides",
+    description,
+    openGraph: { type: "website", siteName: community.name, locale: "en_GB", title: `Guides · ${community.name}`, description },
+  };
+}
 
 // /guides — the community's editorial guides, plus a pointer to its
 // member-written Guides space when it has one the visitor can see and the

@@ -1,8 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, ScanLine, LayoutTemplate } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { metaDescription } from "@/lib/seo";
 import { RichText, toPlainText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { MembersOnlyGate } from "../../members-only-gate";
@@ -109,6 +111,31 @@ import { DiscoverySection } from "../../members/discovery-section";
 // Posts longer than this (as plain text) show an excerpt in the feed rather
 // than their whole body.
 const LONG_POST_CHARS = 1200;
+
+// The space's own title and description in search results, instead of the
+// community's. A space the visitor can't see (RLS) resolves to nothing here
+// and gives nothing away.
+export async function generateMetadata({ params }: { params: Promise<{ communitySlug: string; spaceSlug: string }> }): Promise<Metadata> {
+  const { communitySlug, spaceSlug } = await params;
+  const supabase = await createClient();
+  const community = await getCommunityBySlug(supabase, communitySlug);
+  if (!community) return {};
+  const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
+  if (!space) return {};
+  const description = metaDescription(toPlainText(space.description ?? "")) ?? `${space.name} on ${community.name}.`;
+  return {
+    title: space.name,
+    description,
+    openGraph: {
+      type: "website",
+      siteName: community.name,
+      locale: "en_GB",
+      title: `${space.name} · ${community.name}`,
+      description,
+      ...(space.image_url && /^https?:\/\//i.test(space.image_url) ? { images: [space.image_url] } : {}),
+    },
+  };
+}
 
 export default async function SpaceDetailPage({
   params,

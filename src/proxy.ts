@@ -51,6 +51,11 @@ const PLATFORM_PATH_PREFIXES = [
   // precisely so it doesn't collide with a community's own /c/<slug>/admin
   // page, which canonicalizes to a bare /admin on the community's host.
   "/platform-admin",
+  // Crawler files (src/app/robots.ts, sitemap.ts). They read the host
+  // themselves and answer for whichever community it belongs to, so they
+  // must reach the root routes rather than rewrite onto /c/<slug>/… (404).
+  "/robots.txt",
+  "/sitemap.xml",
 ];
 
 // Supabase's session cookie (sb-<project-ref>-auth-token, split into .0/.1…
@@ -165,7 +170,9 @@ export async function proxy(request: NextRequest) {
       } else {
         rewriteTo.pathname = pathname === "/" ? base : `${base}${pathname}`;
       }
-      return updateSession(request, rewriteTo);
+      // The clean path rides along so the page can write its canonical link
+      // (see SEO_PATH_HEADER in src/lib/seo.ts).
+      return updateSession(request, rewriteTo, pathname);
     }
   }
 
