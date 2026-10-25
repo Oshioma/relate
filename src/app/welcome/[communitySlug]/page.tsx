@@ -39,6 +39,14 @@ import { TestimonialsSection } from "./testimonials-section";
 // Communities with their own designed front page instead of the generic one.
 const BESPOKE_LANDINGS = new Set(["naturesgardeners"]);
 
+// Search-result titles for communities whose name alone says little about
+// what the site offers. The home page title is the strongest single ranking
+// signal a site has, so these spell out what people search for. Everyone else
+// gets their community name.
+const HOME_TITLES: Record<string, string> = {
+  mzunguzanzibar: "Mzungu Zanzibar – Where to Stay, Eat & Explore in Zanzibar",
+};
+
 // A community's front door for signed-out visitors. On a community's own host
 // (its <slug> subdomain or verified custom domain) the proxy rewrites "/" here
 // when the visitor has no session, so a first-time visitor meets the community
@@ -71,21 +79,22 @@ export async function generateMetadata({
   // on the community's own host: the canonical home page.
   const origin = communityCanonicalOrigin((await headers()).get("host"), community);
   const canonical = origin ? canonicalUrl(origin, "/") : null;
+  const homeTitle = HOME_TITLES[community.slug] ?? community.name;
   return {
     ...(origin ? { metadataBase: new URL(origin) } : {}),
-    title: community.name,
+    title: { absolute: homeTitle },
     description,
     ...(canonical ? { alternates: { canonical } } : {}),
     openGraph: {
       type: "website",
       siteName: community.name,
       locale: "en_GB",
-      title: community.name,
+      title: homeTitle,
       description,
       ...(canonical ? { url: canonical } : {}),
       ...(ogImage ? { images: ogImage } : {}),
     },
-    twitter: { card: "summary_large_image", title: community.name, description, ...(ogImage ? { images: ogImage } : {}) },
+    twitter: { card: "summary_large_image", title: homeTitle, description, ...(ogImage ? { images: ogImage } : {}) },
   };
 }
 
