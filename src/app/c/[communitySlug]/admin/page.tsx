@@ -66,6 +66,10 @@ import { getActiveFeaturePacks, getCommunityAddons } from "@/lib/data/feature-pa
 import { getCommunityTiers, getTierSales } from "@/lib/data/tiers";
 import { isStripeConfigured } from "@/lib/stripe";
 
+// "Copy pictures from Circle" also copies videos, which can take a couple of
+// minutes; server actions on this page get this page's time limit.
+export const maxDuration = 300;
+
 export default async function AdminPage({
   params,
   searchParams,
