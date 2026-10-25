@@ -332,31 +332,27 @@ export default async function LandingPage() {
           </section>
         )}
 
-        <section className="bg-[#326B42] text-white">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-6 py-10 sm:px-8">
+        <section className="border-t border-[#326B42]/10 bg-[#FBFAF6]">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-6 py-8 sm:px-8">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#DCE8D9]">We are for the budget crowd</p>
-              <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold sm:text-3xl">
-                24 hour support. Call me for improvements.
+              <h2 className="font-[family-name:var(--font-display)] text-xl font-bold">
+                24 hour support. Call us for improvements.
               </h2>
-              <p className="mt-2 text-white/85">
-                Let&apos;s make this work together! You want everything, but you don&apos;t want to pay the world.
+              <p className="mt-1 text-sm text-[#526452]">
+                Let&apos;s make this work together. You want good service, but you don&apos;t want to pay the world.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold text-[#326B42]">
               <a
                 href={WHATSAPP_HREF}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-3 font-semibold text-[#326B42]"
+                className="inline-flex items-center gap-2 rounded-lg border border-[#326B42]/30 bg-white px-4 py-2.5 hover:border-[#326B42]"
               >
-                <MessageCircle className="h-5 w-5" />
+                <MessageCircle className="h-4 w-4" />
                 WhatsApp {WHATSAPP_DISPLAY}
               </a>
-              <Link
-                href="/contact"
-                className="inline-flex items-center rounded-lg border border-white/70 px-5 py-3 font-semibold text-white"
-              >
+              <Link href="/contact" className="underline underline-offset-4 hover:text-[#255333]">
                 Or send a message
               </Link>
             </div>
