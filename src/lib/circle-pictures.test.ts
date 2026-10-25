@@ -1,6 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { circlePicturesInHtml, isCirclePictureUrl, withCopiedPictures } from "./circle-pictures";
+import {
+  circlePicturesInHtml,
+  circleVideosInHtml,
+  circleVideoType,
+  isCirclePictureUrl,
+  withCopiedPictures,
+  withCopiedVideoLinks,
+  withoutVideoLink,
+} from "./circle-pictures";
 
 test("only Circle's own hosts count as Circle pictures", () => {
   assert.equal(isCirclePictureUrl("https://app.circle.so/rails/active_storage/representations/redirect/abc/me.jpg"), true);
@@ -31,4 +39,29 @@ test("swaps only the copied <img> addresses and leaves links alone", () => {
     '<a href="https://assets-v2.circle.so/a">old</a><img src="https://ours.example/a.jpg"><img src="https://assets-v2.circle.so/b">'
   );
   assert.equal(withCopiedPictures(html, new Map()), html);
+});
+
+test("finds Circle video links by their file name, not other links", () => {
+  const html =
+    '<div><p>Hi</p><a class="file" href="https://assets-v2.circle.so/abc" target="_blank">Free Health Care - Meditation.mp4</a></div>' +
+    '<a href="https://assets-v2.circle.so/def">notes.pdf</a><a href="https://example.com/x">clip.mp4</a>' +
+    '<a class="file" href="https://assets-v2.circle.so/abc">again.mp4</a>';
+  assert.deepEqual(circleVideosInHtml(html), [{ url: "https://assets-v2.circle.so/abc", name: "Free Health Care - Meditation.mp4" }]);
+  assert.deepEqual(circleVideosInHtml(null), []);
+});
+
+test("video type comes from the original file name", () => {
+  assert.deepEqual(circleVideoType("a.MP4"), { contentType: "video/mp4", extension: "mp4" });
+  assert.deepEqual(circleVideoType("b.mov"), { contentType: "video/quicktime", extension: "mov" });
+  assert.deepEqual(circleVideoType("c.webm"), { contentType: "video/webm", extension: "webm" });
+});
+
+test("a copied video's link can be repointed or removed", () => {
+  const html = '<div><p>🎉</p><a class="file" href="https://assets-v2.circle.so/abc">ES.mp4</a></div><div><a href="https://assets-v2.circle.so/abc">ES.mp4</a></div>';
+  const copies = new Map([["https://assets-v2.circle.so/abc", "https://ours.example/v.mp4"]]);
+  assert.equal(
+    withCopiedVideoLinks(html, copies),
+    '<div><p>🎉</p><a class="file" href="https://ours.example/v.mp4">ES.mp4</a></div><div><a href="https://ours.example/v.mp4">ES.mp4</a></div>'
+  );
+  assert.equal(withoutVideoLink(html, "https://assets-v2.circle.so/abc"), "<div><p>🎉</p></div>");
 });

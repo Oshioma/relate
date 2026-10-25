@@ -55,3 +55,57 @@ export function withCopiedPictures(html: string, copied: Map<string, string>): s
 export function circlePictureKey(prefix: string, index: number): string {
   return `${prefix}-${index + 1}`;
 }
+
+// VIDEOS LEFT BEHIND ON CIRCLE.
+//
+// Circle doesn't put a video in a post as a player: it attaches the file and
+// the export writes it as a download link, <a class="file" href="https://
+// assets-v2.circle.so/…">Name.mp4</a>. The address has no extension, so the
+// link text (the file's original name) is what says it is a video.
+
+const VIDEO_NAME = /\.(mp4|m4v|mov|webm)\s*$/i;
+
+/** The file types we keep, by the extension of the original file name. */
+export function circleVideoType(name: string): { contentType: string; extension: string } {
+  const extension = (name.match(VIDEO_NAME)?.[1] ?? "mp4").toLowerCase();
+  if (extension === "mov") return { contentType: "video/quicktime", extension };
+  if (extension === "webm") return { contentType: "video/webm", extension };
+  return { contentType: "video/mp4", extension: extension === "m4v" ? "m4v" : "mp4" };
+}
+
+function linkText(html: string): string {
+  return html.replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").trim();
+}
+
+/** Every distinct Circle video linked from this HTML, in order, with its file name. */
+export function circleVideosInHtml(html: string | null | undefined): { url: string; name: string }[] {
+  if (!html) return [];
+  const found: { url: string; name: string }[] = [];
+  for (const match of html.matchAll(/<a\b[^>]*?\shref\s*=\s*(["'])(.*?)\1[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const url = decodeAttribute(match[2]);
+    const name = linkText(match[3]);
+    if (isCirclePictureUrl(url) && VIDEO_NAME.test(name) && !found.some((v) => v.url === url)) found.push({ url, name });
+  }
+  return found;
+}
+
+/** The same HTML with each copied video's link pointed at its new address. */
+export function withCopiedVideoLinks(html: string, copied: Map<string, string>): string {
+  if (copied.size === 0) return html;
+  return html.replace(/(<a\b[^>]*?\shref\s*=\s*)(["'])(.*?)\2/gi, (whole, before: string, quote: string, value: string) => {
+    const next = copied.get(decodeAttribute(value));
+    return next ? `${before}${quote}${next}${quote}` : whole;
+  });
+}
+
+/**
+ * The same HTML without the link to this video, for when the video becomes
+ * the post's own player and the download link under it would only repeat it.
+ */
+export function withoutVideoLink(html: string, url: string): string {
+  return html
+    .replace(/<a\b[^>]*?\shref\s*=\s*(["'])(.*?)\1[^>]*>[\s\S]*?<\/a>/gi, (whole, _quote: string, value: string) =>
+      decodeAttribute(value) === url ? "" : whole
+    )
+    .replace(/<div>\s*<\/div>/g, "");
+}
