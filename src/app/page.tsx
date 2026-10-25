@@ -1,6 +1,6 @@
 import Link from "@/components/ui/link";
 import { redirect } from "next/navigation";
-import { Caveat, Outfit } from "next/font/google";
+import localFont from "next/font/local";
 import {
   ArrowRight,
   BarChart3,
@@ -32,8 +32,11 @@ import { getTestimonialMemberPhotos } from "@/lib/data/testimonial-photos";
 
 // The homepage's own type: a rounded geometric face for the headings, and a
 // handwritten one for the little notes scribbled beside the pictures.
-const display = Outfit({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-display" });
-const script = Caveat({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-script" });
+// Bundled (Outfit and Caveat, latin, variable weight; SIL Open Font License)
+// rather than fetched from Google Fonts at build time, where a failed download
+// failed the whole build.
+const display = localFont({ src: "./fonts/outfit-latin.woff2", weight: "600 800", variable: "--font-display" });
+const script = localFont({ src: "./fonts/caveat-latin.woff2", weight: "500 600", variable: "--font-script" });
 
 // How many public communities the showcase strip's fallback considers before
 // ranking them. How many it renders is SHOWCASE_COUNT, shared with the platform
