@@ -47,6 +47,8 @@ import { countUnhandledCommunityContactMessages } from "@/lib/data/contact-messa
 import { ProfileFieldsSection } from "./profile-fields-section";
 import { NewNavLinkForm } from "./new-nav-link-form";
 import { NavLinksList } from "./nav-links-list";
+import { CirclePicturesSection } from "./circle-pictures-section";
+import { countCirclePictures } from "@/lib/data/circle-picture-count";
 import { NavGroupsSection } from "./nav-groups-section";
 import { CustomDomainSection } from "./custom-domain-section";
 import { isVercelDomainAutomationConfigured } from "@/lib/vercel-domains";
@@ -134,6 +136,9 @@ export default async function AdminPage({
 
   // Just the open count — the messages themselves live on the Inbox page.
   const openMessageCount = await countUnhandledCommunityContactMessages(db, community.id);
+
+  // Profile photos and guide pictures a Circle import left on Circle's servers.
+  const circlePictureCount = isAdmin ? await countCirclePictures(community.id) : 0;
 
   // Overview stats. Members are already active-only (see getCommunityMembers);
   // "new this week" counts them by join date so the header reflects momentum,
@@ -549,6 +554,7 @@ export default async function AdminPage({
           </Card>
         </Link>
       </div>
+      {circlePictureCount > 0 && <CirclePicturesSection communitySlug={community.slug} waiting={circlePictureCount} />}
 
       {isOwner && featureControls.length > 0 && (
         <>
