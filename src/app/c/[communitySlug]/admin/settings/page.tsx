@@ -8,8 +8,8 @@ import { countCirclePictures } from "@/lib/data/circle-picture-count";
 import { SectionNav, type NavSection } from "@/components/ui/section-nav";
 import { CirclePicturesSection } from "../circle-pictures-section";
 
-// Server actions take the time limit of the page they are pressed on, and
-// copying from Circle can run for minutes.
+// "Copy pictures from Circle" also copies videos, which can take a couple of
+// minutes; server actions on this page get this page's time limit.
 export const maxDuration = 300;
 
 // The community's Settings tab: things an owner or admin sets up once rather
@@ -32,7 +32,7 @@ export default async function CommunitySettingsPage({ params }: { params: Promis
   const platformView = !isAdmin && Boolean(profile?.is_super_admin);
   if (!isAdmin && !platformView) redirect(`/c/${community.slug}`);
 
-  // Profile photos and guide and post pictures a Circle import left on Circle's servers.
+  // Profile photos and guide and post pictures and videos a Circle import left on Circle's servers.
   const circlePictureCount = await countCirclePictures(community.id);
 
   // Listed in page order, like the main admin page's nav.
@@ -79,8 +79,8 @@ export default async function CommunitySettingsPage({ params }: { params: Promis
             <CirclePicturesSection communitySlug={community.slug} waiting={circlePictureCount} />
           ) : (
             <p className="mt-3 rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
-              Nothing is waiting to be copied from Circle: every profile photo and every picture in guides and posts is
-              already stored here.
+              Nothing is waiting to be copied from Circle: every profile photo, and every picture and video in guides
+              and posts, is already stored here.
             </p>
           )}
         </fieldset>
