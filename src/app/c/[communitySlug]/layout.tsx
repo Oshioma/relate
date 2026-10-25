@@ -474,7 +474,7 @@ export default async function CommunityLayout({
           )}
 
           <div className="mt-4 space-y-1 border-t border-border pt-4">
-            {community.guidelines && (
+            {community.guidelines && community.guidelines_show_in_nav !== false && (
               <NavLink href={`${base}/guidelines`} icon={<BookOpen className="h-4 w-4" />}>
                 Community guidelines
               </NavLink>
@@ -751,7 +751,7 @@ export default async function CommunityLayout({
             ? orderedUnits.flatMap((unit) => unit.items)
             : ungroupedUnits.flatMap((unit) => unit.items)),
           ...(showMembersLink ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-4 w-4" /> }] : []),
-          ...(community.guidelines ? [{ href: `${base}/guidelines`, label: "Community guidelines", icon: <BookOpen className="h-4 w-4" /> }] : []),
+          ...(community.guidelines && community.guidelines_show_in_nav !== false ? [{ href: `${base}/guidelines`, label: "Community guidelines", icon: <BookOpen className="h-4 w-4" /> }] : []),
           { href: `${base}/contact`, label: "Contact", icon: <Mail className="h-4 w-4" /> },
         ]}
         links={navLinks.map((link) => ({ id: link.id, label: link.label, url: link.url }))}
