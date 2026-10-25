@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getSpamCandidates } from "@/lib/data/platform-analytics";
 import type { TemplateDefaultItem } from "@/lib/template-defaults";
+import { parseCreatorTestimonialsForm } from "@/lib/creator-testimonials";
 
 // Replaces the whole default-spaces list for one community type. The control
 // panel sends the full desired list on every edit; we delete this template's
@@ -74,6 +75,36 @@ export async function savePlatformLegal(_prevState: LegalFormState, formData: Fo
   revalidatePath("/platform-admin");
   revalidatePath("/terms");
   revalidatePath("/privacy");
+  return { ok: true };
+}
+
+// --- Homepage creator quotes -------------------------------------------------
+export type CreatorTestimonialsFormState = { error: string } | { ok: true } | undefined;
+
+// Save the creator quotes shown on the platform homepage into the one-row
+// platform_settings singleton, replacing the whole list. Upserted for the same
+// reason as savePlatformLegal; RLS restricts the write to super admins and the
+// explicit check gives a clear message.
+export async function saveCreatorTestimonials(
+  _prevState: CreatorTestimonialsFormState,
+  formData: FormData
+): Promise<CreatorTestimonialsFormState> {
+  const supabase = await createClient();
+  const user = await getCurrentUser(supabase);
+  if (!user) return { error: "You need to be signed in." };
+  const profile = await getProfile(supabase, user.id);
+  if (!profile?.is_super_admin) return { error: "Only a platform super admin can edit the homepage." };
+
+  const parsed = parseCreatorTestimonialsForm(formData);
+  if (!parsed.ok) return { error: parsed.error };
+
+  const { error } = await supabase
+    .from("platform_settings")
+    .upsert({ id: 1, creator_testimonials: parsed.testimonials }, { onConflict: "id" });
+  if (error) return { error: error.message };
+
+  revalidatePath("/platform-admin/homepage");
+  revalidatePath("/");
   return { ok: true };
 }
 

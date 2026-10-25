@@ -4,7 +4,9 @@ import { notFound, redirect } from "next/navigation";
 import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye, Compass, Lock } from "lucide-react";
 import { exitViewAsMember, startViewAsMember } from "./view-as-member-actions";
 import { ShareOriginProvider } from "@/components/ui/share-origin";
+import { headers } from "next/headers";
 import { communityShareOrigin } from "@/lib/custom-domain";
+import { canonicalUrl, communityCanonicalOrigin, metaDescription, SEO_PATH_HEADER } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import {
@@ -59,14 +61,10 @@ import { ReturnHereLink } from "@/components/layout/return-here-link";
 // Trimmed to ~160 chars (a word boundary) to stay within what search results
 // display without truncating mid-word.
 function communityMetaDescription(community: { name: string; description: string | null }): string {
-  const own = community.description?.trim();
-  if (own) {
-    if (own.length <= 160) return own;
-    const clipped = own.slice(0, 160);
-    const lastSpace = clipped.lastIndexOf(" ");
-    return `${(lastSpace > 100 ? clipped.slice(0, lastSpace) : clipped).trimEnd()}…`;
-  }
-  return `${community.name} on Relate — its feed, spaces, events, members and local businesses, all in one place.`;
+  return (
+    metaDescription(community.description) ??
+    `${community.name} on Relate — its feed, spaces, events, members and local businesses, all in one place.`
+  );
 }
 
 // Give each community its own tab title and meta description. `default` shows
@@ -90,10 +88,31 @@ export async function generateMetadata({
   // to no OG image rather than a build failure.
   const cover = community.cover_image_url;
   const ogImage = cover && /^https?:\/\//i.test(cover) ? [cover] : undefined;
+  // One canonical URL per page, on the community's own domain: the same page
+  // is reachable on its subdomain, its custom domain's www and bare forms and
+  // under /c/<slug>, and without this search engines pick one (or split the
+  // page's ranking between them). The proxy passes the clean path; a page
+  // that sets its own canonical (the guides) still wins.
+  const headerList = await headers();
+  const origin = communityCanonicalOrigin(headerList.get("host"), community);
+  const path = headerList.get(SEO_PATH_HEADER);
+  const canonical = origin && path ? canonicalUrl(origin, path) : null;
   return {
+    ...(origin ? { metadataBase: new URL(origin) } : {}),
     title: { default: community.name, template: `%s · ${community.name}` },
     description,
+    ...(canonical ? { alternates: { canonical } } : {}),
     openGraph: {
+      type: "website",
+      siteName: community.name,
+      locale: "en_GB",
+      title: community.name,
+      description,
+      ...(canonical ? { url: canonical } : {}),
+      ...(ogImage ? { images: ogImage } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
       title: community.name,
       description,
       ...(ogImage ? { images: ogImage } : {}),

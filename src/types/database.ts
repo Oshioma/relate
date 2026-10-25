@@ -2327,10 +2327,17 @@ export type FarmShare = {
 // Platform-wide legal documents, a one-row singleton (id = 1) edited by the
 // super admin at /platform-admin and shown at /terms and /privacy. Content is
 // sanitised HTML/Markdown rendered through <RichText>.
+// A community creator's quote on the platform homepage (Platform admin →
+// Homepage). See src/lib/creator-testimonials.ts.
+export type CreatorTestimonial = { quote: string; name: string; role: string };
+
 export type PlatformSettings = {
   id: number;
   terms: string | null;
   privacy: string | null;
+  // Creator quotes for the homepage, in order (migration
+  // platform_creator_testimonials). Empty = only member quotes are shown.
+  creator_testimonials: CreatorTestimonial[];
   updated_at: string;
 };
 

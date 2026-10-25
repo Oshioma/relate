@@ -10,9 +10,10 @@ import {
   isTrackableActivityRequest,
   PLATFORM_ACTIVITY_KEY,
 } from "@/lib/presence";
+import { SEO_PATH_HEADER } from "@/lib/seo";
 import type { Database } from "@/types/database";
 
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/confirm", "/forgot-password", "/terms", "/privacy", "/contact", "/pricing", "/help/video-cookies"];
+const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/confirm", "/forgot-password", "/terms", "/privacy", "/contact", "/pricing", "/help/video-cookies", "/robots.txt", "/sitemap.xml"];
 
 // Community sub-sections a signed-out visitor is allowed to reach. The page
 // (and Postgres RLS) still decides what actually renders — a members-only
@@ -65,10 +66,17 @@ function isPublicPath(pathname: string) {
 // domain and should render a /c/[communitySlug] route instead of the literal
 // path. The rewrite has to be baked into every response built here (setAll
 // rebuilds the response to attach refreshed cookies), which is why it's a
-// parameter rather than something proxy.ts applies afterwards.
-export async function updateSession(request: NextRequest, rewriteTo?: URL) {
-  const makeResponse = () =>
-    rewriteTo ? NextResponse.rewrite(rewriteTo, { request }) : NextResponse.next({ request });
+// parameter rather than something proxy.ts applies afterwards. `seoPath` is
+// the clean path a community-host page answers to; it is passed on to the
+// page as SEO_PATH_HEADER, and any copy of that header a client sent is
+// dropped, so pages can trust it for their canonical link.
+export async function updateSession(request: NextRequest, rewriteTo?: URL, seoPath?: string) {
+  const makeResponse = () => {
+    const headers = new Headers(request.headers);
+    headers.delete(SEO_PATH_HEADER);
+    if (seoPath) headers.set(SEO_PATH_HEADER, seoPath);
+    return rewriteTo ? NextResponse.rewrite(rewriteTo, { request: { headers } }) : NextResponse.next({ request: { headers } });
+  };
   let response = makeResponse();
 
   const supabase = createServerClient<Database>(
