@@ -47,6 +47,10 @@ import { countUnhandledCommunityContactMessages } from "@/lib/data/contact-messa
 import { ProfileFieldsSection } from "./profile-fields-section";
 import { NewNavLinkForm } from "./new-nav-link-form";
 import { NavLinksList } from "./nav-links-list";
+import { CirclePicturesSection } from "./circle-pictures-section";
+import { MovePostsSection } from "./move-posts-section";
+import { moveKindFor } from "@/lib/post-move";
+import { countCirclePictures } from "@/lib/data/circle-picture-count";
 import { NavGroupsSection } from "./nav-groups-section";
 import { CustomDomainSection } from "./custom-domain-section";
 import { isVercelDomainAutomationConfigured } from "@/lib/vercel-domains";
@@ -61,6 +65,10 @@ import { communityHasFeature } from "@/lib/data/plan-limits";
 import { getActiveFeaturePacks, getCommunityAddons } from "@/lib/data/feature-packs";
 import { getCommunityTiers, getTierSales } from "@/lib/data/tiers";
 import { isStripeConfigured } from "@/lib/stripe";
+
+// "Copy pictures from Circle" also copies videos, which can take a couple of
+// minutes; server actions on this page get this page's time limit.
+export const maxDuration = 300;
 
 export default async function AdminPage({
   params,
@@ -134,6 +142,18 @@ export default async function AdminPage({
 
   // Just the open count — the messages themselves live on the Inbox page.
   const openMessageCount = await countUnhandledCommunityContactMessages(db, community.id);
+
+  // Profile photos and guide pictures a Circle import left on Circle's servers.
+  const circlePictureCount = isAdmin ? await countCirclePictures(community.id) : 0;
+
+  // Spaces that can take posts (feeds, or Guides as guides) and the tags in use,
+  // for "Move posts between spaces".
+  const postSpaces = spaces.flatMap((s) => {
+    const kind = moveKindFor(s.space_type);
+    return kind ? [{ id: s.id, name: s.name, kind }] : [];
+  });
+  const { data: taggedPosts } = await db.from("posts").select("tags").eq("community_id", community.id).not("tags", "is", null).limit(2000);
+  const postTags = [...new Set((taggedPosts ?? []).flatMap((p) => p.tags ?? []))].sort().slice(0, 200);
 
   // Overview stats. Members are already active-only (see getCommunityMembers);
   // "new this week" counts them by join date so the header reflects momentum,
@@ -549,6 +569,8 @@ export default async function AdminPage({
           </Card>
         </Link>
       </div>
+      {circlePictureCount > 0 && <CirclePicturesSection communitySlug={community.slug} waiting={circlePictureCount} />}
+      <MovePostsSection communitySlug={community.slug} spaces={postSpaces} tags={postTags} />
 
       {isOwner && featureControls.length > 0 && (
         <>
