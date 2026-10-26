@@ -27,6 +27,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Avatar } from "@/components/ui/avatar";
 import { CommunityCarousel } from "@/components/layout/community-carousel";
 import { ProductDemo } from "@/components/landing/product-demo";
+import { MobileMenu } from "@/components/landing/mobile-menu";
 import { getActivePlatformPlans } from "@/lib/data/platform-plans";
 import { planFeatureEnforcement, planFeatureLabel, planLimitLabel } from "@/lib/features";
 import { formatMoney } from "@/lib/utils";
@@ -195,7 +196,7 @@ export default async function LandingPage() {
             </Link>
           </nav>
           <div className="flex items-center gap-2 text-sm font-semibold sm:gap-3">
-            <Link href="/login" className="whitespace-nowrap rounded-lg border border-[#222A25]/15 bg-white px-3 py-2.5 hover:border-[#326B42] hover:text-[#326B42]">
+            <Link href="/login" className="hidden whitespace-nowrap rounded-lg border border-[#222A25]/15 bg-white px-3 py-2.5 hover:border-[#326B42] hover:text-[#326B42] sm:inline-block">
               Log in
             </Link>
             <Link
@@ -206,6 +207,17 @@ export default async function LandingPage() {
               <span className="hidden sm:inline">Create your community</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
+            {/* Below lg the inline nav is hidden; on phones Log in lives in here too. */}
+            <MobileMenu
+              links={[
+                ...(hasShowcase ? [{ href: "#communities", label: "Communities" }] : []),
+                { href: "#features", label: "Features" },
+                { href: "#how-it-works", label: "How it works" },
+                { href: "/pricing", label: "Pricing" },
+                { href: "/contact", label: "Support" },
+                { href: "/login", label: "Log in" },
+              ]}
+            />
           </div>
         </div>
       </header>
