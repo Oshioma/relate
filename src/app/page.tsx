@@ -29,6 +29,7 @@ import { WHATSAPP_DISPLAY, WHATSAPP_HREF } from "@/lib/support-contact";
 import { readTestimonials, testimonialPhoto } from "@/lib/testimonials";
 import { readCreatorTestimonials, HOMEPAGE_TESTIMONIALS } from "@/lib/creator-testimonials";
 import { getTestimonialMemberPhotos } from "@/lib/data/testimonial-photos";
+import { pickHomepagePhotos } from "@/lib/homepage-photos";
 
 // The homepage's own type: a rounded geometric face for the headings, and a
 // handwritten one for the little notes scribbled beside the pictures.
@@ -136,15 +137,20 @@ export default async function LandingPage() {
 
   const hasShowcase = featuredCommunities.length > 0;
 
-  // The pictures come from the showcased communities' own covers, so the page
-  // shows real communities rather than stock people. The first one with a cover
-  // is the community in the hero's preview window.
-  const withCovers = featuredCommunities.filter((c) => c.cover_image_url);
-  const heroCommunity = withCovers[0] ?? null;
-  const whyPhoto = (withCovers[1] ?? withCovers[0])?.cover_image_url ?? null;
-  const closingPhoto = (withCovers[2] ?? withCovers[1] ?? withCovers[0])?.cover_image_url ?? null;
+  // The super admin's homepage picks (Platform admin → Homepage). select("*")
+  // so a column that isn't deployed yet just reads as unset, never an error.
+  const { data: settings } = await supabase.from("platform_settings").select("*").eq("id", 1).maybeSingle();
 
-  const quotes = await getQuotes(supabase, featuredCommunities);
+  // The picked hero community, if it's still there and still public.
+  const { data: pickedHero } = settings?.hero_community_id
+    ? await supabase.from("communities").select("*").eq("id", settings.hero_community_id).eq("is_public", true).maybeSingle()
+    : { data: null };
+
+  // Pictures not picked come from the showcased communities' own covers, so the
+  // page shows real communities rather than stock people.
+  const { heroCommunity, whyPhoto, closingPhoto } = pickHomepagePhotos(settings, featuredCommunities, pickedHero ?? null);
+
+  const quotes = await getQuotes(settings?.creator_testimonials, featuredCommunities);
 
   // The page's own footer is the app-wide SiteFooter from the root layout.
   return (
@@ -422,12 +428,8 @@ export default async function LandingPage() {
 // no quotes anywhere the section simply isn't shown. Fails soft: a missing
 // column or a failed photo lookup costs the quotes or the photos, never the
 // page.
-async function getQuotes(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  communities: Community[]
-): Promise<Quote[]> {
-  const { data: settings } = await supabase.from("platform_settings").select("creator_testimonials").eq("id", 1).maybeSingle();
-  const quotes: Quote[] = readCreatorTestimonials(settings?.creator_testimonials).map((t) => ({
+async function getQuotes(creatorTestimonials: unknown, communities: Community[]): Promise<Quote[]> {
+  const quotes: Quote[] = readCreatorTestimonials(creatorTestimonials).map((t) => ({
     quote: t.quote,
     name: t.name,
     detail: t.role,
