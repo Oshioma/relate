@@ -1,39 +1,51 @@
 import Link from "@/components/ui/link";
 import { redirect } from "next/navigation";
-import { Caveat, Outfit } from "next/font/google";
+import localFont from "next/font/local";
 import {
   ArrowRight,
-  BarChart3,
-  BookOpen,
-  CalendarDays,
+  Briefcase,
   Check,
   Crown,
   Globe,
+  GraduationCap,
+  Handshake,
+  Headset,
   Heart,
-  IdCard,
+  Leaf,
   Lock,
+  MapPin,
   MessageCircle,
+  Quote as QuoteMark,
   Search,
+  SlidersHorizontal,
   Sparkles,
-  Store,
-  Users,
+  Target,
+  UsersRound,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { Avatar } from "@/components/ui/avatar";
 import { CommunityCarousel } from "@/components/layout/community-carousel";
-import type { Community } from "@/types/database";
+import { ProductDemo } from "@/components/landing/product-demo";
+import { getActivePlatformPlans } from "@/lib/data/platform-plans";
+import { planFeatureEnforcement, planFeatureLabel, planLimitLabel } from "@/lib/features";
+import { formatMoney } from "@/lib/utils";
+import type { Community, PlatformPlan } from "@/types/database";
 import { SHOWCASE_COUNT } from "@/lib/homepage-showcase";
 import { communitySubdomainUrl } from "@/lib/custom-domain";
 import { WHATSAPP_DISPLAY, WHATSAPP_HREF } from "@/lib/support-contact";
 import { readTestimonials, testimonialPhoto } from "@/lib/testimonials";
 import { readCreatorTestimonials, HOMEPAGE_TESTIMONIALS } from "@/lib/creator-testimonials";
 import { getTestimonialMemberPhotos } from "@/lib/data/testimonial-photos";
+import { pickHomepagePhotos } from "@/lib/homepage-photos";
 
 // The homepage's own type: a rounded geometric face for the headings, and a
 // handwritten one for the little notes scribbled beside the pictures.
-const display = Outfit({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-display" });
-const script = Caveat({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-script" });
+// Bundled (Outfit and Caveat, latin, variable weight; SIL Open Font License)
+// rather than fetched from Google Fonts at build time, where a failed download
+// failed the whole build.
+const display = localFont({ src: "./fonts/outfit-latin.woff2", weight: "600 800", variable: "--font-display" });
+const script = localFont({ src: "./fonts/caveat-latin.woff2", weight: "500 600", variable: "--font-script" });
 
 // How many public communities the showcase strip's fallback considers before
 // ranking them. How many it renders is SHOWCASE_COUNT, shared with the platform
@@ -49,39 +61,32 @@ function showcaseRank(community: Community): number {
   return (community.description?.trim() ? 2 : 0) + (community.logo_url ? 1 : 0);
 }
 
-// Icon colours from the design: forest green, terracotta and honey.
-const GREEN = "bg-[#DCE8D9] text-[#326B42]";
-const TERRACOTTA = "bg-[#F6E1D6] text-[#C96745]";
-const HONEY = "bg-[#FBEBC8] text-[#C08A1E]";
-
-const FEATURES: { icon: ReactNode; tone: string; title: string; description: string }[] = [
-  { icon: <MessageCircle />, tone: GREEN, title: "Discussions", description: "Bring people together with conversations." },
-  { icon: <Users />, tone: TERRACOTTA, title: "Spaces", description: "Create public, members-only or paid spaces." },
-  { icon: <BookOpen />, tone: TERRACOTTA, title: "Courses", description: "Share knowledge with lessons and resources." },
-  { icon: <CalendarDays />, tone: TERRACOTTA, title: "Events", description: "Online or in-person events with RSVPs." },
-  { icon: <Store />, tone: HONEY, title: "Marketplace", description: "Buy, sell and support each other." },
-  { icon: <IdCard />, tone: GREEN, title: "Directories", description: "Showcase people, businesses or resources." },
-  { icon: <Crown />, tone: HONEY, title: "Memberships", description: "Free, paid or multi-tier access options." },
-  { icon: <BarChart3 />, tone: GREEN, title: "Insights", description: "See what's working and grow your community." },
+// Who Relate is for: one line each, no essay.
+const AUDIENCES: { icon: ReactNode; title: string; description: string }[] = [
+  { icon: <Handshake className="h-5 w-5" />, title: "Networking groups", description: "Introductions, events and a directory of who's who." },
+  { icon: <Target className="h-5 w-5" />, title: "Masterminds", description: "A private room for a small group that meets often." },
+  { icon: <MapPin className="h-5 w-5" />, title: "Local communities", description: "Neighbours, places, a marketplace and what's on." },
+  { icon: <UsersRound className="h-5 w-5" />, title: "Clubs and interest groups", description: "Meetups, photos and chat around what you love." },
+  { icon: <GraduationCap className="h-5 w-5" />, title: "Educators and course creators", description: "Courses, live lessons and a place for questions." },
+  { icon: <Crown className="h-5 w-5" />, title: "Membership businesses", description: "Free and paid tiers, with paid spaces for extras." },
+  { icon: <Leaf className="h-5 w-5" />, title: "Wellness and mindfulness", description: "A calm home for sessions, practice and support." },
+  { icon: <Briefcase className="h-5 w-5" />, title: "Professional communities", description: "Knowledge, jobs and peers in one private place." },
 ];
 
-const ACCESS_OPTIONS: { icon: ReactNode; label: string }[] = [
-  { icon: <Globe className="h-4 w-4" />, label: "Public" },
-  { icon: <Lock className="h-4 w-4" />, label: "Members only" },
-  { icon: <Crown className="h-4 w-4" />, label: "Paid membership" },
-  { icon: <Sparkles className="h-4 w-4" />, label: "Free + premium" },
-  { icon: <Users className="h-4 w-4" />, label: "Invite only" },
+// The access models a host can mix, from the community's privacy and join
+// policy down to each space's own visibility and price.
+const ACCESS_MODELS: { icon: ReactNode; title: string; description: string }[] = [
+  { icon: <Globe className="h-4 w-4" />, title: "Open", description: "Anyone can find it and join." },
+  { icon: <Lock className="h-4 w-4" />, title: "Private", description: "People ask to join and you approve, or join by invitation only." },
+  { icon: <Crown className="h-4 w-4" />, title: "Paid membership", description: "Members choose a tier you've priced." },
+  { icon: <Sparkles className="h-4 w-4" />, title: "Free + premium", description: "A free community with paid spaces or courses inside." },
+  { icon: <SlidersHorizontal className="h-4 w-4" />, title: "Your own mix", description: "Set who can see and post in each space." },
 ];
 
-const WHY_POINTS = [
-  "Public, private or invite-only",
-  "Free and paid membership tiers",
-  "Beautiful, mobile-friendly design",
-  "Built-in courses, events and marketplace",
-  "Grow your members and income",
-  "Easy to manage (no tech skills needed)",
-  "Your own web address",
-  "Real support from a small, dedicated team",
+const STEPS: { title: string; description: string }[] = [
+  { title: "Create your community", description: "Choose a name, add your branding and select how people join." },
+  { title: "Make it your own", description: "Add discussions, courses, events, directories, guides, resources and other spaces." },
+  { title: "Bring your people together", description: "Invite members, share content, build relationships and grow." },
 ];
 
 // One quote card on the page, whoever it came from.
@@ -136,15 +141,30 @@ export default async function LandingPage() {
 
   const hasShowcase = featuredCommunities.length > 0;
 
-  // The pictures come from the showcased communities' own covers, so the page
-  // shows real communities rather than stock people. The first one with a cover
-  // is the community in the hero's preview window.
-  const withCovers = featuredCommunities.filter((c) => c.cover_image_url);
-  const heroCommunity = withCovers[0] ?? null;
-  const whyPhoto = (withCovers[1] ?? withCovers[0])?.cover_image_url ?? null;
-  const closingPhoto = (withCovers[2] ?? withCovers[1] ?? withCovers[0])?.cover_image_url ?? null;
+  // The super admin's homepage picks (Platform admin → Homepage). select("*")
+  // so a column that isn't deployed yet just reads as unset, never an error.
+  const { data: settings } = await supabase.from("platform_settings").select("*").eq("id", 1).maybeSingle();
 
-  const quotes = await getQuotes(supabase, featuredCommunities);
+  // The picked hero community, if it's still there and still public.
+  const { data: pickedHero } = settings?.hero_community_id
+    ? await supabase.from("communities").select("*").eq("id", settings.hero_community_id).eq("is_public", true).maybeSingle()
+    : { data: null };
+
+  // Pictures not picked come from the showcased communities' own covers, so the
+  // page shows real communities rather than stock people.
+  const { heroCommunity, whyPhoto, closingPhoto } = pickHomepagePhotos(settings, featuredCommunities, pickedHero ?? null);
+
+  const quotes = await getQuotes(settings?.creator_testimonials, featuredCommunities);
+  const testimonial = quotes[0] ?? null;
+
+  // The live price list, the same rows /pricing renders. Never fail the
+  // homepage over it: no plans just shows a "talk to us" line instead.
+  let plans: PlatformPlan[] = [];
+  try {
+    plans = await getActivePlatformPlans(supabase);
+  } catch {
+    plans = [];
+  }
 
   // The page's own footer is the app-wide SiteFooter from the root layout.
   return (
@@ -163,6 +183,9 @@ export default async function LandingPage() {
             )}
             <a href="#features" className="hover:text-[#326B42]">
               Features
+            </a>
+            <a href="#how-it-works" className="hover:text-[#326B42]">
+              How it works
             </a>
             <Link href="/pricing" className="hover:text-[#326B42]">
               Pricing
@@ -189,19 +212,23 @@ export default async function LandingPage() {
 
       <main>
         <section className="relative overflow-hidden bg-gradient-to-br from-[#F7F4EC] via-[#F5F1E6] to-[#E4EBDD]">
-          <div className="mx-auto grid max-w-7xl items-center gap-14 px-6 pb-16 pt-14 sm:px-8 lg:grid-cols-[1fr_1.1fr] lg:pb-20 lg:pt-20">
+          <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-14 pt-10 sm:px-8 lg:grid-cols-[1fr_1.1fr] lg:pb-16 lg:pt-14">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#326B42]">Communities for real people</p>
-              <h1 className="mt-5 font-[family-name:var(--font-display)] text-5xl font-bold leading-[1.02] tracking-tight sm:text-6xl">
+              <h1 className="mt-4 font-[family-name:var(--font-display)] text-[2.6rem] font-bold leading-[1.04] tracking-tight sm:text-6xl">
                 Build your community.
                 <br />
                 <span className="text-[#326B42]">Bring your people together.</span>
               </h1>
-              <p className="mt-6 max-w-xl text-lg leading-8 text-[#4D5A50]">
-                relate.click makes it easy to create beautiful online communities with the tools you need to connect,
-                share, learn and grow — all in one place.
+              <p className="mt-5 font-[family-name:var(--font-display)] text-xl font-semibold text-[#222A25] sm:text-2xl">
+                A calm, private home for your community.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <p className="mt-3 max-w-xl leading-7 text-[#4D5A50]">
+                Whether you run a networking group, mastermind, co-working space, membership, or local community,
+                Relate helps your audience connect like never before — creating stronger relationships that keep people
+                coming back.
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
                 <Link
                   href="/signup"
                   className="inline-flex items-center gap-2 rounded-lg bg-[#326B42] px-6 py-3.5 font-semibold text-white shadow-sm hover:bg-[#255333]"
@@ -211,37 +238,66 @@ export default async function LandingPage() {
                 {hasShowcase && (
                   <a
                     href="#communities"
-                    className="inline-flex items-center gap-2 rounded-lg border border-[#C96745] bg-white/60 px-6 py-3.5 font-semibold text-[#C96745] hover:bg-white"
+                    className="inline-flex items-center gap-2 rounded-lg border border-[#C96745] bg-white/60 px-6 py-3.5 font-semibold text-[#B35A3A] hover:bg-white"
                   >
                     <Search className="h-4 w-4" /> Explore communities
                   </a>
                 )}
               </div>
-              <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[#526452]">
-                {["Simple to set up", "Flexible access options", "All the tools you need", "Grow at your own pace"].map((point) => (
-                  <li key={point} className="flex items-center gap-1.5">
-                    <Check className="h-4 w-4 text-[#326B42]" /> {point}
-                  </li>
-                ))}
-              </ul>
+              <p className="mt-5 flex items-center gap-2 text-sm text-[#526452]">
+                <Check className="h-4 w-4 shrink-0 text-[#326B42]" />
+                Spend less time managing your community and more time growing it.
+              </p>
             </div>
             <HeroPreview community={heroCommunity} />
           </div>
         </section>
 
-        <section id="features" className="scroll-mt-24 border-y border-[#326B42]/10 bg-[#FBFAF6]">
-          <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8">
-            <h2 className="sr-only">Everything your community needs</h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-              {FEATURES.map((feature) => (
-                <Feature key={feature.title} {...feature} />
+        <section id="features" className="scroll-mt-20 border-y border-[#326B42]/10 bg-[#FBFAF6] py-14 sm:py-16">
+          <div className="mx-auto max-w-6xl px-6 sm:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#326B42]">See how it works</p>
+              <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl">
+                Everything your community needs, in one place.
+              </h2>
+              <p className="mt-3 text-[#526452]">Pick a feature to see it. Turn on only the ones you want.</p>
+            </div>
+            <div className="mt-8">
+              <ProductDemo />
+            </div>
+          </div>
+        </section>
+
+        <section id="how-it-works" className="scroll-mt-20 py-14 sm:py-16">
+          <div className="mx-auto max-w-6xl px-6 sm:px-8">
+            <h2 className="text-center font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl">
+              Your community, up and running in minutes.
+            </h2>
+            <ol className="relative mt-10 grid gap-4 md:grid-cols-3 md:gap-6">
+              {/* The thread joining the three steps on wide screens. */}
+              <span aria-hidden className="absolute left-[16%] right-[16%] top-6 hidden border-t-2 border-dashed border-[#326B42]/25 md:block" />
+              {STEPS.map((step, i) => (
+                <li key={step.title} className="relative flex gap-4 md:flex-col md:items-center md:text-center">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#326B42] font-[family-name:var(--font-display)] text-lg font-bold text-white ring-8 ring-[#F7F4EC]">
+                    {i + 1}
+                  </span>
+                  <div>
+                    <h3 className="font-bold md:mt-2">{step.title}</h3>
+                    <p className="mt-1 text-sm leading-6 text-[#526452]">{step.description}</p>
+                  </div>
+                </li>
               ))}
+            </ol>
+            <div className="mt-8 text-center">
+              <Link href="/signup" className="inline-flex items-center gap-2 text-sm font-semibold text-[#326B42] hover:underline">
+                Get started <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </section>
 
         {hasShowcase && (
-          <section id="communities" className="scroll-mt-24 bg-white py-16 sm:py-20">
+          <section id="communities" className="scroll-mt-20 bg-white py-14 sm:py-16">
             <div className="mx-auto max-w-7xl px-6 sm:px-8">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#326B42]">Real communities</p>
               <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl">
@@ -251,7 +307,7 @@ export default async function LandingPage() {
                 From local groups to global movements — discover communities built around shared interests, places and
                 purpose.
               </p>
-              <div className="mt-9">
+              <div className="mt-8">
                 <CommunityCarousel>
                   {featuredCommunities.map((community) => (
                     <CommunityPreview key={community.id} community={community} />
@@ -262,42 +318,79 @@ export default async function LandingPage() {
           </section>
         )}
 
+        <section className="py-14 sm:py-16">
+          <div className="mx-auto max-w-6xl px-6 sm:px-8">
+            <h2 className="text-center font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl">
+              A home for every kind of community.
+            </h2>
+            <ul className="mt-10 grid grid-cols-2 gap-x-4 gap-y-5 sm:gap-x-8 sm:gap-y-7 lg:grid-cols-4">
+              {AUDIENCES.map((audience, i) => (
+                <li key={audience.title} className="flex items-center gap-3 sm:items-start">
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                      ["bg-[#DCE8D9] text-[#326B42]", "bg-[#F6E1D6] text-[#C96745]", "bg-[#FBEBC8] text-[#A87512]"][i % 3]
+                    }`}
+                  >
+                    {audience.icon}
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-bold sm:text-base">{audience.title}</h3>
+                    <p className="mt-0.5 hidden text-sm leading-6 text-[#526452] sm:block">{audience.description}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
         <section className="bg-gradient-to-r from-[#EEF1E8] to-[#F7F4EC]">
-          <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 sm:px-8 lg:grid-cols-2 lg:py-20">
+          <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-14 sm:px-8 lg:grid-cols-2 lg:py-16">
             <div className="relative pb-6 pr-6 sm:pr-16">
               <div className="aspect-[4/3] overflow-hidden rounded-3xl bg-gradient-to-br from-[#DCE8D9] to-[#F6E6D6] shadow-xl">
                 {whyPhoto && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={whyPhoto} alt="" className="h-full w-full object-cover" />
+                  <img src={whyPhoto} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                 )}
               </div>
-              <div className="absolute -right-0 top-8 w-52 rounded-2xl bg-white p-4 shadow-2xl ring-1 ring-black/5">
-                <p className="text-sm font-bold">Create a space</p>
+              <div className="absolute right-0 top-8 w-56 rounded-2xl bg-white p-4 shadow-2xl ring-1 ring-black/5">
+                <p className="text-sm font-bold">Who can join?</p>
                 <ul className="mt-3 space-y-2.5 text-sm text-[#4D5A50]">
-                  {ACCESS_OPTIONS.map((option) => (
-                    <li key={option.label} className="flex items-center gap-2.5">
-                      <span className="text-[#326B42]">{option.icon}</span>
-                      {option.label}
+                  {ACCESS_MODELS.map((model, i) => (
+                    <li key={model.title} className="flex items-center gap-2.5">
+                      <span
+                        className={`flex h-4 w-4 items-center justify-center rounded-full border ${
+                          i === 0 ? "border-[#326B42] bg-[#326B42]" : "border-[#222A25]/25"
+                        }`}
+                      >
+                        {i === 0 && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                      </span>
+                      {model.title}
                     </li>
                   ))}
                 </ul>
               </div>
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#326B42]">Why relate.click</p>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#326B42]">Memberships</p>
               <h2 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-                Powerful community tools.
+                Start free.
                 <br />
-                <span className="text-[#326B42]">Without the complexity.</span>
+                <span className="text-[#326B42]">Grow your way.</span>
               </h2>
-              <p className="mt-5 max-w-xl text-[#526452]">
-                Whether you&apos;re a creator, business, local group or global movement, relate.click gives you
-                everything you need to build a thriving community.
+              <p className="mt-4 max-w-xl text-[#526452]">
+                Choose how people join, and change it whenever you like. On plans that include paid memberships you can
+                charge for membership tiers, paid spaces and courses, and members pay you directly through your own
+                Stripe account.
               </p>
-              <ul className="mt-7 grid gap-x-8 gap-y-3 text-sm text-[#3B463E] sm:grid-cols-2">
-                {WHY_POINTS.map((point) => (
-                  <li key={point} className="flex items-start gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#326B42]" /> {point}
+              <ul className="mt-6 space-y-3">
+                {ACCESS_MODELS.map((model) => (
+                  <li key={model.title} className="flex items-start gap-3">
+                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[#326B42] shadow-sm ring-1 ring-[#326B42]/10">
+                      {model.icon}
+                    </span>
+                    <p className="text-sm leading-6 text-[#3B463E]">
+                      <span className="font-semibold text-[#222A25]">{model.title}.</span> {model.description}
+                    </p>
                   </li>
                 ))}
               </ul>
@@ -305,58 +398,86 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {quotes.length > 0 && (
-          <section className="bg-[#FBFAF6] px-6 py-16 sm:px-8 sm:py-20">
-            <div className="mx-auto max-w-7xl">
-              <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-[#326B42]">
-                What our communities say
-              </p>
-              <h2 className="mt-3 text-center font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl">
-                Real people. Real impact.
+        <section id="pricing" className="scroll-mt-20 py-14 sm:py-16">
+          <div className="mx-auto max-w-6xl px-6 sm:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#326B42]">Pricing</p>
+              <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl">
+                Everything you need. Without paying the world.
               </h2>
-              <div className="mx-auto mt-10 grid max-w-6xl gap-5 md:grid-cols-3">
-                {quotes.map((q, i) => (
-                  <figure key={i} className="flex flex-col gap-4 rounded-2xl border border-[#E7E7DC] bg-white p-6 shadow-sm">
-                    <Avatar src={q.photo} name={q.name || q.detail} size={56} />
-                    <div>
-                      <blockquote className="whitespace-pre-line leading-7 text-[#3B463E]">&ldquo;{q.quote}&rdquo;</blockquote>
-                      <figcaption className="mt-4 text-sm">
-                        {q.name && <span className="block font-semibold">{q.name}</span>}
-                        {q.detail && <span className="block text-[#637067]">{q.detail}</span>}
-                      </figcaption>
-                    </div>
-                  </figure>
-                ))}
-              </div>
+              <p className="mt-3 text-[#526452]">
+                {plans.length > 0 ? `${startingPrice(plans)}, priced per community and billed monthly. ` : ""}
+                You pay for your community&apos;s plan; your members never get a Relate bill.
+              </p>
             </div>
+            {plans.length > 0 ? (
+              <>
+                <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {plans.map((plan) => (
+                    <PlanPreview key={plan.id} plan={plan} />
+                  ))}
+                </div>
+                <p className="mt-6 text-center text-sm">
+                  <Link href="/pricing" className="inline-flex items-center gap-1 font-semibold text-[#326B42] hover:underline">
+                    Compare plans and add-ons <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </p>
+              </>
+            ) : (
+              <p className="mt-8 text-center">
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#326B42] px-5 py-3 font-semibold text-white hover:bg-[#255333]"
+                >
+                  Ask us about pricing <ArrowRight className="h-4 w-4" />
+                </Link>
+              </p>
+            )}
+          </div>
+        </section>
+
+        {testimonial && (
+          <section className="bg-[#FBFAF6] px-6 py-14 sm:px-8 sm:py-16">
+            <figure className="mx-auto max-w-3xl text-center">
+              <QuoteMark aria-hidden className="mx-auto h-9 w-9 text-[#C96745]" />
+              <blockquote className="mt-4 whitespace-pre-line font-[family-name:var(--font-display)] text-2xl font-semibold leading-snug tracking-tight sm:text-3xl">
+                &ldquo;{testimonial.quote}&rdquo;
+              </blockquote>
+              <figcaption className="mt-6 flex items-center justify-center gap-3 text-left text-sm">
+                <Avatar src={testimonial.photo} name={testimonial.name || testimonial.detail} size={48} />
+                <span>
+                  {testimonial.name && <span className="block font-semibold">{testimonial.name}</span>}
+                  {testimonial.detail && <span className="block text-[#637067]">{testimonial.detail}</span>}
+                </span>
+              </figcaption>
+            </figure>
           </section>
         )}
 
-        <section className="bg-[#326B42] text-white">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-6 py-10 sm:px-8">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#DCE8D9]">We are for the budget crowd</p>
-              <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold sm:text-3xl">
-                24 hour support. Call me for improvements.
+        <section className="px-6 py-10 sm:px-8">
+          <div className="mx-auto flex max-w-5xl flex-col gap-6 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-[#326B42]/10 sm:flex-row sm:items-center sm:p-8">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#DCE8D9] text-[#326B42]">
+              <Headset className="h-7 w-7" />
+            </span>
+            <div className="flex-1">
+              <h2 className="font-[family-name:var(--font-display)] text-xl font-bold sm:text-2xl">
+                24 hour support. Call us for improvements.
               </h2>
-              <p className="mt-2 text-white/85">
-                Let&apos;s make this work together! You want everything, but you don&apos;t want to pay the world.
+              <p className="mt-1 text-[#526452]">
+                Let&apos;s make this work together. You want good service, but you don&apos;t want to pay the world.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm font-semibold text-[#326B42]">
               <a
                 href={WHATSAPP_HREF}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-3 font-semibold text-[#326B42]"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#326B42] px-4 py-2.5 text-white hover:bg-[#255333]"
               >
-                <MessageCircle className="h-5 w-5" />
+                <MessageCircle className="h-4 w-4" />
                 WhatsApp {WHATSAPP_DISPLAY}
               </a>
-              <Link
-                href="/contact"
-                className="inline-flex items-center rounded-lg border border-white/70 px-5 py-3 font-semibold text-white"
-              >
+              <Link href="/contact" className="underline underline-offset-4 hover:text-[#255333]">
                 Or send a message
               </Link>
             </div>
@@ -367,18 +488,20 @@ export default async function LandingPage() {
           {closingPhoto && (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={closingPhoto} alt="" className="absolute inset-0 h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#FBF3E8] via-[#FBF3E8]/90 to-[#FBF3E8]/10" />
+              <img src={closingPhoto} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+              {/* On a phone the words cover the whole photo, so it's faded evenly there. */}
+              <div className="absolute inset-0 bg-[#FBF3E8]/85 sm:bg-transparent sm:bg-gradient-to-r sm:from-[#FBF3E8] sm:via-[#FBF3E8]/90 sm:to-[#FBF3E8]/10" />
             </>
           )}
-          <div className="relative mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-8 px-6 py-20 sm:px-8 lg:py-24">
+          <div className="relative mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-8 px-6 py-16 sm:px-8 lg:py-20">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#326B42]">Ready to build something meaningful?</p>
-              <h2 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-bold tracking-tight sm:text-5xl">
-                Start your community today.
+              <h2 className="font-[family-name:var(--font-display)] text-4xl font-bold tracking-tight sm:text-5xl">
+                Your people are out there.
+                <br />
+                <span className="text-[#326B42]">Bring them together.</span>
               </h2>
               <p className="mt-4 max-w-xl text-lg text-[#4D5A50]">
-                Bring your people together, share what you love, and make a real impact.
+                A calm, private home for your community, with the tools to help it grow.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
@@ -416,18 +539,14 @@ export default async function LandingPage() {
   );
 }
 
-// Up to HOMEPAGE_TESTIMONIALS quotes: the creator quotes the super admin wrote
+// Up to HOMEPAGE_TESTIMONIALS quotes (one, today): the creator quotes the super admin wrote
 // (Platform admin → Homepage) first, then real member quotes from the
 // showcased communities' own landing pages. Nothing here is made up, so with
 // no quotes anywhere the section simply isn't shown. Fails soft: a missing
 // column or a failed photo lookup costs the quotes or the photos, never the
 // page.
-async function getQuotes(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  communities: Community[]
-): Promise<Quote[]> {
-  const { data: settings } = await supabase.from("platform_settings").select("creator_testimonials").eq("id", 1).maybeSingle();
-  const quotes: Quote[] = readCreatorTestimonials(settings?.creator_testimonials).map((t) => ({
+async function getQuotes(creatorTestimonials: unknown, communities: Community[]): Promise<Quote[]> {
+  const quotes: Quote[] = readCreatorTestimonials(creatorTestimonials).map((t) => ({
     quote: t.quote,
     name: t.name,
     detail: t.role,
@@ -547,16 +666,6 @@ function HeroPreview({ community }: { community: Community | null }) {
   );
 }
 
-function Feature({ icon, tone, title, description }: { icon: ReactNode; tone: string; title: string; description: string }) {
-  return (
-    <div className="rounded-2xl bg-white p-4 text-center shadow-sm ring-1 ring-[#E7E7DC]">
-      <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${tone}`}>{icon}</div>
-      <h3 className="mt-3 text-sm font-bold">{title}</h3>
-      <p className="mt-1 text-xs leading-5 text-[#637067]">{description}</p>
-    </div>
-  );
-}
-
 // Where a showcase card goes: the community's own front door — its verified
 // custom domain, else its subdomain, else the path on this site. Opened in a
 // new tab so the platform homepage stays where the visitor left it.
@@ -598,5 +707,43 @@ function CommunityPreview({ community }: { community: Community }) {
         </span>
       </div>
     </a>
+  );
+}
+
+// The cheapest plan, said plainly: "Start free" when there's a free plan.
+function startingPrice(plans: PlatformPlan[]): string {
+  const cheapest = [...plans].sort((a, b) => a.price_cents - b.price_cents)[0];
+  return cheapest.price_cents === 0 ? "Start free" : `From ${formatMoney(cheapest.price_cents, cheapest.currency)} a month`;
+}
+
+// One plan, compact. Lists only the features the product actually enforces
+// (see PLAN_FEATURE_ENFORCEMENT) and the plan's own caps, so the homepage
+// never promises more than /pricing can deliver.
+function PlanPreview({ plan }: { plan: PlatformPlan }) {
+  const features = plan.features.filter((key) => planFeatureEnforcement(key));
+  const limits = Object.entries(plan.limits ?? {});
+  return (
+    <div className="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7E7DC]">
+      <h3 className="font-bold">{plan.name}</h3>
+      <p className="mt-1 font-[family-name:var(--font-display)] text-3xl font-bold">
+        {formatMoney(plan.price_cents, plan.currency)}
+        <span className="text-sm font-normal text-[#637067]"> / mo</span>
+      </p>
+      {plan.description && <p className="mt-2 text-sm leading-6 text-[#526452]">{plan.description}</p>}
+      {(features.length > 0 || limits.length > 0) && (
+        <ul className="mt-4 space-y-1.5 text-sm text-[#3B463E]">
+          {features.map((key) => (
+            <li key={key} className="flex items-start gap-2">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#326B42]" /> {planFeatureLabel(key)}
+            </li>
+          ))}
+          {limits.map(([key, value]) => (
+            <li key={key} className="flex items-start gap-2 text-[#637067]">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#A9B2AB]" /> {planLimitLabel(key, value)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

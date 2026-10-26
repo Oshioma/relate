@@ -2341,6 +2341,11 @@ export type PlatformSettings = {
   // Creator quotes for the homepage, in order (migration
   // platform_creator_testimonials). Empty = only member quotes are shown.
   creator_testimonials: CreatorTestimonial[];
+  // Homepage photos picked in Platform admin → Homepage (migration
+  // homepage_photo_settings). Null = chosen from the featured communities.
+  hero_community_id: string | null;
+  why_photo_url: string | null;
+  closing_photo_url: string | null;
   updated_at: string;
 };
 
