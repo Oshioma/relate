@@ -1068,6 +1068,37 @@ export const MARKER_PICTURES: Record<string, SeedPicture[]> = {
       depictsActualRemains: false,
     },
   ],
+  "chaldean-oracles": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/%CE%A3%CE%B9%CE%B2%CF%85%CE%BB%CE%BB%CE%B9%CE%B1%CE%BA%CE%BF%E1%BD%B6_%CE%A7%CF%81%CE%B7%CF%83%CE%BC%CE%BF%E1%BD%B6_hoc_est%2C_Sibyllina_oracula_ex_uett._codd._aucta%2C_renovata%2C_et_notis_illustrata_a_D._Iohanne_Opsop%C5%93o_Brettano._Cum_interpretatione_Latina_Sebastiani_%28IA_bib_fict_3585385%29.pdf/page625-960px-%CE%A3%CE%B9%CE%B2%CF%85%CE%BB%CE%BB%CE%B9%CE%B1%CE%BA%CE%BF%E1%BD%B6_%CE%A7%CF%81%CE%B7%CF%83%CE%BC%CE%BF%E1%BD%B6_hoc_est%2C_Sibyllina_oracula_ex_uett._codd._aucta%2C_renovata%2C_et_notis_illustrata_a_D._Iohanne_Opsop%C5%93o_Brettano._Cum_interpretatione_Latina_Sebastiani_%28IA_bib_fict_3585385%29.pdf.jpg",
+      kind: "image",
+      shows: "historical_document",
+      caption:
+        "The title page of the first printing of the oracles with the commentaries of Pletho and Psellus: 'Oracula magica Zoroastris cum scholiis Plethonis et Pselli nunc primum editi ... Studio Johannis Opsopoei. Parisiis, M.D.XCIX' (Paris, 1599), in the Johns Hopkins copy, bound with Opsopoeus's Sibylline Oracles. Its 'oracles of Zoroaster' is Pletho's later name for them, not their origin. No manuscript of the lost poem exists to show, and no scan of Westcott's 1895 volume was found on Commons.",
+      credit: "The Johns Hopkins University Sheridan Libraries, scanned by the Internet Archive (bib_fict_3585385), via Wikimedia Commons",
+      licence: "Public domain (PD-old-100-expired) and Public Domain Mark, as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Σιβυλλιακοὶ_Χρησμοὶ_hoc_est,_Sibyllina_oracula_ex_uett._codd._aucta,_renovata,_et_notis_illustrata_a_D._Iohanne_Opsopœo_Brettano._Cum_interpretatione_Latina_Sebastiani_(IA_bib_fict_3585385).pdf?page=625",
+      institution: "The Johns Hopkins University Sheridan Libraries (the scanned copy, via the Internet Archive)",
+      accessionNumber: "Internet Archive bib_fict_3585385",
+      identificationStatus: "secure",
+      verifiedIdentity: true,
+      depictsActualRemains: false,
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/a/a7/Benozzo_Gozzoli%2C_Pletone%2C_Cappella_dei_Magi.jpg",
+      kind: "image",
+      shows: "later_artwork",
+      caption:
+        "UNVERIFIED — A later likeness, not evidence for the oracles: a detail of Benozzo Gozzoli's fresco of the journey of the Magi in the Medici palace chapel, Florence (1459–64, as the file page says), showing an old man with a long white beard in a tall domed hat, traditionally identified as Gemistus Pletho, whose recension named the oracles after Zoroaster. The fresco does not name him and was painted after his death.",
+      credit: "Benozzo Gozzoli, via Wikimedia Commons",
+      licence: "Public domain (PD-old-100-expired; PD-Art) and Public Domain Mark, as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Benozzo_Gozzoli,_Pletone,_Cappella_dei_Magi.jpg",
+      institution: "Cappella dei Magi, Palazzo Medici Riccardi, Florence (the fresco, as the file page says)",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+  ],
   "story-of-atlantis-published": [
     {
       url: "https://upload.wikimedia.org/wikipedia/commons/d/d3/ELLIOT%281896%29_Atlantis%2C_Map4.jpg",

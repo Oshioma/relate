@@ -1218,6 +1218,56 @@ export const INVENTORY_SOURCES: SeedSource[] = [
       "Cited only for two reports, neither checked at its source: that 'Dates ranging from the 1st century BCE to the 10th century CE have been proposed', and that 'In 2009, four fragments in Coptic from Chapters 36–42 were identified', following the short recension (its own source for this is a blog post). Nothing in the import rests on it.",
   },
   {
+    key: "westcott-1895-chaldaean-oracles",
+    title: "The Chaldaean Oracles of Zoroaster, edited and revised by Sapere Aude, with an introduction by L. O. (Collectanea Hermetica, vol. VI)",
+    author: "Sapere Aude [W. Wynn Westcott] (ed.); introduction by L. O.",
+    publisher: "Theosophical Publishing Society, London",
+    publishedYear: 1895,
+    reference:
+      "The oracles, pp. 23–54, cited by Westcott's section and number (1–199, and the Oracles from Porphyry 1–2); the Preface (pp. 3–6) for his sources and his marks Z, T and 'Z or T'. Read in two scans on archive.org: a scan of the volume (WestcottWWCollectaneaHermeticaVolume06, printed page = leaf + 1; its title page carries no imprint or date) and a modern facsimile compilation of the Collectanea Hermetica (collectanea-hermetica); and in Forgotten Books' re-typesetting of 2008 (w.-wynn-westcott-the-chaldaean-oracles-of-zoroaster-1895), which ends at oracle 199",
+    url: "https://archive.org/details/WestcottWWCollectaneaHermeticaVolume06",
+    sourceType: "primary",
+    notes:
+      "The collection and English imported. Westcott's English is Thomas Taylor's and I. P. Cory's, which he says he modified 'where deemed permissible'; his arrangement under five heads is theirs, after Patricius (1593), and is not the arrangement or numbering of the modern editions. His Preface marks with Z the oracles from Psellus's collection that he, following Taylor, takes to be 'correctly attributed to a Chaldaean Zoroaster of very early date', with T those 'attributed to a sect of philosophers named Theurgists, who flourished during the reign of Marcus Antoninus, upon the authority of Proclus', and the rest 'Z or T'; those are his and Taylor's views. The year 1895 is not printed in the scanned volume; it is given by Wikipedia and by Forgotten Books' reprint. The text was voted from the three OCRs and read against the page images; every correction made by hand is in scripts/texts/chaldean-oracles.py. Public domain (Westcott died in 1925).",
+  },
+  {
+    key: "wikipedia-chaldean-oracles",
+    title: "Chaldean Oracles",
+    author: "Wikipedia contributors",
+    publisher: "Wikipedia",
+    reference: "https://en.wikipedia.org/wiki/Chaldean_Oracles, read on 2026-10-26 (with the articles on Gemistos Plethon, Michael Psellos, Proclus, Damascius and William Wynn Westcott)",
+    url: "https://en.wikipedia.org/wiki/Chaldean_Oracles",
+    sourceType: "website",
+    notes:
+      "Cited, second-hand, for what Westcott's book does not give: that the oracles were 'likely to have originally formed a single mystery-poem' of the 2nd century CE, linked with Julian the Chaldean and his son Julian the Theurgist, who served in Marcus Aurelius's campaign against the Quadi; that Neoplatonists from the third century used them and that the commentaries of Porphyry, Iamblichus and Proclus are lost; that the Golden Dawn published Westcott's edition in 1895; that Kroll (1894), Lewy (1956), des Places (1971) and Majercik (1989) are the scholarly editions and studies (none of them read here); and that reconstructions such as Westcott's 'are not generally regarded as having scholarly value'. Its article on Pletho gives his recension's title as 'Magika logia tôn apo Zoroastrou magôn' (the magical oracles of the magi from Zoroaster).",
+  },
+  {
+    key: "opsopoeus-1599-oracula-magica",
+    title: "Oracula magica Zoroastris cum scholiis Plethonis et Pselli nunc primum editi. E Bibliotheca Regia. Studio Johannis Opsopoei",
+    author: "Johannes Opsopoeus (ed.)",
+    publisher: "Paris",
+    publishedYear: 1599,
+    reference:
+      "The title page and p. 16 ('Magorum qui a Zoroastre prodiere oracula'), read in the Johns Hopkins copy scanned by the Internet Archive (bib_fict_3585385, leaves 624 and 635), where it is bound with Opsopoeus's Sibylline Oracles",
+    url: "https://archive.org/details/bib_fict_3585385",
+    sourceType: "primary",
+    notes:
+      "The first printing of Pletho's recension of the oracles, with his and Psellus's commentaries, named in Westcott's Preface among his printed sources. Read only for its title, imprint and the heading of its Latin oracles, which call them oracles of Zoroaster or of the magi who came from him: the source of the 1895 title's attribution. Public domain.",
+  },
+  {
+    key: "cory-1832-ancient-fragments",
+    title: "Ancient Fragments of the Phoenician, Chaldaean, Egyptian, Tyrian, Carthaginian, Indian, Persian, and other writers; with an introductory dissertation; and an inquiry into the philosophy and trinity of the ancients",
+    author: "Isaac Preston Cory (ed. and trans.)",
+    publisher: "William Pickering, London",
+    publishedYear: 1832,
+    reference:
+      "The second edition, 'The Chaldaean Oracles of Zoroaster', read at its opening (archive.org ancientfragments00cory, leaf 175, from a microfilm of a Columbia University Libraries copy)",
+    url: "https://archive.org/details/ancientfragments00cory",
+    sourceType: "primary",
+    notes:
+      "One of the two English versions Westcott revised. Read only at the opening of the oracles, for the heading, oracle 1 in Greek and English, and Cory's footnote on Taylor's arrangement (I. oracles Taylor 'conjectures may be ascribed to Zoroaster himself', from Psellus's collection, marked Z; II. those 'delivered by Theurgists under the reign of Marcus Antoninus', marked T; III. 'Z or T'). Not compared with Westcott's English beyond that page. Public domain.",
+  },
+  {
     key: "waite-1896-turba",
     title:
       "The Turba Philosophorum or Assembly of the Sages, called also the Book of Truth in the Art and the Third Pythagorical Synod: an ancient alchemical treatise translated from the Latin, the chief readings of the shorter codex, parallels from the Greek alchemists, and explanations of obscure terms",
@@ -2642,7 +2692,7 @@ export const INVENTORY: InventoryWork[] = [
       "Mithras Liturgy (PGM IV 475–829) — ascent through the heavens; Mead 1907 public domain; imported as its own work, greek.mithras-liturgy",
       "Plutarch, On Isis and Osiris — already a timeline record (plutarch-on-isis-and-osiris)",
       "Iamblichus, On the Mysteries — Taylor 1821 public domain",
-      "Chaldean Oracles",
+      "Chaldean Oracles — imported as its own work, greek.chaldean-oracles",
       "Ptolemy, Tetrabiblos — planetary rulers",
       "Macrobius, Commentary on the Dream of Scipio I.12 — descent of the soul through the seven spheres",
       "Origen, Contra Celsum VI.22 — the Mithraic ladder of seven gates; imported with VI.23–38 as its own work, gnostic.origen-contra-celsum",
@@ -2720,6 +2770,94 @@ export const INVENTORY: InventoryWork[] = [
             originalDateText: "'The Theosophical Publishing Society, London and Benares, 1907' (title page)",
             datingMethod: "historical_record",
             evidence: "The title page of the 1907 book, seen in two of the scans.",
+          }),
+        ],
+      },
+    },
+    prominence: 2,
+  },
+
+  {
+    // Brief item 18 ("Related Greek cosmological, philosophical and mystery
+    // texts") listed the Chaldean Oracles among its proposed members; they are
+    // imported here as their own work, in Westcott's collection of 1895. No
+    // existing event is about them, so a new event anchors them.
+    workKey: "greek.chaldean-oracles",
+    passagePrefix: "greek.chald",
+    briefItem: 18,
+    title: "The Chaldaean Oracles, in Westcott's The Chaldaean Oracles of Zoroaster (1895)",
+    alternativeTitles: ["The Chaldean Oracles", "The Chaldaean Oracles of Zoroaster", "Oracula Chaldaica", "Oracula magica Zoroastris (Pletho's recension, as Opsopoeus printed it in 1599)"],
+    corpusGroup: "greek_hermetic",
+    traditionClass: "ancient_late_transmission",
+    civilisation: "Roman Empire",
+    originalLanguage: "Greek (hexameter verse); the poem is lost and survives only in quotations",
+    attribution: "Traditionally Julian the Chaldean and his son Julian the Theurgist (second century CE); called the oracles 'of Zoroaster' after Gemistus Pletho",
+    attributionNote:
+      "The oracles were a Greek poem, usually put in the second century CE and attributed to Julian the Chaldean or his son Julian the Theurgist, who served under Marcus Aurelius (Wikipedia, read; the scholarship it cites was not). The poem is lost: it survives only as quotations and paraphrases in later writers, the Neoplatonists from the third century to Damascius, and the Byzantine Michael Psellus (eleventh century). Gemistus Pletho (fifteenth century) made a recension he called the magical oracles 'of the magi from Zoroaster', printed in 1599 as 'Oracula magica Zoroastris'; Westcott's title follows that framing, and his Preface holds some of the oracles to be 'correctly attributed to a Chaldaean Zoroaster of very early date'. That attribution is Pletho's and Westcott's, not a fact. The English is Taylor's and Cory's as Westcott revised it, in their arrangement, not that of the modern editions.",
+    summary:
+      "Fragments of a lost Greek mystery-poem on the Father, his Mind and Fire, the Second Mind that frames the world, Hecate, the soul's descent into matter and its ascent through purification and ritual. In W. Wynn Westcott's collection (Collectanea Hermetica VI, 1895): 199 oracles under five heads and two 'Oracles from Porphyry', each with the ancient source he cites.",
+    referenceEdition:
+      "Westcott, The Chaldaean Oracles of Zoroaster (London, 1895), pp. 23–54, by his section and number; the modern fragment numbers (Kroll 1894, des Places 1971, Majercik 1989) are not given",
+    expectedUnits: 201,
+    unitLabel: "oracles (1–199 in five sections, and the Oracles from Porphyry 1–2)",
+    unitDivisionKind: "fragment",
+    inventoryBasis:
+      "Westcott's own numbering, read on the page images of the 1895 printing (pp. 23–54): oracles 1–199 under five headings (Cause. God., 1–38; Ideas, 39–77; Particular Souls, 78–98; Matter, 99–143; Magical and Philosophical Precepts, 144–199) and two Oracles from Porphyry, numbered 1–2; all 201 imported. This is one 1895 arrangement, after Taylor and Cory; the modern editions count and number the fragments differently and some of Westcott's units are reports about the oracles, not fragments of them, so the count is not marked verified. Listed, not imported: the Preface (pp. 3–6), the Introduction by L. O. (pp. 7–22) and its three tables.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Public domain: published in 1895 (Westcott died in 1925); Taylor's and Cory's English, which he revised, are older still. The pictures carry the licences their Commons file pages state.",
+    fullTextEditions: ["Westcott, The Chaldaean Oracles of Zoroaster (Collectanea Hermetica VI, London, 1895): oracles 1–199 and the Oracles from Porphyry"],
+    referenceOnlyEditions: [
+      "W. Kroll, De oraculis Chaldaicis (1894), known from Wikipedia, not read",
+      "É. des Places, Oracles chaldaïques (1971), known from Wikipedia, not read",
+      "R. Majercik, an edition of the Greek with English translation (1989), known from Wikipedia, not read",
+      "Opsopoeus, Oracula magica Zoroastris cum scholiis Plethonis et Pselli (Paris, 1599), read for its title and the heading of its oracles",
+      "I. P. Cory, Ancient Fragments (London, 1832), read at the opening of the oracles",
+    ],
+    imageCollections: ["Wikimedia Commons: scans of Opsopoeus 1599 and Cory 1832; manuscripts of Proclus and Psellus; likenesses of Psellus and Pletho; a Roman statue of Hecate"],
+    anchor: {
+      event: {
+        slug: "chaldean-oracles",
+        title: "The Chaldean Oracles: a lost Greek poem of the second century, known from later quotations",
+        summary:
+          "A Greek mystery-poem of the second century CE, linked with Julian the Chaldean and Julian the Theurgist, survives only in quotations by later Neoplatonists and Byzantine scholars; later framed as oracles 'of Zoroaster'.",
+        description:
+          "The Chaldean Oracles were a Greek poem in hexameters on the Father, his Mind and Fire, Hecate, the soul's descent and its return, usually put in the second century CE and attributed to Julian the Chaldean or his son Julian the Theurgist, who served under Marcus Aurelius. The poem is lost. Neoplatonist philosophers from Porphyry to Damascius quoted and commented on it as revelation, and the Byzantine Michael Psellus wrote on it in the eleventh century; in the fifteenth Gemistus Pletho called it the oracles of the magi from Zoroaster, a later attribution with no ancient support. W. Wynn Westcott printed an English collection of the fragments for the Golden Dawn's Collectanea Hermetica in 1895.",
+        category: "religion",
+        eventType: "historical",
+        tags: ["ancient texts", "chaldean oracles", "neoplatonism", "theurgy", "hecate", "zoroaster attribution"],
+        civilisations: ["Roman Empire"],
+        people: ["Julian the Theurgist", "Proclus", "Michael Psellus", "Gemistus Pletho", "W. Wynn Westcott"],
+        claims: [
+          dated("composition", {
+            qualifier: "the poem, as usually dated (reported by Wikipedia)",
+            sourceKey: "wikipedia-chaldean-oracles",
+            startYear: 100,
+            endYear: 200,
+            datePrecision: "century",
+            originalDateText: "'... by Julian the Chaldean, or more likely, his son, Julian the Theurgist in the 2nd century CE' (Wikipedia, 'Chaldean Oracles')",
+            evidence:
+              "Second-hand: Wikipedia, which adds that Julian the Theurgist served in Marcus Aurelius's campaign against the Quadi. Westcott's Preface gives the oracles he marks T to Theurgists 'who flourished during the reign of Marcus Antoninus, upon the authority of Proclus'. The origin is debated and the date approximate.",
+          }),
+          dated("earliest_evidence", {
+            qualifier: "its use by Neoplatonist writers (reported by Wikipedia)",
+            sourceKey: "wikipedia-chaldean-oracles",
+            startYear: 200,
+            endYear: 300,
+            datePrecision: "century",
+            originalDateText: "'widely used by Neoplatonist philosophers from the 3rd to the 6th century CE' (Wikipedia)",
+            evidence: "No copy of the poem survives; the commentaries of Porphyry, Iamblichus and Proclus are lost, and the fragments are known from quotations in later writers. Second-hand.",
+          }),
+          dated("translation_publication", {
+            qualifier: "Westcott's English collection",
+            sourceKey: "wikipedia-chaldean-oracles",
+            startYear: 1895,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "'... which in 1895 published Taylor's translation in William Wynn Westcott's edition under the title 'The Chaldaean Oracles of Zoroaster'' (Wikipedia)",
+            datingMethod: "historical_record",
+            evidence: "The scanned volume carries no date; the year is Wikipedia's and Forgotten Books' reprint's ('First published 1895').",
           }),
         ],
       },
