@@ -17,6 +17,7 @@ import { IRENAEUS_NOTES, IRENAEUS_UNITS } from "./corpus/irenaeus-text";
 import { ORIGEN_NOTES, ORIGEN_UNITS } from "./corpus/origen-contra-celsum-text";
 import { ASCENSION_UNITS } from "./corpus/ascension-of-isaiah-text";
 import { SECRETS_OF_ENOCH_UNITS } from "./corpus/secrets-of-enoch-text";
+import { TURBA_UNITS } from "./corpus/turba-philosophorum-text";
 import { MARKER_PICTURES } from "./marker-pictures";
 import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
@@ -2763,6 +2764,196 @@ test("2 Enoch's pictures: pages of the 1896 edition are secure; the Merilo leaf 
   assert.equal(marker[0].url, seen.get("2en-morfill-charles-1896-title-page")!.url);
   assert.equal(marker[0].identificationStatus, "secure");
   assert.equal(marker[1].url, seen.get("2en-sanok-icon-elijah-and-enoch")!.url);
+  assert.equal(marker[1].identificationStatus, "unverified");
+  assert.match(marker[1].caption ?? "", /^UNVERIFIED — /);
+});
+
+test("the Turba is imported as its own work from Waite 1896: the Epistle, Dicta 1–72 by his numbering and the Conclusion", () => {
+  const file = corpusFor("arab.turba-philosophorum")!;
+  const work = INVENTORY.find((w) => w.workKey === "arab.turba-philosophorum")!;
+  assert.equal(work.passagePrefix, "arab.turba");
+  assert.equal(work.briefItem, 28);
+  assert.equal(work.corpusGroup, "arabic_medieval");
+  assert.equal(work.traditionClass, "medieval");
+  assert.equal(work.unitDivisionKind, "chapter");
+  assert.equal(work.expectedUnits, 74);
+  assert.equal(work.inventoryVerified, false, "Waite's numbering, not checked against Ruska's");
+  assert.match(work.originalLanguage, /^Latin, in medieval manuscripts; a lost Arabic original has been argued/);
+  assert.match(work.attributionNote!, /the text's attributions, not historical authorship/);
+  assert.match(work.attributionNote!, /first printed in 1572/);
+  assert.match(work.attributionNote!, /Julius Ruska \(1931\) argued for a lost Arabic original/);
+  assert.match(work.attributionNote!, /Plessner is known here only second-hand/);
+  // Item 28 of the brief points here.
+  const related = INVENTORY.find((w) => w.workKey === "arab.related")!;
+  assert.ok(related.proposedMembers!.includes("Turba Philosophorum — imported as its own work, arab.turba-philosophorum"));
+  for (const key of ["waite-1896-turba", "auriferae-artis-1572", "ruska-1931-problemes", "wikipedia-turba", "wikipedia-ibn-umayl", "de-wikipedia-turba", "fr-wikipedia-turba"]) {
+    assert.ok(INVENTORY_SOURCES.some((s) => s.key === key), key);
+  }
+  // One record for the book (citing the Latin only), then 74 units.
+  const book = file.passages[0];
+  assert.equal(book.key, "arab.turba.book");
+  assert.equal(book.layers.filter((l) => l.content && l.key !== PLAIN_LAYER_KEY).length, 0);
+  assert.ok(book.layers.some((l) => l.key === "lat" && l.content == null && l.language === "Latin"));
+  assert.match(book.summary!, /It is a Latin text, known from medieval manuscripts .* first printed at Basel in 1572/);
+  assert.match(book.summary!, /that origin is a scholarly argument, debated, not a documented fact/);
+  assert.match(book.notes!, /Not imported, and listed here: the title page; Waite's Preface \(pp\. i–iv\)/);
+  assert.match(book.notes!, /the Index \(pp\. 209–210\)/);
+  assert.match(book.notes!, /The second recension as a whole is not printed by Waite as a text and is not imported/);
+  const units = file.passages.slice(1);
+  assert.equal(TURBA_UNITS.length, 74);
+  assert.deepEqual(
+    units.map((u) => u.key),
+    ["arab.turba.epistle", ...Array.from({ length: 72 }, (_, i) => `arab.turba.${i + 1}`), "arab.turba.conclusion"]
+  );
+  assert.equal(file.passages.length, 1 + 74);
+  assert.equal(file.passages.filter((p) => p.layers.some((l) => l.key === "eng-1896")).length, work.expectedUnits);
+  assert.equal(units.filter((u) => u.divisionKind === work.unitDivisionKind).length, 72);
+  assert.deepEqual(units.filter((u) => u.divisionKind === "section").map((u) => u.key), ["arab.turba.epistle", "arab.turba.conclusion"]);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 74, verifiedUnits: 0 }), "verified_against_edition");
+  const text = (key: string) => file.passages.find((p) => p.key === `arab.turba.${key}`)!.layers.find((l) => l.key === "eng-1896")!.content!;
+  for (const unit of units) {
+    assert.equal(unit.parentKey, "arab.turba.book", unit.key);
+    assert.equal(unit.verificationStatus, "unverified", unit.key);
+    const layer = unit.layers.find((l) => l.key === "eng-1896")!;
+    assert.equal(layer.licence, "public_domain", unit.key);
+    assert.equal(layer.layer, "translation", unit.key);
+    assert.equal(layer.sourceKey, "waite-1896-turba", unit.key);
+    assert.match(layer.evidence, /scripts\/texts\/turba-philosophorum\.py/, unit.key);
+    assert.match(unit.reference, /^Turba Philosophorum, (the Epistle of Arisleus|Dictum \d+ \(Waite's numbering\)|the Conclusion \(the last Dictum of the second recension\)); A\. E\. Waite, The Turba Philosophorum \(London, 1896\), (p\. \d+|pp\. \d+–\d+)$/, unit.key);
+    assert.ok(unit.layers.some((l) => l.key === PLAIN_LAYER_KEY), `${unit.key} has no plain words`);
+    // No OCR debris: no stray marks, doubled spaces or hyphen breaks. (Quotation marks are kept
+    // straight throughout; Waite's one double-quoted phrase is in Dictum 20.)
+    assert.doesNotMatch(layer.content!, /™|_|�|\{|\||  |\w- [a-z]|[“”‘’]/, unit.key);
+    if (unit.key !== "arab.turba.20") assert.doesNotMatch(layer.content!, /"/, unit.key);
+  }
+  assert.match(text("20"), /the best is:—"That which is produced out of metals\." So also/);
+  // Each Dictum is labelled with its speaker, as the text names him; the names are attributions.
+  for (const unit of TURBA_UNITS.filter((u) => u.speaker)) {
+    assert.match(unit.text, new RegExp(`^(But )?${unit.speaker}(, the Philosopher,)? saith`), unit.key);
+  }
+  assert.equal(file.passages.find((p) => p.key === "arab.turba.1")!.label, "The First Dictum: Iximidrus");
+  assert.equal(file.passages.find((p) => p.key === "arab.turba.epistle")!.label, "The Epistle of Arisleus");
+  assert.equal(file.passages.find((p) => p.key === "arab.turba.conclusion")!.label, "The Conclusion: Agmon");
+  assert.match(text("epistle"), /^The Turba Philosophorum, Taken from an Ancient Manuscript Codex, more perfect than any edition published heretofore\.\n\nThe Epistle of Arisleus/);
+  assert.match(text("epistle"), /Arisleus, begotten of Pythagoras, a disciple of the disciples by the grace of thrice great Hermes/);
+  assert.match(text("4"), /four things are conjoined/);
+  assert.match(text("13"), /a stone, and also not a stone/);
+  assert.match(text("conclusion"), /^Agmon saith: I will add the following by way of a corollary\. Whosoever does not liquefy and coagulate errs greatly/);
+  for (const passage of units) assert.match(passage.notes ?? "", /attribution, not a claim that a historical philosopher said this/, passage.key);
+});
+
+test("the Turba is dated by the arguments for its Arabic original, its reported manuscripts and its printings, each sourced", () => {
+  const file = corpusFor("arab.turba-philosophorum")!;
+  const book = file.passages[0];
+  assert.deepEqual(
+    book.dates!.map((d) => [d.role, d.startYear, d.endYear, d.datePrecision, d.isApproximate, d.sourceKey]),
+    [
+      ["composition", 850, 950, "century", true, "wikipedia-turba"],
+      ["earliest_evidence", 1200, 1300, "century", true, "de-wikipedia-turba"],
+      ["manuscript", 1250, 1300, "decade", true, "fr-wikipedia-turba"],
+      ["translation_publication", 1572, 1572, "year", false, "auriferae-artis-1572"],
+      ["translation_publication", 1896, 1896, "year", false, "waite-1896-turba"],
+    ]
+  );
+  const [plessner, earliest, berlin, printed] = book.dates!;
+  assert.match(plessner.originalDateText!, /written c\. 900 A\. D\..*as quoted by the English Wikipedia/);
+  assert.match(plessner.evidence, /known here only from the English Wikipedia's report of his article \(not read\)/);
+  assert.match(plessner.evidence, /Debated; not established\.$/);
+  assert.match(earliest.evidence, /^Second-hand/);
+  assert.match(berlin.evidence, /not checked/);
+  assert.match(printed.originalDateText!, /Basileae\. Apud Petrum Pernam\. M\. D\. LXXII\./);
+  const work = INVENTORY.find((w) => w.workKey === "arab.turba-philosophorum")!;
+  const event = work.anchor && "event" in work.anchor ? work.anchor.event : undefined;
+  assert.equal(event!.slug, "turba-philosophorum-assembly");
+  assert.deepEqual(
+    event!.claims.map((c) => [dateRoleFromWhatIsDated(c.whatIsDated!), c.startYear, c.endYear, c.sourceKey]),
+    [
+      ["composition", 850, 950, "wikipedia-turba"],
+      ["earliest_evidence", 1200, 1300, "de-wikipedia-turba"],
+      ["translation_publication", 1572, 1572, "auriferae-artis-1572"],
+      ["translation_publication", 1896, 1896, "waite-1896-turba"],
+    ]
+  );
+  assert.match(event!.claims[0].evidence, /^Second-hand: Plessner was not read/);
+});
+
+test("the Turba's links are proposed resemblances, and none claims one text knew another", () => {
+  const file = corpusFor("arab.turba-philosophorum")!;
+  const links = file.links ?? [];
+  assert.equal(links.length, 12);
+  const keys = new Set(ALL_CORPORA.flatMap((f) => f.passages.map((p) => p.key)));
+  assert.equal(new Set(links.map((l) => l.key)).size, links.length, "duplicate link key");
+  for (const link of links) {
+    assert.ok(keys.has(link.from) && keys.has(link.to), link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^arab\.turba\.(book|epistle|\d+)$/, link.key);
+    // Only Hall's later reading names the Turba; every other link shows no transmission.
+    if (link.connectionClass === "later_reinterpretation") assert.match(link.transmissionEvidence, /^Hall names the Turba Philosophorum/, link.key);
+    else assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+    assert.doesNotMatch(`${link.similarities} ${link.differences} ${link.transmissionEvidence}`, /\bcop(ied|y)\b/, link.key);
+  }
+  assert.deepEqual(
+    links.map((l) => [l.from, l.to, l.connectionClass]),
+    [
+      ["arab.turba.70", "arab.tab.vulgate.03", "symbolic_similarity"],
+      ["arab.turba.57", "arab.tab.vulgate.05", "symbolic_similarity"],
+      ["arab.turba.13", "arab.secretum.10.6", "close_conceptual_parallel"],
+      ["arab.turba.4", "arab.secretum.10.6", "close_conceptual_parallel"],
+      ["arab.turba.8", "greek.tim.32b", "broad_thematic_resemblance"],
+      ["arab.turba.45", "greek.tim.49c", "close_conceptual_parallel"],
+      ["arab.turba.9", "herm.ch.1.5", "broad_thematic_resemblance"],
+      ["arab.turba.37", "arab.comm.hort.13", "symbolic_similarity"],
+      ["arab.turba.32", "arab.comm.hort.13", "symbolic_similarity"],
+      ["arab.turba.65", "arab.comm.hort.11", "broad_thematic_resemblance"],
+      ["arab.turba.book", "modern.hall.31.fig3", "later_reinterpretation"],
+      ["arab.turba.epistle", "modern.hpb.isis.1.xxxi", "speculative_connection"],
+    ]
+  );
+});
+
+test("the Turba's pictures: the 1572 title page and pages of Waite 1896 are secure; the woodcut of the sages is UNVERIFIED", () => {
+  const file = corpusFor("arab.turba-philosophorum")!;
+  const placed = file.passages.flatMap((p) => (p.images ?? []).map((i) => [p.key, i] as const));
+  const images = [...(file.images ?? []), ...placed.map(([, i]) => i)];
+  const seen = new Map(images.map((i) => [i.key, i]));
+  assert.equal(seen.size, images.length, "duplicate image key");
+  assert.equal(seen.size, 7);
+  const elsewhere = new Set(ALL_CORPORA.filter((f) => f.workKey !== "arab.turba-philosophorum").flatMap((f) => [...(f.images ?? []), ...f.passages.flatMap((p) => p.images ?? [])].map((i) => i.url)));
+  for (const image of seen.values()) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.equal(image.licenceStatus, "open", image.key);
+    assert.ok(image.licence, image.key);
+    assert.ok(!elsewhere.has(image.url), `${image.key} repeats a picture shown elsewhere`);
+    if (image.identificationStatus === "unverified") {
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else {
+      assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+      assert.equal(image.shows, "historical_document", image.key);
+    }
+  }
+  assert.deepEqual(
+    placed.map(([key, i]) => [key, i.key, i.identificationStatus]),
+    [
+      ["arab.turba.book", "turba-auriferae-artis-1572-title-page-wellcome", "secure"],
+      ["arab.turba.book", "turba-waite-1896-title-page", "secure"],
+      ["arab.turba.book", "turba-sages-round-the-fire-woodcut", "unverified"],
+      ["arab.turba.epistle", "turba-waite-1896-page-1", "secure"],
+      ["arab.turba.4", "turba-waite-1896-page-11", "secure"],
+      ["arab.turba.11", "turba-waite-1896-page-35", "secure"],
+      ["arab.turba.conclusion", "turba-waite-1896-page-206", "secure"],
+    ]
+  );
+  const woodcut = seen.get("turba-sages-round-the-fire-woodcut")!;
+  assert.equal(woodcut.shows, "later_artwork");
+  assert.match(woodcut.whatIsUnverified!, /The two disagree and neither was checked/);
+  // Its own marker: the 1572 title page, then the woodcut, UNVERIFIED.
+  const marker = MARKER_PICTURES["turba-philosophorum-assembly"];
+  assert.equal(marker.length, 2);
+  assert.equal(marker[0].url, seen.get("turba-auriferae-artis-1572-title-page-wellcome")!.url);
+  assert.equal(marker[0].identificationStatus, "secure");
+  assert.equal(marker[1].url, woodcut.url);
   assert.equal(marker[1].identificationStatus, "unverified");
   assert.match(marker[1].caption ?? "", /^UNVERIFIED — /);
 });
