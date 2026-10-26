@@ -1146,6 +1146,78 @@ export const INVENTORY_SOURCES: SeedSource[] = [
       "Says that 'very little is known about his personal history except that he lived during the reign of Marcus Aurelius, that his literary activity falls between the years 175 and 180', and that he wrote the True Word against the Christians, which survives only in Origen's reply; also that 'about the year 240 a copy of the work was sent to Origen by his friend Ambrosius', which does not square exactly with Eusebius's placing of the reply under Philip (244–249). Cited for the date of Celsus's work, which is debated. Read in New Advent's transcription.",
   },
   {
+    key: "charles-1900-ascension",
+    title:
+      "The Ascension of Isaiah, translated from the Ethiopic version, which, together with the new Greek fragment, the Latin versions and the Latin translation of the Slavonic, is here published in full",
+    author: "R. H. Charles (ed. and trans.)",
+    publisher: "Adam and Charles Black, London",
+    publishedYear: 1900,
+    reference:
+      "The English translation of chapters vi–xi, pp. 42–82, cited by Charles's chapter and verse; the Introduction (pp. vii–lxxiv) for the manuscripts, versions and dates. Read in two scans on archive.org: the Cornell University Library copy (cu31924014590529, page images n121–n161 for pp. 42–82) and the Princeton Theological Seminary copy (ascensionofisaia00unse)",
+    url: "https://archive.org/details/cu31924014590529",
+    sourceType: "primary",
+    notes:
+      "The edition and English imported. Charles translated from the Ethiopic, following in the main the Bodleian manuscript, and marked his emendations, the words he held corrupt or interpolated, and the words of one branch of the Greek (G1) absent from the other (G2); the signs are kept. His Introduction is the only source read for the dates (the Vision 'in its primitive form' at 'the close of the first century'; the final editing early in the third century or the second; the Ethiopic version probably fifth century) and for the manuscripts and versions. The text was voted from the OCR of the two scans and an independent web transcription and read against the Cornell page images; every correction made by hand is in scripts/texts/ascension-of-isaiah.py. Public domain (Charles died in 1931).",
+  },
+  {
+    key: "laurence-1819-ascension",
+    title: "Ascensio Isaiae Vatis, opusculum pseudepigraphum, multis abhinc seculis, ut videtur, deperditum, nunc autem apud Aethiopas compertum, et cum versione Latina Anglicanaque publici juris factum",
+    author: "Richard Laurence (ed. and trans.)",
+    publisher: "Oxford",
+    publishedYear: 1819,
+    reference: "The English translation of chapters vi–xi, compared in the archive.org OCR (ascensioisaiaeva00laur); chapter xi from about p. 133",
+    url: "https://archive.org/details/ascensioisaiaeva00laur",
+    sourceType: "primary",
+    notes:
+      "The first edition of the Ethiopic text, from the Bodleian manuscript alone, with Latin and English translations; Charles calls it the publication of manuscript a 'as it stands'. Its English was compared with Charles's on chapter xi and is a different, freer translation (xi. 8: 'while Mary was attentively gazing on the ground, she suddenly perceived with astonishment a small infant'); it is not imported. The title is as the archive.org record gives it and was not checked on the title page. Public domain.",
+  },
+  {
+    key: "ecw-ascension-transcription",
+    title: "Ascension of Isaiah (web transcription of R. H. Charles's 1900 English)",
+    author: "Unsigned; published on Early Christian Writings (Peter Kirby)",
+    publisher: "earlychristianwritings.com",
+    reference: "https://www.earlychristianwritings.com/text/ascension.html, chapters 6–11",
+    url: "https://www.earlychristianwritings.com/text/ascension.html",
+    sourceType: "website",
+    notes:
+      "A transcription of Charles's English without his signs and with modern double quotation marks, used only as the third witness in the vote that made the imported text, and then compared with the result: it differs in 44 places, all slips or omissions of the transcription on the page images (for example 'descent' for 'descend', 'forth' for 'fourth', 'astonished' for Charles's 'astonied', and no 'for these are great things' in xi. 34). Not imported.",
+  },
+  {
+    key: "morfill-charles-1896-enoch",
+    title: "The Book of the Secrets of Enoch, translated from the Slavonic by W. R. Morfill, M.A., and edited, with introduction, notes and indices, by R. H. Charles, M.A.",
+    author: "W. R. Morfill (trans.) and R. H. Charles (ed.)",
+    publisher: "Clarendon Press, Oxford",
+    publishedYear: 1896,
+    reference:
+      "The English text, pp. 1–84, cited by Charles's chapter and verse; the Preface (pp. vii–viii) and Introduction (pp. xi–xlvii; §2 on the Slavonic manuscripts is Morfill's) for the manuscripts, the recensions and the date. Read in three scans on archive.org: the Cornell University Library copy (cu31924014633568, page images n52–n135 for pp. 1–84), the Wellesley College copy (bookofsecretsofe00morf) and a Google scan of a University of Michigan copy (booksecretsenoc00morfgoog)",
+    url: "https://archive.org/details/cu31924014633568",
+    sourceType: "primary",
+    notes:
+      "The edition and English imported: the first edition and first English translation of 2 Enoch. Morfill translated manuscripts A (Khludov's, longer, seventeenth century) and B (Belgrade, shorter, sixteenth century) and Sokolov's text; Charles formed an eclectic text, following A in the main, B where it is better and Sokolov where both are corrupt, putting A's apparent interpolations (among them xxi. 6 and xxii. 1–3, on an eighth, ninth and tenth heaven) in his footnotes or in square brackets, and printing A's chapter titles in brackets as having 'no claim to antiquity'. His Introduction dates the book 'with reasonable certainty' to 1–50 A.D. and places it in Egypt, probably Alexandria; that is one editor's view of 1896. The text was voted from the OCR of the three scans and read against the Cornell page images; every correction made by hand is in scripts/texts/secrets-of-enoch.py. Public domain (Morfill died in 1909, Charles in 1931).",
+  },
+  {
+    key: "orlov-2enoch-intro",
+    title: "2 (Slavonic) Enoch: Introduction",
+    author: "Andrei A. Orlov",
+    publisher: "Marquette University (Orlov's website on 2 Enoch)",
+    reference: "https://www.marquette.edu/maqom/2enoch.html, the sections on manuscripts and recensions, authorship and date; read on 2026-10-24",
+    url: "https://www.marquette.edu/maqom/2enoch.html",
+    sourceType: "website",
+    notes:
+      "A modern scholar's summary, cited for what Charles could not know or did not hold: that 2 Enoch 'has survived in more than twenty Slavonic manuscripts and fragments dated from 14th to 18th centuries C.E.', the oldest being copies of chapters 40–65 in the judicial codex Merilo Pravednoe; that 'Scholarly consensus holds that 2 Enoch exists in longer and shorter recensions' (in Orlov's sigla, which are not Charles's, R, J and P longer; U, A, B, V, N, B2 and L shorter); and that the Christian provenance argued by Vaillant (1952) and the ninth-century Byzantine date argued by Milik (1976) met 'substantial critical responses', most readers holding a Jewish origin and an early date argued from the Temple. Orlov is reported, not Vaillant or Milik, who were not read.",
+  },
+  {
+    key: "wikipedia-2-enoch",
+    title: "Second Book of Enoch",
+    author: "Wikipedia contributors",
+    publisher: "Wikipedia",
+    reference: "https://en.wikipedia.org/wiki/Second_Book_of_Enoch, read on 2026-10-24",
+    url: "https://en.wikipedia.org/wiki/Second_Book_of_Enoch",
+    sourceType: "website",
+    notes:
+      "Cited only for two reports, neither checked at its source: that 'Dates ranging from the 1st century BCE to the 10th century CE have been proposed', and that 'In 2009, four fragments in Coptic from Chapters 36–42 were identified', following the short recension (its own source for this is a blog post). Nothing in the import rests on it.",
+  },
+  {
     key: "hall-secret-teachings",
     title: "The Secret Teachings of All Ages",
     author: "Manly P. Hall",
@@ -2771,6 +2843,191 @@ export const INVENTORY: InventoryWork[] = [
     prominence: 2,
   },
   {
+    // The Vision of Isaiah (chapters vi–xi) is a Christian apocalypse, not a
+    // Gnostic text; it is a proposed member of item 23 ("Other ancient texts
+    // on planetary rulers, archons and ascent") for its seven heavens and the
+    // descent hidden from the powers, so it is shelved in the group that
+    // holds item 23 and given its own work. No marker existed for it.
+    workKey: "gnostic.ascension-of-isaiah",
+    passagePrefix: "gnostic.ascisa",
+    briefItem: 23,
+    title: "The Ascension of Isaiah, chapters VI–XI: the Vision of Isaiah",
+    alternativeTitles: ["Ascensio Isaiae", "Visio Isaiae", "The Vision of Isaiah"],
+    corpusGroup: "gnostic",
+    traditionClass: "ancient_late_transmission",
+    civilisation: "Roman Empire",
+    originalLanguage: "Greek (lost); complete only in Ethiopic (Ge'ez)",
+    attribution: "Pseudepigraphal: told in the name of the prophet Isaiah; author unknown",
+    attributionNote:
+      "A composite book, 'partly of Jewish, partly of Christian origin', as R. H. Charles describes it (1900): the Martyrdom of Isaiah (Jewish), the Testament of Hezekiah (iii. 13b–iv. 18) and the Vision of Isaiah (vi.–xi. 40), both Christian, joined by an editor (xi. 41–43). Only the Vision is imported. Charles dates it in its first form to the close of the first century and the final editing to early in the third century or the second. The Greek original is lost; the whole book survives only in Ethiopic, chapters vi–xi also in a Latin version and in Slavonic, vii. 1–19 in a Latin palimpsest fragment and ii. 4–iv. 4 in a Greek papyrus, all as Charles reports them. The English is Charles's, from the Ethiopic.",
+    summary:
+      "Isaiah, in a trance before King Hezekiah, is led by an angel through the firmament and the seven heavens, sees the Beloved sent down unrecognized through them, taking each heaven's form and giving the gatekeepers the password, born of Mary, crucified, and ascending again to the right hand of the Great Glory: a Christian apocalypse, in R. H. Charles's English from the Ethiopic (1900).",
+    referenceEdition: "R. H. Charles, The Ascension of Isaiah (London, 1900), chapters vi–xi, by Charles's chapter and verse",
+    expectedUnits: 197,
+    unitLabel: "verses (vi. 1–xi. 43, with ix. 12–13 as one)",
+    unitDivisionKind: "verse",
+    inventoryBasis:
+      "Charles's own chapters and verses, read on the page images of the 1900 printing (pp. 42–82): vi. 1–17, vii. 1–37, viii. 1–28, ix. 1–42, x. 1–31 and xi. 1–43, 198 verses printed as 197 units because ix. 12 and 13 are printed together ('12, 13.') where Charles restores their order. All are imported. The verse numbering is Charles's (after Dillmann's edition of 1877, which was not read); other editions may divide differently, so the count is not marked verified. Listed, not imported: chapters i–v, Charles's footnotes, and the Ethiopic, Greek, Latin and Slavonic texts printed in the same book.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Public domain: Charles's translation was published in 1900 (he died in 1931); Laurence's of 1819 is compared only. The pictures carry the licences their Commons file pages state.",
+    fullTextEditions: ["R. H. Charles, The Ascension of Isaiah (London, 1900): the English of chapters vi–xi"],
+    referenceOnlyEditions: [
+      "The Ethiopic text, in Charles 1900 (pp. 83–139) and Dillmann, Ascensio Isaiae (Leipzig, 1877), not read",
+      "The Latin versions (L1, L2) and Bonwetsch's Latin translation of the Slavonic, printed by Charles 1900, not read",
+      "Richard Laurence, Ascensio Isaiae Vatis (Oxford, 1819), with an English translation from the Bodleian manuscript, compared only",
+      "R. H. Charles's revised translation (London: SPCK, 1917), not found and not used",
+    ],
+    imageCollections: [
+      "Wikimedia Commons: the Amherst Greek papyrus of the Ascension (ii. 4–iv. 4, the Martyrdom, now in the Morgan Library), and pictures of the martyrdom of Isaiah sawn asunder (xi. 41)",
+    ],
+    anchor: {
+      event: {
+        slug: "ascension-of-isaiah-vision",
+        title: "The Vision of Isaiah: an ascent through the seven heavens",
+        summary: "A Christian apocalypse, later joined to the Martyrdom of Isaiah, tells of the prophet's ascent through the seven heavens and of the Beloved's descent hidden from the powers.",
+        description:
+          "The Vision of Isaiah (Ascension of Isaiah vi–xi) is a Christian apocalypse told in the prophet's name: led by an angel through the firmament and the seven heavens, Isaiah sees the Beloved commanded to descend through them unrecognized, taking each heaven's form and giving the gatekeepers a password, and then his birth, death, descent to Sheol and ascent. R. H. Charles (1900) dated it in its first form to the close of the first century, and the joining of it to the Jewish Martyrdom of Isaiah to early in the third century or the second. The Greek original is lost; the whole book survives only in Ethiopic, translated, Charles thought, in the fifth century.",
+        category: "religion",
+        eventType: "historical",
+        tags: ["ancient texts", "apocalypse", "seven heavens", "ascent", "pseudepigrapha"],
+        civilisations: ["Roman Empire"],
+        people: ["R. H. Charles"],
+        claims: [
+          dated("composition", {
+            qualifier: "the Vision of Isaiah (Ascension of Isaiah vi–xi), in its first form",
+            sourceKey: "charles-1900-ascension",
+            startYear: 80,
+            endYear: 100,
+            datePrecision: "decade",
+            originalDateText: "'Thus the composition of the Vision in its primitive form G belongs to the close of the first century' (Charles 1900, p. xlv)",
+            evidence:
+              "Charles argues from its use by Jerome, Hieracas and the Archontici, its attestation in the Actus Petri Vercellenses (second century, or at latest early third), the Protevangelium of James's apparent knowledge of it, and Ignatius's apparent dependence on xi. 16 (To the Ephesians 19). The range 80–100 renders 'the close of the first century'; it is one scholar's dating, approximate.",
+          }),
+          dated("composition", {
+            qualifier: "the final editing of the whole Ascension",
+            sourceKey: "charles-1900-ascension",
+            startYear: 150,
+            endYear: 230,
+            datePrecision: "century",
+            originalDateText: "'it is probable that the work of editing goes back to early in the third century, or even to the second' (Charles 1900, p. xlv)",
+            evidence: "Argued from the corrupt state of the fifth- or sixth-century Greek papyrus and Latin palimpsest, and the probable fifth-century date of the Ethiopic version. Approximate.",
+          }),
+          dated("translation_publication", {
+            qualifier: "Charles's English, translated from the Ethiopic",
+            sourceKey: "charles-1900-ascension",
+            startYear: 1900,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "London: Adam and Charles Black, 1900",
+            datingMethod: "historical_record",
+            evidence: "The printing imported, read in two scans; the Preface is signed at Oxford, September 1900.",
+          }),
+        ],
+      },
+    },
+    prominence: 2,
+  },
+  {
+    // 2 Enoch is a Jewish or Christian apocalypse (scholars disagree), not a
+    // Gnostic text; it is a proposed member of item 23 ("Other ancient texts
+    // on planetary rulers, archons and ascent") for its seven heavens and its
+    // seven planets, so it is shelved in the group that holds item 23 and
+    // given its own work. The only existing Enoch event is 1 Enoch's Watchers,
+    // a different book, so a new event anchors it.
+    workKey: "gnostic.secrets-of-enoch",
+    passagePrefix: "gnostic.2en",
+    briefItem: 23,
+    title: "The Book of the Secrets of Enoch (2 Enoch), chapters I–LXVIII",
+    alternativeTitles: ["2 Enoch", "Slavonic Enoch", "The Secret Books of God which were shown to Enoch (title in manuscript B, as Charles reports)"],
+    corpusGroup: "gnostic",
+    traditionClass: "ancient_late_transmission",
+    civilisation: "Roman Empire",
+    originalLanguage: "Greek (lost), as Charles argued, with some sections perhaps from Hebrew; survives complete only in Slavonic",
+    attribution: "Pseudepigraphal: told in the name of the patriarch Enoch; author unknown",
+    attributionNote:
+      "R. H. Charles (1896) held the author 'a Jew who lived in Egypt, probably in Alexandria' and 'belonged to the orthodox Hellenistic Judaism of his day', writing in Greek in 1–50 A.D. Later scholars disagree: Orlov reports Vaillant's (1952) case for Christian provenance and Milik's (1976) for a Byzantine monk of the ninth century, both widely criticised, most readers holding a Jewish origin and an early date. The book survives complete only in Slavonic manuscripts of the fourteenth to eighteenth centuries, in a longer and a shorter recension. The English is Morfill's, in the eclectic text Charles formed mainly from A (longer) with B (shorter).",
+    summary:
+      "Enoch is taken up by two angels through seven heavens, anointed and clothed in glory before the Lord, writes 366 books at an archangel's dictation, and hears the secrets of creation, the seven planetary circles and the seven thousand years of the world; sent back for thirty days, he instructs his sons and is taken up again. In W. R. Morfill's English from the Slavonic, edited by R. H. Charles (1896).",
+    referenceEdition: "W. R. Morfill and R. H. Charles, The Book of the Secrets of Enoch (Oxford, 1896), chapters i–lxviii, by Charles's chapter and verse",
+    expectedUnits: 357,
+    unitLabel: "units: the prologue and 356 verses (i. 1–lxviii. 7; xxii from verse 4; liv one verse)",
+    unitDivisionKind: "verse",
+    inventoryBasis:
+      "Charles's own chapters and verses, read on the page images of the 1896 printing (pp. 1–84): 68 chapters, 356 verses, every one imported, with the heading and short opening before chapter i as one more unit. Chapter xxii begins at verse 4 because Charles puts A's xxii. 1–3 (the tenth heaven) in his notes; chapter liv is printed without verse numbers and counts as one. Other editions (from the longer or shorter recension, or later critical texts) number and divide differently, so the count is not marked verified. Listed, not imported: Charles's footnotes, commentary and Introduction, the Appendix (the Melchizedekian fragment, pp. 85–93), the Additional Note on the Phoenixes (p. 94) and the Indices.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Public domain: Morfill's translation and Charles's edition were published in 1896 (Morfill died in 1909, Charles in 1931). The pictures carry the licences their Commons file pages state.",
+    fullTextEditions: ["W. R. Morfill and R. H. Charles, The Book of the Secrets of Enoch (Oxford, 1896): the English of chapters i–lxviii"],
+    referenceOnlyEditions: [
+      "Manuscript A (longer), printed by A. Popov (Moscow, 1880), not read",
+      "Manuscript B (shorter), printed by S. Novaković, Starine 16 (Agram, 1884), not read",
+      "M. I. Sokolov's Slavonic text, used by Morfill and Charles, not read",
+      "R. H. Charles's later English, in The Apocrypha and Pseudepigrapha of the Old Testament, vol. 2 (Oxford, 1913), not used",
+      "The Appendix of the 1896 edition, the Melchizedekian fragment (pp. 85–93), listed and not imported",
+    ],
+    imageCollections: ["Wikimedia Commons: icons and miniatures of the prophet Enoch, and pictures of Enoch taken up to heaven"],
+    anchor: {
+      event: {
+        slug: "secrets-of-enoch-seven-heavens",
+        title: "The Book of the Secrets of Enoch: Enoch's ascent through the seven heavens",
+        summary:
+          "An apocalypse surviving only in Slavonic tells of Enoch's ascent through seven heavens, his transformation before the Lord, and the secrets of creation revealed to him.",
+        description:
+          "The Book of the Secrets of Enoch (2 Enoch, the Slavonic Enoch) tells how two angels took the patriarch Enoch through seven heavens, where he saw imprisoned angels, Paradise and a place of torment, the courses of the sun and moon, the silent Grigori and the ordering archangels, and came before the Lord, who had him anointed and clothed in glory, dictated 366 books to him, and told him how the world was made and how long it would last. R. H. Charles, who edited Morfill's first English translation (1896), dated it to 1–50 A.D. and held it the work of an Alexandrian Jew; later scholars have argued for other dates, as late as the ninth century. It survives complete only in Slavonic manuscripts, none earlier than the fourteenth century.",
+        category: "religion",
+        eventType: "historical",
+        tags: ["ancient texts", "apocalypse", "seven heavens", "ascent", "pseudepigrapha", "Enoch"],
+        civilisations: ["Roman Empire"],
+        people: ["R. H. Charles", "W. R. Morfill"],
+        claims: [
+          dated("composition", {
+            qualifier: "2 Enoch, as R. H. Charles dated it",
+            sourceKey: "morfill-charles-1896-enoch",
+            startYear: 1,
+            endYear: 50,
+            datePrecision: "decade",
+            originalDateText: "'We may, therefore, with reasonable certainty assign the composition of our text to the period 1-50 A.D.' (Charles 1896, p. xxvi)",
+            evidence:
+              "Charles argues an earlier limit 'probably between 30 B.C. and the Christian era' from the author's use of Ecclesiasticus, Wisdom and the Ethiopic Enoch, and a later limit before 70 A.D. because 'the temple is still standing; see lix. 2' and because, he holds, the New Testament, Barnabas and the Ascension of Isaiah knew the book. One editor's dating of 1896, approximate and debated.",
+          }),
+          dated("composition", {
+            qualifier: "2 Enoch, as J. T. Milik dated it (reported by Orlov)",
+            sourceKey: "orlov-2enoch-intro",
+            startYear: 800,
+            endYear: 900,
+            datePrecision: "century",
+            originalDateText: "'Milik who argued that the apocalypse was written by a Byzantine monk in the ninth century C.E. (Milik, 1976)' (Orlov)",
+            evidence:
+              "A late Christian dating, reported second-hand; Orlov says it and Vaillant's case for Christian provenance 'generated substantial critical responses'. Milik was not read. Given so that the early date does not stand alone.",
+          }),
+          dated("earliest_evidence", {
+            qualifier: "the oldest Slavonic copies",
+            sourceKey: "orlov-2enoch-intro",
+            startYear: 1300,
+            endYear: 1400,
+            datePrecision: "century",
+            originalDateText: "'more than twenty Slavonic manuscripts and fragments dated from 14th to 18th centuries C.E.' (Orlov); 'Tikhonravov cites from a fourteenth century MS.' (Morfill, in Charles 1896, p. xiv)",
+            evidence: "No copy older than the fourteenth century is named by either source; the oldest are copies of chapters 40–65 in the judicial codex Merilo Pravednoe. Not seen.",
+          }),
+          dated("translation_publication", {
+            qualifier: "Morfill's English, edited by Charles",
+            sourceKey: "morfill-charles-1896-enoch",
+            startYear: 1896,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "Oxford: at the Clarendon Press, 1896",
+            datingMethod: "historical_record",
+            evidence: "The printing imported, read in three scans: the first English translation.",
+          }),
+        ],
+      },
+    },
+    prominence: 2,
+  },
+  {
     workKey: "gnostic.pistis-sophia",
     passagePrefix: "gnostic.ps",
     briefItem: 20,
@@ -3073,8 +3330,8 @@ export const INVENTORY: InventoryWork[] = [
     proposedMembers: [
       "Irenaeus, Against Heresies I (c. 180) — Gnostic systems and their archons",
       "Origen, Contra Celsum VI.22–38 — the Ophite diagram and the seven archons; imported as its own work, gnostic.origen-contra-celsum",
-      "Ascension of Isaiah 6–11 — ascent through seven heavens",
-      "2 Enoch — the seven heavens",
+      "Ascension of Isaiah 6–11 — ascent through seven heavens; imported as its own work, gnostic.ascension-of-isaiah",
+      "2 Enoch — the seven heavens; imported as its own work, gnostic.secrets-of-enoch",
     ],
   },
 
