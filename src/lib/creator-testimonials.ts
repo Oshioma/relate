@@ -1,13 +1,13 @@
 import type { CreatorTestimonial } from "@/types/database";
 
 // Creator quotes on the platform homepage (Platform admin -> Homepage). The
-// homepage shows up to HOMEPAGE_TESTIMONIALS quotes in all, these first, then
-// real member quotes from the featured communities.
+// homepage shows HOMEPAGE_TESTIMONIALS quote(s) in all: these first, then, if
+// none is set, a real member quote from the featured communities.
 export const MAX_CREATOR_TESTIMONIALS = 6;
 export const MAX_CREATOR_QUOTE = 400;
 export const MAX_CREATOR_NAME = 80;
 export const MAX_CREATOR_ROLE = 120;
-export const HOMEPAGE_TESTIMONIALS = 3;
+export const HOMEPAGE_TESTIMONIALS = 1;
 
 // The stored list, whatever shape the column came back in: only entries with a
 // quote survive, trimmed. Never throws, so a bad row can't break the homepage.

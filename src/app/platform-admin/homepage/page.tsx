@@ -54,12 +54,13 @@ export default async function PlatformHomepagePage() {
 
       <h2 className="mb-3 mt-10 text-sm font-medium uppercase tracking-wide text-muted-foreground">Creator quotes</h2>
       <p className="mb-6 text-sm text-muted-foreground">
-        The &ldquo;Real people. Real impact.&rdquo; section on the{" "}
+        The{" "}
         <Link href="/" target="_blank" rel="noreferrer" className="font-medium text-accent underline underline-offset-2">
           homepage
         </Link>{" "}
-        shows up to {HOMEPAGE_TESTIMONIALS} quotes: these first, in order, then real member quotes from the featured
-        communities&apos; own landing pages. Only use real quotes from real people. Leave a quote empty to remove it.
+        shows {HOMEPAGE_TESTIMONIALS === 1 ? "one quote: the first one here" : `up to ${HOMEPAGE_TESTIMONIALS} quotes: these first, in order`}.
+        With none here, it shows a real member quote from a featured community&apos;s own landing page instead. Only
+        use real quotes from real people. Leave a quote empty to remove it; the others are kept for later.
       </p>
 
       <CreatorTestimonialsForm testimonials={readCreatorTestimonials(settings?.creator_testimonials)} />
