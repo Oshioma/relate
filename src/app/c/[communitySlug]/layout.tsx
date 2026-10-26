@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "@/components/ui/link";
 import { notFound, redirect } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye, Compass, Lock } from "lucide-react";
-import { exitViewAsMember, startViewAsMember } from "./view-as-member-actions";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye, Compass, Lock, Crown, ChevronDown } from "lucide-react";
+import { exitViewAsMember, exitViewAsOwner, startViewAsMember, startViewAsOwner } from "./view-as-member-actions";
+import { ownerViewCookieMatches, viewingAsOwner } from "@/lib/view-as-owner";
 import { ShareOriginProvider } from "@/components/ui/share-origin";
 import { CommunityHostProvider } from "@/components/ui/community-host";
 import { headers } from "next/headers";
@@ -225,6 +226,14 @@ async function CommunityShell({
   // already read them as one; this only drives the "Exit preview" bar.
   const previewingMember = Boolean(user) && (community as { view_as_member?: boolean }).view_as_member === true;
   const isMember = isCommunityMember(community, membership, user?.id);
+  // "View as owner" is for super admins doing support (src/lib/view-as-owner.ts):
+  // offered to one who isn't this community's owner, and the bar below shows
+  // while it's on. Not while previewing as a member — exit that first.
+  const isRealOwner = Boolean(user) && (community.owner_id === user?.id || membership?.role === "owner");
+  const offerOwnerView = Boolean(profile?.is_super_admin) && !isRealOwner && !previewingMember;
+  const ownerView =
+    offerOwnerView &&
+    viewingAsOwner({ cookieMatches: await ownerViewCookieMatches(community.id), isSuperAdmin: true, isRealOwner });
   // Contact-form messages waiting on staff. Only staff can read them (RLS says
   // so too), so only staff pay for the count query.
   const openInboxCount = isStaff ? await countUnhandledCommunityContactMessages(supabase, community.id) : 0;
@@ -632,19 +641,66 @@ async function CommunityShell({
                 <span className="hidden sm:inline">Admin</span>
               </Link>
             )}
-            {isStaff && (
-              <form action={startViewAsMember}>
-                <input type="hidden" name="community_id" value={community.id} />
-                <input type="hidden" name="community_slug" value={community.slug} />
-                <button
-                  type="submit"
-                  title="See this community as a regular member does"
-                  className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+            {/* A super admin gets a "View as" menu instead, so they can also
+                see what this community's owner sees when helping them. */}
+            {offerOwnerView ? (
+              <details className="relative">
+                <summary
+                  title="See this community as a member or as its owner"
+                  className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden"
                 >
                   <Eye className="h-5 w-5" />
-                  <span className="hidden lg:inline">View as member</span>
-                </button>
-              </form>
+                  <span className="hidden lg:inline">View as</span>
+                  <ChevronDown className="h-4 w-4" aria-hidden />
+                </summary>
+                <div className="absolute right-0 z-50 mt-2 w-56 rounded-md border border-border bg-card p-1 shadow-lg">
+                  {isStaff && (
+                    <form action={startViewAsMember}>
+                      <input type="hidden" name="community_id" value={community.id} />
+                      <input type="hidden" name="community_slug" value={community.slug} />
+                      <button
+                        type="submit"
+                        className="flex w-full items-start gap-2 rounded px-3 py-2 text-left text-sm text-foreground hover:bg-muted"
+                      >
+                        <Eye className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                        <span>
+                          <span className="block font-medium">View as member</span>
+                          <span className="block text-xs text-muted-foreground">No admin tools</span>
+                        </span>
+                      </button>
+                    </form>
+                  )}
+                  <form action={startViewAsOwner}>
+                    <input type="hidden" name="community_id" value={community.id} />
+                    <input type="hidden" name="community_slug" value={community.slug} />
+                    <button
+                      type="submit"
+                      className="flex w-full items-start gap-2 rounded px-3 py-2 text-left text-sm text-foreground hover:bg-muted"
+                    >
+                      <Crown className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                      <span>
+                        <span className="block font-medium">View as owner</span>
+                        <span className="block text-xs text-muted-foreground">Admin with Plan, Payments, Tiers</span>
+                      </span>
+                    </button>
+                  </form>
+                </div>
+              </details>
+            ) : (
+              isStaff && (
+                <form action={startViewAsMember}>
+                  <input type="hidden" name="community_id" value={community.id} />
+                  <input type="hidden" name="community_slug" value={community.slug} />
+                  <button
+                    type="submit"
+                    title="See this community as a regular member does"
+                    className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    <Eye className="h-5 w-5" />
+                    <span className="hidden lg:inline">View as member</span>
+                  </button>
+                </form>
+              )
             )}
             {showMembersLink && (
               <Link href={`${base}/members`} className="text-sm font-medium text-muted-foreground hover:text-foreground">
@@ -676,6 +732,28 @@ async function CommunityShell({
         </header>
 
         <main className="flex-1">
+          {ownerView && (
+            <form
+              action={exitViewAsOwner}
+              className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 border-b border-border bg-foreground px-4 py-2 text-center text-sm text-background"
+            >
+              <input type="hidden" name="community_slug" value={community.slug} />
+              <Crown className="h-4 w-4 shrink-0" aria-hidden />
+              <span>
+                <span className="font-medium">Viewing as owner.</span> {community.name}&apos;s{" "}
+                <Link href={`${base}/admin`} className="underline">
+                  Admin page
+                </Link>{" "}
+                shows what its owner sees.
+              </span>
+              <button
+                type="submit"
+                className="rounded-md bg-background px-3 py-1 text-xs font-medium text-foreground transition-opacity hover:opacity-90"
+              >
+                Exit owner view
+              </button>
+            </form>
+          )}
           {previewingMember && (
             <form
               action={exitViewAsMember}

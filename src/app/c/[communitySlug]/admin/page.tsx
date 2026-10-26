@@ -1,6 +1,6 @@
 import Link from "@/components/ui/link";
 import { notFound, redirect } from "next/navigation";
-import { CalendarDays, Sparkles, Inbox, BarChart3, Eye, Mail, Settings } from "lucide-react";
+import { CalendarDays, Sparkles, Inbox, BarChart3, Eye, Mail, Settings, Crown } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
@@ -16,6 +16,9 @@ import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityEvents } from "@/lib/data/events";
 import { SectionNav, type NavSection } from "@/components/ui/section-nav";
 import { ViewAsMemberButton } from "./view-as-member-button";
+import { ViewAsOwnerButton } from "./view-as-owner-button";
+import { exitViewAsOwner } from "../view-as-member-actions";
+import { ownerViewCookieMatches, viewingAsOwner } from "@/lib/view-as-owner";
 import { MonetizationChecklist, type ChecklistStep } from "./monetization-checklist";
 import { AccessSummaryCard } from "./access-summary-card";
 import { joinPolicyOf } from "@/lib/join-policy";
@@ -91,18 +94,29 @@ export default async function AdminPage({
   // Every control below sits in a disabled fieldset, and the server actions
   // behind them still check community admin rights, so nothing can be changed
   // from here.
-  const viewerProfile = isAdmin ? null : await getProfile(supabase, user.id);
+  // "View as owner" (src/lib/view-as-owner.ts) needs the profile too, so an
+  // admin with that switch on reads it as well.
+  const ownerCookie = await ownerViewCookieMatches(community.id);
+  const viewerProfile = isAdmin && !ownerCookie ? null : await getProfile(supabase, user.id);
   const platformView = !isAdmin && Boolean(viewerProfile?.is_super_admin);
 
   if (!isAdmin && !platformView) {
     redirect(`/c/${community.slug}`);
   }
 
-  const isOwner = platformView || isCommunityOwner(community, user.id) || membership?.role === "owner";
+  const isRealOwner = isCommunityOwner(community, user.id) || membership?.role === "owner";
+  // A super admin who is an admin here, doing support with "View as owner" on:
+  // the owner-only sections show, editable with the admin rights the actions
+  // behind them already allow. (Platform view shows them already, read-only.)
+  const ownerView =
+    !platformView &&
+    viewingAsOwner({ cookieMatches: ownerCookie, isSuperAdmin: Boolean(viewerProfile?.is_super_admin), isRealOwner });
+  const isOwner = platformView || isRealOwner || ownerView;
   // In platform view the super admin usually isn't a member, so RLS would hide
   // a private community's members, spaces and the rest. Their reads go through
   // the service-role client instead — only after the super-admin check above.
-  const db = platformView ? createAdminClient() : supabase;
+  // The owner view does the same, so owner-only rows read as the owner's do.
+  const db = platformView || ownerView ? createAdminClient() : supabase;
 
   const [spaces, members, joinRequests, events, profileFields, navLinks, navItemOrder, features, featureControls, featuredCategories, customCategories, labelOverrides, allowedTypes, savedNavGroups] =
     await Promise.all([
@@ -350,14 +364,39 @@ export default async function AdminPage({
           </p>
         </div>
       )}
+      {ownerView && (
+        <form
+          action={exitViewAsOwner}
+          className="sticky top-0 z-30 mb-6 flex flex-wrap items-start gap-3 rounded-md border border-accent/40 bg-accent-soft px-4 py-3 text-sm text-accent shadow-sm"
+        >
+          <input type="hidden" name="community_slug" value={community.slug} />
+          <Crown className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <p className="min-w-0 flex-1">
+            <span className="font-medium">Viewing as owner.</span> You&apos;re seeing {community.name}&apos;s admin page
+            the way its owner does, including Plan, Payments and Tiers. Changes you make here are real and are made as
+            you ({user.email}). Deleting the community stays with the owner.
+          </p>
+          <button
+            type="submit"
+            className="shrink-0 rounded-md bg-accent px-3 py-1 text-xs font-medium text-accent-foreground transition-opacity hover:opacity-90"
+          >
+            Exit owner view
+          </button>
+        </form>
+      )}
       <div className="mb-8 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="mb-1 text-2xl font-semibold tracking-tight text-foreground">Admin</h1>
           <p className="text-sm text-muted-foreground">Manage {community.name}.</p>
         </div>
-        {/* Hidden in platform view: a super admin who isn't staff here has
-            nothing to step down from. */}
-        {!platformView && <ViewAsMemberButton communityId={community.id} communitySlug={community.slug} />}
+        <div className="flex flex-wrap gap-2">
+          {/* Hidden in platform view: a super admin who isn't staff here has
+              nothing to step down from. */}
+          {!platformView && <ViewAsMemberButton communityId={community.id} communitySlug={community.slug} />}
+          {viewerProfile?.is_super_admin && !isRealOwner && !platformView && !ownerView && (
+            <ViewAsOwnerButton communityId={community.id} communitySlug={community.slug} />
+          )}
+        </div>
       </div>
 
       <div id="overview" className="mb-3 grid scroll-mt-20 grid-cols-2 gap-4 sm:grid-cols-4">
@@ -702,7 +741,11 @@ export default async function AdminPage({
           />
 
           <h2 id="danger" className="mb-3 mt-8 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-danger">Danger zone</h2>
-          <DeleteCommunitySection community={community} />
+          {/* Only the owner can delete (the action checks owner_id), so in the
+              owner view the button is shown but switched off. */}
+          <fieldset disabled={ownerView} className="m-0 min-w-0 border-0 p-0">
+            <DeleteCommunitySection community={community} />
+          </fieldset>
         </>
       )}
       </fieldset>
