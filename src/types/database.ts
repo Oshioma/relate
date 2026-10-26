@@ -203,6 +203,9 @@ export type Community = {
   // the shape). Null = inherit the platform accent from globals.css. Applied to
   // the community shell by communityAccentStyle in src/lib/accent-color.ts.
   accent_color: string | null;
+  // The community's own line under the Pay button on its Stripe Checkout
+  // pages (Admin -> Payments -> Checkout page). Null = our default line.
+  checkout_message: string | null;
   // Which part of cover_image_url to keep when it's cropped to the feed
   // header's band: 'top' | 'center' | 'bottom' (see src/lib/cover-position.ts).
   // Null = 'center'.

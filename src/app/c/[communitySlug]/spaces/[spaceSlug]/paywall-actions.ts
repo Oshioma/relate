@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { isStripeConfigured, createSpaceCheckoutSession } from "@/lib/stripe";
 import { communityCanCharge } from "@/lib/data/plan-limits";
+import { checkoutLookFor } from "@/lib/checkout-look";
 
 export type CheckoutResult = { error: string } | { url: string };
 
@@ -45,7 +46,8 @@ export async function subscribeToSpace(spaceId: string, communitySlug: string, s
 
   const { data: community } = await supabase
     .from("communities")
-    .select("id, name, stripe_account_id, stripe_charges_enabled")
+    // "*" so checkout_message is read once its migration is applied.
+    .select("*")
     .eq("id", space.community_id)
     .maybeSingle();
   if (!community?.stripe_account_id || !community.stripe_charges_enabled) {
@@ -76,6 +78,7 @@ export async function subscribeToSpace(spaceId: string, communitySlug: string, s
       cancelUrl: spaceUrl,
       customerEmail: user.email ?? undefined,
       metadata: { space_id: space.id, user_id: user.id, community_id: community.id },
+      look: checkoutLookFor(community),
     });
     return { url: session.url };
   } catch (err) {

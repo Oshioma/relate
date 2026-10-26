@@ -58,6 +58,7 @@ import { PlanSection } from "./plan-section";
 import { MarketplaceSection } from "./marketplace-section";
 import { TiersSection } from "./tiers-section";
 import { CurrencySection } from "./currency-section";
+import { CheckoutLookSection } from "./checkout-look-section";
 import { getActivePlatformPlans } from "@/lib/data/platform-plans";
 import { communityHasFeature } from "@/lib/data/plan-limits";
 import { getActiveFeaturePacks, getCommunityAddons } from "@/lib/data/feature-packs";
@@ -648,6 +649,17 @@ export default async function AdminPage({
               <div className="mb-8">
                 <CurrencySection communityId={community.id} communitySlug={community.slug} currency={community.currency} />
               </div>
+              {community.stripe_account_id && (
+                <div className="mb-8">
+                  <CheckoutLookSection
+                    communityId={community.id}
+                    communitySlug={community.slug}
+                    communityName={community.name}
+                    checkoutMessage={community.checkout_message ?? null}
+                    hasLogo={Boolean(community.logo_url)}
+                  />
+                </div>
+              )}
             </>
           ) : (
             <p className="mb-8 text-sm text-muted-foreground">

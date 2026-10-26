@@ -6,8 +6,10 @@ import {
   createTierCheckoutSession,
   createCourseCheckoutSession,
   createCourseInstalmentCheckoutSession,
+  type CheckoutLook,
   type CheckoutMetadata,
 } from "@/lib/stripe";
+import { checkoutLookFor } from "@/lib/checkout-look";
 import { instalmentPlan } from "@/lib/courses/instalments";
 import { communityCanCharge } from "@/lib/data/plan-limits";
 import { tierCheckoutDescription } from "@/lib/checkout-description";
@@ -36,6 +38,7 @@ async function requestBaseUrl(): Promise<string> {
 }
 
 type Admin = ReturnType<typeof createAdminClient>;
+type Look = { recurring: CheckoutLook; oneOff: CheckoutLook };
 
 // The community selling an item, when it can take payments. notFoundMessage is
 // the item's own "not found" line, used when the link names another community.
@@ -44,17 +47,26 @@ async function chargeableCommunity(
   communityId: string,
   communitySlug: string,
   notFoundMessage: string
-): Promise<{ error: string } | { community: { id: string; name: string; stripe_account_id: string } }> {
+): Promise<{ error: string } | { community: { id: string; name: string; stripe_account_id: string; look: Look } }> {
   const { data: community } = await admin
     .from("communities")
-    .select("id, slug, name, stripe_account_id, stripe_charges_enabled")
+    // "*" so the checkout look reads checkout_message once its migration is
+    // applied, and still works before.
+    .select("*")
     .eq("id", communityId)
     .maybeSingle();
   // The link names the community too; a tier id pasted under another
   // community's address isn't sold there.
   if (!community || community.slug !== communitySlug) return { error: notFoundMessage };
   if (!community.stripe_account_id || !community.stripe_charges_enabled) return { error: CHECKOUT_MESSAGES.paymentsNotReady };
-  return { community: { id: community.id, name: community.name, stripe_account_id: community.stripe_account_id } };
+  return {
+    community: {
+      id: community.id,
+      name: community.name,
+      stripe_account_id: community.stripe_account_id,
+      look: { recurring: checkoutLookFor(community), oneOff: checkoutLookFor(community, { oneOff: true }) },
+    },
+  };
 }
 
 async function isBanned(admin: Admin, communityId: string, userId: string): Promise<boolean> {
@@ -129,6 +141,7 @@ export async function startTierCheckout(tierId: string, communitySlug: string, b
       cancelUrl: buyer ? communityUrl : `${communityUrl}/membership`,
       customerEmail: buyer?.email ?? undefined,
       metadata: { ...metadataFor(buyer, community.id), tier_id: tier.id },
+      look: community.look.recurring,
     });
     return { url: session.url };
   } catch (err) {
@@ -197,6 +210,7 @@ export async function startCourseCheckout(
         cancelUrl: courseUrl,
         customerEmail: buyer.email ?? undefined,
         metadata: { course_id: course.id, user_id: buyer.id, community_id: community.id, instalments: String(instalments.count) },
+        look: community.look.oneOff,
       });
       return { url: session.url };
     } catch (err) {
@@ -214,6 +228,7 @@ export async function startCourseCheckout(
       cancelUrl: buyer ? courseUrl : `${base}/c/${communitySlug}`,
       customerEmail: buyer?.email ?? undefined,
       metadata: { ...metadataFor(buyer, community.id), course_id: course.id },
+      look: community.look.oneOff,
     });
     return { url: session.url };
   } catch (err) {

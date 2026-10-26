@@ -102,6 +102,55 @@ export function retrieveAccount(account: string): Promise<StripeAccount> {
   return stripeFetch<StripeAccount>(`/accounts/${account}`, { method: "GET" });
 }
 
+// --- Checkout branding on the connected account ----------------------------
+// Checkout on a direct charge shows the CONNECTED account's branding: its logo
+// (or icon), name and colours. Express accounts can't set that themselves, so
+// the platform does: upload the image to the account's own Files, then point
+// settings.branding at it.
+export async function uploadAccountBrandingFile(params: {
+  stripeAccount: string;
+  purpose: "business_logo" | "business_icon";
+  bytes: Uint8Array;
+  filename: string;
+  contentType: string;
+}): Promise<{ id: string }> {
+  const form = new FormData();
+  form.append("purpose", params.purpose);
+  form.append("file", new Blob([params.bytes as BlobPart], { type: params.contentType }), params.filename);
+  const res = await fetch("https://files.stripe.com/v1/files", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${secretKey()}`,
+      "Stripe-Version": STRIPE_API_VERSION,
+      "Stripe-Account": params.stripeAccount,
+    },
+    body: form,
+  });
+  const json = (await res.json()) as { id?: string; error?: { message?: string } };
+  if (!res.ok || !json.id) throw new Error(json?.error?.message || `Stripe file upload failed (${res.status})`);
+  return { id: json.id };
+}
+
+export function updateAccountBranding(params: {
+  account: string;
+  logoFileId?: string;
+  iconFileId?: string;
+  // '#rrggbb'
+  primaryColor?: string | null;
+}): Promise<StripeAccount> {
+  return stripeFetch<StripeAccount>(`/accounts/${params.account}`, {
+    body: {
+      settings: {
+        branding: {
+          ...(params.logoFileId ? { logo: params.logoFileId } : {}),
+          ...(params.iconFileId ? { icon: params.iconFileId } : {}),
+          ...(params.primaryColor ? { primary_color: params.primaryColor } : {}),
+        },
+      },
+    },
+  });
+}
+
 // --- Member checkout (subscription, direct charge on the connected account) --
 export function createSpaceCheckoutSession(params: {
   stripeAccount: string;
@@ -112,6 +161,7 @@ export function createSpaceCheckoutSession(params: {
   cancelUrl: string;
   customerEmail?: string;
   metadata: { space_id: string; user_id: string; community_id: string };
+  look?: CheckoutLook;
 }): Promise<{ id: string; url: string }> {
   return stripeFetch<{ id: string; url: string }>("/checkout/sessions", {
     stripeAccount: params.stripeAccount,
@@ -127,7 +177,7 @@ export function createSpaceCheckoutSession(params: {
             currency: params.currency,
             unit_amount: params.priceCents,
             recurring: { interval: "month" },
-            product_data: { name: params.productName },
+            product_data: { name: params.productName, ...productImages(params.look) },
           },
         },
       ],
@@ -135,6 +185,7 @@ export function createSpaceCheckoutSession(params: {
       // customer.subscription.* event can be traced back to (space, member).
       metadata: params.metadata,
       subscription_data: { metadata: params.metadata },
+      ...submitText(params.look),
     },
   });
 }
@@ -264,6 +315,20 @@ export function retrieveCheckoutSession(sessionId: string, stripeAccount: string
   });
 }
 
+// How a community's Checkout page looks beyond Stripe's account branding: a
+// picture beside the product (the community's logo or cover; Stripe wants a
+// public https URL) and a short line under the Pay button. Both optional.
+export type CheckoutLook = { imageUrl?: string | null; submitMessage?: string | null };
+
+function productImages(look: CheckoutLook | undefined): { images?: string[] } {
+  return look?.imageUrl ? { images: [look.imageUrl] } : {};
+}
+
+function submitText(look: CheckoutLook | undefined): { custom_text?: { submit: { message: string } } } {
+  const message = look?.submitMessage?.trim();
+  return message ? { custom_text: { submit: { message: message.slice(0, 1200) } } } : {};
+}
+
 export function createTierCheckoutSession(params: {
   stripeAccount: string;
   priceCents: number;
@@ -278,6 +343,7 @@ export function createTierCheckoutSession(params: {
   // shared link): guest "1" tells the webhook to find or create the account
   // from the email Stripe collects. See src/lib/guest-checkout.ts.
   metadata: CheckoutMetadata & { tier_id: string };
+  look?: CheckoutLook;
 }): Promise<{ id: string; url: string }> {
   return stripeFetch<{ id: string; url: string }>("/checkout/sessions", {
     stripeAccount: params.stripeAccount,
@@ -296,12 +362,14 @@ export function createTierCheckoutSession(params: {
             product_data: {
               name: params.productName,
               ...(params.productDescription ? { description: params.productDescription } : {}),
+              ...productImages(params.look),
             },
           },
         },
       ],
       metadata: params.metadata,
       subscription_data: { metadata: params.metadata },
+      ...submitText(params.look),
     },
   });
 }
@@ -318,6 +386,7 @@ export function createCourseCheckoutSession(params: {
   cancelUrl: string;
   customerEmail?: string;
   metadata: CheckoutMetadata & { course_id: string };
+  look?: CheckoutLook;
 }): Promise<{ id: string; url: string }> {
   return stripeFetch<{ id: string; url: string }>("/checkout/sessions", {
     stripeAccount: params.stripeAccount,
@@ -332,12 +401,13 @@ export function createCourseCheckoutSession(params: {
           price_data: {
             currency: params.currency,
             unit_amount: params.priceCents,
-            product_data: { name: params.productName },
+            product_data: { name: params.productName, ...productImages(params.look) },
           },
         },
       ],
       metadata: params.metadata,
       payment_intent_data: { metadata: params.metadata },
+      ...submitText(params.look),
     },
   });
 }
@@ -358,6 +428,7 @@ export function createCourseInstalmentCheckoutSession(params: {
   cancelUrl: string;
   customerEmail?: string;
   metadata: { course_id: string; user_id: string; community_id: string; instalments: string };
+  look?: CheckoutLook;
 }): Promise<{ id: string; url: string }> {
   return stripeFetch<{ id: string; url: string }>("/checkout/sessions", {
     stripeAccount: params.stripeAccount,
@@ -376,12 +447,14 @@ export function createCourseInstalmentCheckoutSession(params: {
             product_data: {
               name: params.productName,
               description: `${params.instalments} monthly payments, then it stops automatically.`,
+              ...productImages(params.look),
             },
           },
         },
       ],
       metadata: params.metadata,
       subscription_data: { metadata: params.metadata },
+      ...submitText(params.look),
     },
   });
 }

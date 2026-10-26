@@ -14,7 +14,10 @@ import {
   createBillingPortalSession,
   retrieveSubscription,
   changeSubscriptionPrice,
+  uploadAccountBrandingFile,
+  updateAccountBranding,
 } from "@/lib/stripe";
+import { CHECKOUT_MESSAGE_MAX } from "@/lib/checkout-look";
 
 async function requestBaseUrl(): Promise<string> {
   const h = await headers();
@@ -298,4 +301,96 @@ export async function setCommunityCurrency(
 
   revalidatePath(`/c/${communitySlug}`, "layout");
   return { error: null };
+}
+
+// The community's own line under the Pay button on its Stripe Checkout pages
+// (tiers, courses, paid spaces). Blank = our default line.
+export async function setCheckoutMessage(
+  communityId: string,
+  communitySlug: string,
+  rawMessage: string
+): Promise<{ error: string | null }> {
+  const message = rawMessage.replace(/\s+/g, " ").trim();
+  if (message.length > CHECKOUT_MESSAGE_MAX) return { error: `Keep it under ${CHECKOUT_MESSAGE_MAX} characters.` };
+
+  const ctx = await requireAdminCommunity(communityId);
+  if (!ctx.ok) return { error: ctx.error };
+
+  const { error } = await ctx.supabase
+    .from("communities")
+    .update({ checkout_message: message || null })
+    .eq("id", communityId);
+  if (error) {
+    // The column arrives with migration 20261026220603.
+    if (/checkout_message/.test(error.message)) {
+      return { error: "This needs a quick database update first. Ask the platform team to apply the latest migration." };
+    }
+    return { error: error.message };
+  }
+  revalidatePath(`/c/${communitySlug}/admin`);
+  return { error: null };
+}
+
+// Put the community's logo (and accent colour) on its Stripe account, so every
+// Checkout page shows it at the top. Only an image in our own storage is
+// fetched: the URL is fetched server-side, so a pasted address elsewhere is
+// never followed.
+export async function syncCheckoutBranding(communityId: string, communitySlug: string): Promise<{ error: string | null }> {
+  if (!isStripeConfigured()) return { error: "Payments aren't available on this platform yet." };
+  const ctx = await requireAdminCommunity(communityId);
+  if (!ctx.ok) return { error: ctx.error };
+  const account = ctx.community.stripe_account_id;
+  if (!account) return { error: "Connect Stripe first." };
+
+  const { data: row } = await ctx.supabase.from("communities").select("logo_url, accent_color").eq("id", communityId).maybeSingle();
+  const logoUrl = row?.logo_url ?? null;
+  if (!logoUrl || !isOwnStorageUrl(logoUrl)) {
+    return { error: "Add a logo to the community first (Admin → Community details), then try again." };
+  }
+
+  try {
+    const res = await fetch(logoUrl, { cache: "no-store" });
+    if (!res.ok) return { error: "Couldn't read the community logo." };
+    const source = Buffer.from(await res.arrayBuffer());
+    const { logo, icon } = await brandingImages(source);
+    const [logoFile, iconFile] = await Promise.all([
+      uploadAccountBrandingFile({ stripeAccount: account, purpose: "business_logo", bytes: logo, filename: "logo.png", contentType: "image/png" }),
+      uploadAccountBrandingFile({ stripeAccount: account, purpose: "business_icon", bytes: icon, filename: "icon.png", contentType: "image/png" }),
+    ]);
+    await updateAccountBranding({
+      account,
+      logoFileId: logoFile.id,
+      iconFileId: iconFile.id,
+      primaryColor: /^#[0-9a-f]{6}$/i.test(row?.accent_color ?? "") ? row!.accent_color : null,
+    });
+  } catch (err) {
+    return { error: (err as Error).message || "Couldn't update the Stripe branding." };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  return { error: null };
+}
+
+function isOwnStorageUrl(url: string): boolean {
+  try {
+    const own = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "");
+    const target = new URL(url);
+    return target.protocol === "https:" && target.host === own.host && target.pathname.startsWith("/storage/v1/object/public/");
+  } catch {
+    return false;
+  }
+}
+
+// Stripe wants PNG or JPG under 512 KB, at least 128 px; the icon square.
+async function brandingImages(source: Buffer): Promise<{ logo: Uint8Array; icon: Uint8Array }> {
+  const { default: sharp } = await import("sharp");
+  const logo = await sharp(source)
+    .resize(512, 512, { fit: "inside" })
+    .png({ compressionLevel: 9, palette: true })
+    .toBuffer();
+  const icon = await sharp(source)
+    .resize(256, 256, { fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 0 } })
+    .png({ compressionLevel: 9, palette: true })
+    .toBuffer();
+  return { logo: new Uint8Array(logo), icon: new Uint8Array(icon) };
 }
