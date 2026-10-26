@@ -1682,6 +1682,10 @@ export type Course = {
   // Whether a one-off purchase also lets the buyer join the live lessons, or
   // only watch their playbacks. Tier members always get both.
   live_included_with_purchase: boolean;
+  // An instalment plan offered next to the one-off price, e.g. 4 payments of
+  // 4000 (£40 a month for 4 months). 0/0 means none. See lib/courses/instalments.
+  instalment_count: number;
+  instalment_price_cents: number;
   created_at: string;
   updated_at: string;
 };
@@ -1755,6 +1759,13 @@ export type CourseEnrollment = {
   paid: boolean;
   // The Stripe Checkout that bought it, when it was bought.
   stripe_checkout_session_id: string | null;
+  // How it was bought, and for instalments where the plan stands. Only the
+  // Stripe webhook writes these.
+  payment_plan: "one_off" | "instalments" | null;
+  stripe_subscription_id: string | null;
+  instalments_paid: number;
+  instalments_total: number;
+  instalment_status: "active" | "past_due" | "completed" | "canceled" | null;
 };
 
 // One learner has finished one lesson. course_id/community_id are denormalised

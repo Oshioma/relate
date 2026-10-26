@@ -80,6 +80,10 @@ export type CourseDetail = {
   // Paying for a course: whether the viewer bought it (or was granted it),
   // whether a tier they subscribe to includes it, and which tiers do.
   viewerPaid: boolean;
+  // The viewer's monthly plan, when they're paying in instalments.
+  viewerInstalments: { paid: number; total: number; status: string | null } | null;
+  // For the team: buyers on monthly plans, and how many are behind on one.
+  instalmentBuyers: { paying: number; behind: number; finished: number };
   viewerHasTier: boolean;
   includedInTiers: { id: string; name: string }[];
   // Lessons the viewer can open in full (RLS returned them), e.g. to hand out
@@ -223,7 +227,10 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
       // course still shows what's inside before someone enrols (RLS returns
       // its full lessons only to the enrolled and the team).
       getLessonOutline(supabase, [courseId]),
-      supabase.from("course_enrollments").select("course_id, user_id, paid").eq("course_id", courseId),
+      supabase
+        .from("course_enrollments")
+        .select("course_id, user_id, paid, payment_plan, instalments_paid, instalments_total, instalment_status")
+        .eq("course_id", courseId),
       viewerId
         ? supabase.from("lesson_completions").select("lesson_id").eq("course_id", courseId).eq("user_id", viewerId)
         : Promise.resolve({ data: [], error: null }),
@@ -338,6 +345,15 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
     enrollmentCount: enrollments.length,
     viewerEnrolled: enrollments.some((e) => e.user_id === viewerId),
     viewerPaid: enrollments.some((e) => e.user_id === viewerId && e.paid),
+    viewerInstalments: (() => {
+      const mine = enrollments.find((e) => e.user_id === viewerId && e.payment_plan === "instalments");
+      return mine ? { paid: mine.instalments_paid, total: mine.instalments_total, status: mine.instalment_status } : null;
+    })(),
+    instalmentBuyers: {
+      paying: enrollments.filter((e) => e.payment_plan === "instalments" && (e.instalment_status === "active" || e.instalment_status === "past_due")).length,
+      behind: enrollments.filter((e) => e.payment_plan === "instalments" && e.instalment_status === "past_due").length,
+      finished: enrollments.filter((e) => e.payment_plan === "instalments" && e.instalment_status === "completed").length,
+    },
     readableLessonIds: [...fullLessons.keys()],
     viewerHasTier,
     includedInTiers,
