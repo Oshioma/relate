@@ -7,6 +7,7 @@ import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getSpamCandidates } from "@/lib/data/platform-analytics";
 import type { TemplateDefaultItem } from "@/lib/template-defaults";
 import { parseCreatorTestimonialsForm } from "@/lib/creator-testimonials";
+import { readPhotoUrl } from "@/lib/homepage-photos";
 
 // Replaces the whole default-spaces list for one community type. The control
 // panel sends the full desired list on every edit; we delete this template's
@@ -101,6 +102,49 @@ export async function saveCreatorTestimonials(
   const { error } = await supabase
     .from("platform_settings")
     .upsert({ id: 1, creator_testimonials: parsed.testimonials }, { onConflict: "id" });
+  if (error) return { error: error.message };
+
+  revalidatePath("/platform-admin/homepage");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+// --- Homepage photos ---------------------------------------------------------
+export type HomepagePhotosFormState = { error: string } | { ok: true } | undefined;
+
+// Save which community the homepage hero shows and the two section photos.
+// Empty = automatic (picked from the featured communities). The hero must be a
+// public community; photos must be https addresses (an uploaded file or a
+// community's cover).
+export async function saveHomepagePhotos(
+  _prevState: HomepagePhotosFormState,
+  formData: FormData
+): Promise<HomepagePhotosFormState> {
+  const supabase = await createClient();
+  const user = await getCurrentUser(supabase);
+  if (!user) return { error: "You need to be signed in." };
+  const profile = await getProfile(supabase, user.id);
+  if (!profile?.is_super_admin) return { error: "Only a platform super admin can edit the homepage." };
+
+  const heroId = String(formData.get("hero_community_id") ?? "").trim();
+  if (heroId) {
+    const { data: hero } = await supabase.from("communities").select("id").eq("id", heroId).eq("is_public", true).maybeSingle();
+    if (!hero) return { error: "The hero community has to be a public community." };
+  }
+
+  const photos = { why: String(formData.get("why_photo_url") ?? ""), closing: String(formData.get("closing_photo_url") ?? "") };
+  const whyPhoto = readPhotoUrl(photos.why);
+  const closingPhoto = readPhotoUrl(photos.closing);
+  if ((photos.why.trim() && !whyPhoto) || (photos.closing.trim() && !closingPhoto)) {
+    return { error: "A photo couldn't be used. Choose or upload it again." };
+  }
+
+  const { error } = await supabase
+    .from("platform_settings")
+    .upsert(
+      { id: 1, hero_community_id: heroId || null, why_photo_url: whyPhoto, closing_photo_url: closingPhoto },
+      { onConflict: "id" }
+    );
   if (error) return { error: error.message };
 
   revalidatePath("/platform-admin/homepage");
