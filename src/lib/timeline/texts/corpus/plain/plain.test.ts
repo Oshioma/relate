@@ -34,7 +34,9 @@ import { PLAIN_PTAHHOTEP } from "./ptahhotep";
 import { PLAIN_PYRAMID_TEXTS } from "./pyramid-texts";
 import { PLAIN_SECRETUM } from "./secretum";
 import { PLAIN_HORTULANUS } from "./hortulanus";
+import { PLAIN_TURBA } from "./turba-philosophorum";
 import { PLAIN_TIMAEUS } from "./timaeus";
+import { TURBA_UNITS } from "../turba-philosophorum-text";
 
 const PLAIN: Record<string, Record<string, string>> = {
   "egy.pyramid-texts": PLAIN_PYRAMID_TEXTS,
@@ -70,6 +72,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "gnostic.origen-contra-celsum": PLAIN_ORIGEN_CONTRA_CELSUM,
   "gnostic.ascension-of-isaiah": PLAIN_ASCENSION_OF_ISAIAH,
   "gnostic.secrets-of-enoch": PLAIN_SECRETS_OF_ENOCH,
+  "arab.turba-philosophorum": PLAIN_TURBA,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -247,6 +250,24 @@ test("the prologue and every verse of 2 Enoch have plain words, with the narrato
   for (const key of ["1.10", "16.5", "37.1", "37.2", "57.2"]) assert.match(PLAIN_SECRETS_OF_ENOCH[`gnostic.2en.${key}`], /square brackets/, key);
   assert.match(PLAIN_SECRETS_OF_ENOCH["gnostic.2en.30.3"], /Kruno; in the second, Aphrodite; in the third, Ares; in the fourth, the Sun; in the fifth, Zeus; in the sixth, Hermes; and in the seventh, the moon/);
   assert.match(PLAIN_SECRETS_OF_ENOCH["gnostic.2en.47.5"], /breaks off as printed/);
+});
+
+test("the Epistle, every Dictum and the Conclusion of the Turba have plain words, each naming its speaker, and only those", () => {
+  const turba = ALL_CORPORA.find((c) => c.workKey === "arab.turba-philosophorum")!;
+  const withText = turba.passages.filter((p) => p.layers.some((l) => l.key === "eng-1896")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_TURBA).sort(), [...withText].sort());
+  assert.equal(withText.length, 74);
+  // Every entry begins with the speaker the text names, so the voices stay apart.
+  for (const unit of TURBA_UNITS) {
+    const speaker = unit.key === "epistle" ? "Arisleus" : unit.speaker!;
+    assert.ok(PLAIN_TURBA[`arab.turba.${unit.key}`].startsWith(`${speaker} `), unit.key);
+  }
+  // Where a speaker answers another by name, the other is named too.
+  assert.match(PLAIN_TURBA["arab.turba.14"], /^Acsubofen thanks Pythagoras/);
+  assert.match(PLAIN_TURBA["arab.turba.29"], /^Diamedes \(also called Diomedes in this Dictum\) says/);
+  assert.match(PLAIN_TURBA["arab.turba.63"], /^Philosophus \(the Philosopher; the text gives no other name\) says/);
+  assert.match(PLAIN_TURBA["arab.turba.epistle"], /^Arisleus writes/);
+  assert.match(PLAIN_TURBA["arab.turba.conclusion"], /^Agmon says/);
 });
 
 test("the Preface and every section of Scott-Elliot's Story of Atlantis have plain words, and only those", () => {

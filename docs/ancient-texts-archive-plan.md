@@ -2249,3 +2249,128 @@ A's bracketed chapter titles are left out of the paraphrase. Where Charles's squ
 - Charles's later English (APOT, 1913) was not used, even for comparison; chapter and verse numbers here are his of 1896, not Popov's 73-chapter numbering used by later scholars (so Orlov's "chapters 40–65" do not map one to one onto these chapters).
 - The Commons API and image server rate-limited the searches; the Merilo Pravednoe copies were not identified, and illustrations of the seven heavens were not examined further.
 - `inventoryVerified` stays false.
+
+## 31. Stage 25: the Turba Philosophorum, in A. E. Waite's English (1896)
+
+Brief item 28 ("Related Arabic alchemical and Hermetic texts") listed the Turba Philosophorum first among its proposed members, and its full-text editions list "Waite 1896 (Turba Philosophorum)". The book is now imported as its own work, unit by unit, in *The Turba Philosophorum or Assembly of the Sages ... translated from the Latin ... by Arthur Edward Waite* (London: George Redway, 1896), pp. 1–207. The proposed-member line now reads "Turba Philosophorum — imported as its own work, arab.turba-philosophorum".
+
+- **`arab.turba-philosophorum`** (prefix `arab.turba`), brief item 28. Tradition class `medieval`, corpus group `arabic_medieval`. It has a marker of its own, `turba-philosophorum-assembly`: no event on the timeline is about the Turba (the Emerald Tablet, Hortulanus and the Secretum markers are other books), so none was reused.
+
+**What it is.** An alchemical dialogue. Arisleus, "begotten of Pythagoras", introduces the book in a short epistle: Pythagoras gathered his disciples so that their words on "this most precious Art" would be a foundation for posterity. Then the philosophers speak in turn, seventy-two times in Waite's numbering, with the Turba (the assembly) and Pythagoras interrupting: the first nine Dicta on God, the four elements and the making of the world; the rest on the Art, the one thing hidden under many names, in a language of copper, lead, gum, vinegar, Magnesia and Ethelia, the marriage of the male and the female, and the whitening and reddening of the stone.
+
+**Presented honestly.**
+- It is a **Latin** text, known from medieval manuscripts (the oldest reported to be of the thirteenth century) and **first printed in 1572**, at Basel, in the collection *Auriferae artis, quam chemiam vocant, antiquissimi authores, sive Turba philosophorum* (Pietro Perna); the title page was read on the Wellcome copy.
+- **Julius Ruska** (1931) argued for a lost **Arabic original**: in his short French account of that year, read for this stage (*Quelques problèmes de littérature alchimiste*, pp. 169–170, in copyright, quoted briefly), he says that the Turba had been held "une mystification latine", that the manuscripts and the finding of many of its speeches in Arabic "ont écarté tous les doutes concernant l'origine arabe", and that its author is to be sought "parmi les alchimistes musulmans d'Egypte". His edition (Berlin, 1931) was not read.
+- **Martin Plessner** developed this and dated the Arabic original c. 900, linking it to the circle of Ibn Umayl, the first author known to use it. Plessner was **not read**: his date ("written c. 900 A. D.", *Isis* 45, 1954, p. 337) and his argument from Ibn Umayl and the "poison-maiden" are reported from the English Wikipedia, and everything taken from Wikipedia (English, German and French) is marked second-hand.
+- The **philosophers' names are attributions**, not historical authorship: every unit's notes say "The speaker's name is the text's attribution, not a claim that a historical philosopher said this", and where Wikipedia reports Plessner's or Ruska's identifications of garbled names with Presocratics (Iximidrus as Anaximander, Eximenus as Xenophanes, Pandolfus as Empedocles), they are given as reported, not checked.
+
+The inventory gained seven sources:
+- `waite-1896-turba`, the edition imported;
+- `auriferae-artis-1572`, the first printing, for its title and imprint only;
+- `ruska-1931-problemes`, Ruska's short account of 1931, read;
+- `wikipedia-turba`, `wikipedia-ibn-umayl`, `de-wikipedia-turba` and `fr-wikipedia-turba`, each read on 2026-10-26 and cited only for what it reports (Plessner's date and argument; Stapleton's and Plessner's provenance; the thirteenth-century manuscripts, the Arabic title *Muṣḥaf al-jamāʿa* and the first printing; the Berlin manuscript and the woodcut's attribution).
+
+Files:
+- `corpus/turba-philosophorum.ts`;
+- the generated `corpus/turba-philosophorum-text.ts`, made by `scripts/texts/turba-philosophorum.py`, which records the method and every correction by hand with its page and kind;
+- `corpus/turba-philosophorum-related-images.ts`;
+- plain words in `corpus/plain/turba-philosophorum.ts`;
+- the marker's pictures in `marker-pictures.ts`.
+
+Copyright: public domain (published 1896; Waite died in 1942). The text layers are `public_domain`.
+
+### The recensions: what was decided
+
+The Latin Turba exists in a longer and a shorter recension. Waite translates the **longer**, as printed in the collections (his Preface names the *Theatrum Chemicum*, Manget's *Bibliotheca Chemica Curiosa* and the *Artis Auriferae*), and gives "the chief readings of the shorter codex" in his footnotes; where the longer text was "so corrupt as to be quite untranslatable" he "occasionally substituted that of the alternative version". He does not print the second recension as a text, except its last Dictum, Agmon's corollary, which he prints after the Seventy-Second as the **Conclusion**: "This constitutes the last Dictum in the second recension, and is omitted from the longer version" (p. 206).
+
+This stage imports **Waite's text as printed**: the heading, the Epistle of Arisleus, Dicta 1–72 **by Waite's numbering**, and the Conclusion. The Conclusion is short and plainly part of the Turba, so it is imported, and its reference says it is the second recension's last Dictum. The rest of the second recension, known here only from Waite's notes, is listed and not imported. Ruska's edition divides the speeches as *sermones*, and the numbering may differ, so `inventoryVerified` stays false.
+
+### Source and checking
+
+| Siglum | Witness |
+|---|---|
+| C | archive.org's OCR (djvu.xml) of the Cornell University Library copy (`cu31924012366088`, the gift of C. W. Snoad); printed page = leaf − 13. The base; its page images were read. |
+| R | archive.org's OCR of a University of California Libraries copy (`alchemyturbaphil00waitrich`); page = leaf − 12. |
+| L | archive.org's OCR of a second University of California Libraries copy (`turbaphilosophor00gratiala`); page = leaf − 12. |
+| AW | Adam McLean's transcription of Waite's text on the Alchemy Web Site (`turba.html`, `turba2.html`), without Waite's notes: the fourth witness, compared, not imported. |
+
+sacred-texts.com answered 403 and Wikisource 429, so neither was read.
+
+- **The text block** of each page was cut from the OCR by type size: Waite's notes are set smaller below a rule.
+- **The vote.** C is the base; R and L are aligned with it. Where R and L agree against C, their reading was taken: 74 times. 272 places where R or L differ were kept as C has them, and settled on the page images.
+- **Waite's note marks** (asterisk, dagger, double dagger, section sign and the like) are dropped with the notes; the marks dropped on each page were counted against the notes beginning on it, and every page where the counts differed was looked at.
+- **The fourth witness.** Every place where the voted text and the transcription differ in letters or punctuation was decided on the Cornell page image.
+- **Proofreading.** Every page, 1 to 207, was read against the Cornell page images. The differences are the generator's `FIXES`, 95 entries: 31 mend misread words, 24 restore or drop marks, 11 join hyphenated words, 11 restore the ligatures æ and œ, 8 mend spacing, 6 remove note lines or running heads the page split took for text, 3 correct slips of the 1896 printing (a "1" for "I", "itselt", "prosterity"), and 1 restores the sign of Saturn.
+
+**Typography.** Speakers' names set in capitals and small capitals are written in ordinary case; italic is not marked; the printer's space before `: ; ! ?` is closed up; the dash after a colon (":—") is kept. Waite's square brackets (his own alternative renderings and supplied words) and his "(or ...)" alternatives are kept. Quotation marks are straight throughout, as typed; Waite's one double-quoted phrase is in Dictum 20.
+
+### Units
+
+- **`arab.turba.book`** (`part`) holds no text. It carries the Latin as a cited layer (`lat`, no content), the dates, and notes on what is and is not imported.
+- **`arab.turba.epistle`** (`section`): the book's heading, the rubric and the Epistle of Arisleus (pp. 1–3).
+- 72 **`chapter`** units, `arab.turba.1` to `arab.turba.72`, one per Dictum, labelled with the speaker the text names ("The First Dictum: Iximidrus").
+- **`arab.turba.conclusion`** (`section`): Agmon's corollary (pp. 206–207).
+
+That makes 74 units with text, each with layer `eng-1896`, kind `translation`, and 75 passages. `expectedUnits` is 74, Waite's own division read on the page images; `inventoryVerified` stays false.
+
+**Listed, not imported:** the title page; Waite's Preface (pp. i–iv), which calls the Turba "indisputably the most ancient extant treatise on Alchemy in the Latin tongue" and holds that its compiler "wrote either in Hebrew or Arabic"; his footnotes (the second recension's readings, the French version's readings, parallels from Berthelot's Greek alchemists, explanations of terms); the Index (pp. 209–210); the second recension otherwise; the Latin.
+
+### Dates
+
+On `arab.turba.book`; all approximate except the two printings:
+
+- **Composition of the Arabic original, as Plessner dated it:** 850–950 (`century`, source `wikipedia-turba`): "written c. 900 A. D." (Plessner 1954, p. 337, as quoted by the English Wikipedia). Second-hand; the range is this archive's reading of "c. 900" within his limits (Ibn Umayl's use of the Turba before the mid-tenth century; the "poison-maiden" reaching Arabic in the first half of the ninth). That there was an Arabic original at all is Ruska's argument, read. Debated, not established.
+- **Earliest evidence:** the thirteenth century (`century`, source `de-wikipedia-turba`): the oldest Latin manuscripts, as the German Wikipedia reports from Ruska's edition. Reports of currency in the twelfth century (Ullmann; Toledo) name no copy and are not entered.
+- **A manuscript:** Berlin, "MS QU 584", second half of the thirteenth century (`decade`, source `fr-wikipedia-turba`), as the French Wikipedia lists it; not checked.
+- **First printing:** 1572 (`year`, not approximate), "Basileae. Apud Petrum Pernam. M. D. LXXII.", read on the title page.
+- **Translation and publication:** 1896, Waite's English.
+
+The marker carries the composition, the earliest evidence and the two printings.
+
+### Links
+
+All 12 are `proposed`. Eleven say "None shown." for transmission, and several add that the Turba's dates are not settled; the twelfth, Hall's later reading, says only that Hall names the Turba and does not say which edition he read.
+
+| From | To | Class | What it rests on |
+|---|---|---|---|
+| Dictum 70 | `arab.tab.vulgate.03` | `symbolic_similarity` | the work as the wonders of one thing |
+| Dictum 57 | `arab.tab.vulgate.05` | `symbolic_similarity` | the Sun and the Moon as the matter's source |
+| Dictum 13 | `arab.secretum.10.6` | `close_conceptual_parallel` | the stone that is not a stone, found everywhere, of every colour (with a common-source note: Waite traces the phrase to the Greek alchemists) |
+| Dictum 4 | `arab.secretum.10.6` | `close_conceptual_parallel` | the egg as the image of the four elements |
+| Dictum 8 | `greek.tim.32b` | `broad_thematic_resemblance` | a god makes the world from fire, air, water and earth |
+| Dictum 45 | `greek.tim.49c` | `close_conceptual_parallel` | the elements pass into one another in a cycle; the speaker named Plato is the text's attribution |
+| Dictum 9 | `herm.ch.1.5` | `broad_thematic_resemblance` | the world begun by a divine word acting on the elements |
+| Dictum 37 | `arab.comm.hort.13` | `symbolic_similarity` | the work reduced to three colours in order, black, white and red |
+| Dictum 32 | `arab.comm.hort.13` | `symbolic_similarity` | the matter dies so that it may live and multiply (the tomb and resurrection; the grain of wheat) |
+| Dictum 65 | `arab.comm.hort.11` | `broad_thematic_resemblance` | the work as separating and converting the four elements |
+| the book | `modern.hall.31.fig3` | `later_reinterpretation` | Hall writes about the Turba in a figure's caption and takes its speakers' names at face value |
+| the Epistle | `modern.hpb.isis.1.xxxi` | `speculative_connection` | Pythagoras and Hermes joined as teachers of one wisdom; Blavatsky does not cite the Turba |
+
+### Images
+
+All are from Commons file pages; each was looked at (the Waite pages on the identical Internet Archive scan, since the Commons image server rate-limited downloads; the PDF page numbers were checked on two of its own pages). All have `licenceStatus` "open", and none repeats a picture shown elsewhere. No picture of a medieval Latin manuscript or an Arabic fragment of the Turba was found on Commons.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| The title page of the 1572 *Auriferae artis ... sive Turba philosophorum* (Wellcome L0000510), CC BY 4.0 | `arab.turba.book`; the marker's cover | `secure`, `historical_document` |
+| The title page of Waite 1896 (Cornell scan, PDF page 9), PD | `arab.turba.book` | `secure`, `historical_document` |
+| Page 1 of Waite 1896: the heading and the Epistle's rubric (PDF page 15) | `arab.turba.epistle` | `secure`, `historical_document` |
+| Page 11: Pandolfus's egg, with Waite's note on the philosophical egg (PDF page 25) | `arab.turba.4` | `secure`, `historical_document` |
+| Page 35: the Eleventh Dictum's praise of Nature, with Waite's note on the Greek formulas (PDF page 49) | `arab.turba.11` | `secure`, `historical_document` |
+| Page 206: the end of the Seventy-Second Dictum and the Conclusion, with Waite's note on the second recension (PDF page 220) | `arab.turba.conclusion` | `secure`, `historical_document` |
+| A woodcut of sages round a fire under banderoles ("Solve coagula", "Solvite corpora in aquas"), `Turba_phil.jpg`, PD as the file page states | `arab.turba.book`; the marker's second picture | `UNVERIFIED`, `later_artwork`: the file page says it is from an *Artis Auriferae* of 1752 and names Johann Paul Krauss, the French Wikipedia calls it the 1572 frontispiece; the two disagree and neither was checked. |
+
+Left out: Ibn Umayl's *Silvery Water* (Topkapı copy) — a crop is already shown with the Emerald Tablet, and the full file could not be looked at (Wikimedia refused the download); the 1610 *Artis auriferae* scan on Commons, which proved to be its third volume, without the Turba; and Hall's "Alchemical Androgyne", already shown with Hall.
+
+### Plain words
+
+There are 74 entries, one per unit. Each begins with the speaker the text names, so the voices stay apart: "Arisleus writes" for the Epistle, "Iximidrus says" and so on for the Dicta, "Agmon says" for the Conclusion; where a speaker answers another by name the other is named too ("Acsubofen thanks Pythagoras"). The two Dicta whose speaker is only "Philosophus" say so, and Dictum 29's "Diamedes", addressed as "Diomedes", is marked. The Turba's technical words (Ethelia, Kuhul, Magnesia, Ixir, Cambar) are kept as the text uses them; Dictum 51's 'colour' carries Waite's suggestion 'heat'. Entries are kept under 1,500 characters, so the longest Dicta are summarised more tightly.
+
+### Not done
+
+- The Latin was not read: not the 1572 printing beyond its title page, not Ruska's critical edition, not any manuscript. The English is checked against its own printing and an independent transcription only, and nothing is marked verified.
+- Plessner (1954 and his other papers), Stapleton, Ullmann and Duval were not read; the Arabic-origin date and the identifications of speakers are reported second-hand, from Wikipedia. Ruska is reported from his short account of 1931 only.
+- Waite's Preface, notes and Index are not imported; the second recension is not imported except the Conclusion.
+- No manuscript image was found; the Berlin and Cambridge manuscripts were not identified on any library site.
+- The Commons API and image server rate-limited this stage: the PDF page thumbnails were not fetched directly (the identical archive.org leaves were looked at), and Ibn Umayl's picture could not be viewed.
+- `inventoryVerified` stays false.
