@@ -206,7 +206,7 @@ export function CoursePlayer({
   function handlePurchase() {
     setError(null);
     startTransition(async () => {
-      const result = await purchaseCourse(course.id, communitySlug, spaceSlug);
+      const result = await purchaseCourse(course.id, communitySlug);
       if ("error" in result) setError(result.error);
       else window.location.assign(result.url);
     });

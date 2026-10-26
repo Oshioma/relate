@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { constructWebhookEvent, type StripeEvent } from "@/lib/stripe";
+import { constructWebhookEvent, type StripeCheckoutSession, type StripeEvent } from "@/lib/stripe";
+import { ensureActiveMembership, fulfilGuestCheckout } from "@/lib/guest-checkout";
 import { isResendConfigured, sendPlanLapsedEmail } from "@/lib/email";
 
 // Stripe webhook target for the space paywall. Stripe posts subscription and
@@ -47,7 +48,12 @@ export async function POST(request: NextRequest) {
         const meta = session.metadata ?? {};
         // A community plan checkout (platform billing) — distinguished from a
         // member's space subscription by carrying plan_id, not space_id.
-        if (meta.plan_id && meta.community_id) {
+        if (meta.guest === "1") {
+          // A signed-out visitor who bought from a shareable checkout link: find
+          // or make their account from the Checkout email, then record the
+          // purchase. The return page does the same and signs them in.
+          await fulfilGuestCheckout(admin, session as StripeCheckoutSession);
+        } else if (meta.plan_id && meta.community_id) {
           await admin
             .from("communities")
             .update({
@@ -302,32 +308,5 @@ async function notifyPlanLapsed(
     }
   } catch (err) {
     console.error("[stripe/webhook] plan-lapsed notification failed:", (err as Error).message);
-  }
-}
-
-// Make a paying buyer an active member of the community. No row → a new
-// member; a pending request or invite → approved by the payment. An existing
-// active row (any role) is left alone, and so is a ban. Best effort: a failure
-// here (say, a plan's member limit) must not fail the webhook, which would make
-// Stripe retry a payment that has already been recorded.
-async function ensureActiveMembership(admin: ReturnType<typeof createAdminClient>, communityId: string, userId: string): Promise<void> {
-  try {
-    const { data: existing } = await admin
-      .from("community_memberships")
-      .select("id, status")
-      .eq("community_id", communityId)
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (!existing) {
-      const { error } = await admin
-        .from("community_memberships")
-        .insert({ community_id: communityId, user_id: userId, role: "member", status: "active" });
-      if (error) console.error("[stripe webhook] couldn't add paying member", error.message);
-    } else if (existing.status === "requested" || existing.status === "invited") {
-      const { error } = await admin.from("community_memberships").update({ status: "active" }).eq("id", existing.id);
-      if (error) console.error("[stripe webhook] couldn't activate paying member", error.message);
-    }
-  } catch (err) {
-    console.error("[stripe webhook] membership upsert failed", err);
   }
 }

@@ -60,6 +60,8 @@ import {
 } from "./courses-actions";
 import type { CourseDetail, CourseModuleWithLessons, StaffQuiz } from "@/lib/data/courses";
 import type { CourseLesson, CourseLessonType } from "@/types/database";
+import { CopyCheckoutLink } from "@/components/community/copy-checkout-link";
+import { courseCheckoutPath } from "@/lib/checkout-links";
 
 type SiblingCourse = { id: string; title: string };
 type TierOption = { id: string; name: string };
@@ -1032,6 +1034,12 @@ function PricingSection({
           <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
             Members pay once through Stripe and keep the course. You can also grant it to someone below.
           </p>
+
+          {course.status === "published" ? (
+            <CopyCheckoutLink path={courseCheckoutPath(communitySlug, course.id)} communitySlug={communitySlug} label="Course checkout link" />
+          ) : (
+            <p className="text-xs text-muted-foreground">Publish the course to get a link that opens its checkout.</p>
+          )}
 
           <label className="flex items-start gap-2 text-sm text-foreground">
             <input
