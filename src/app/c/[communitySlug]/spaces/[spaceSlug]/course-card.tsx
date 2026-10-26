@@ -1,10 +1,18 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { GraduationCap, BookOpen, Users, Settings } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { ProgressBar } from "./course-progress";
 import type { CourseListItem } from "@/lib/data/courses";
+
+function formatPrice(cents: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase() }).format(cents / 100);
+  } catch {
+    return `${(cents / 100).toFixed(2)} ${currency.toUpperCase()}`;
+  }
+}
 
 export function CourseCard({
   data,
@@ -35,7 +43,11 @@ export function CourseCard({
         <CardContent className="flex flex-1 flex-col pt-4">
           <div className="flex items-start justify-between gap-2">
             <h3 className="text-sm font-semibold text-foreground">{course.title}</h3>
-            {course.status === "draft" && <Badge tone="neutral">Draft</Badge>}
+            {course.status === "draft" ? (
+              <Badge tone="neutral">Draft</Badge>
+            ) : (
+              course.price_cents > 0 && <Badge tone="accent">{formatPrice(course.price_cents, course.currency)}</Badge>
+            )}
           </div>
 
           {course.summary && <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{course.summary}</p>}

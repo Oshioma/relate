@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getMembership } from "@/lib/data/community";
+import { normalizeCurrency } from "@/lib/currencies";
 import {
   isStripeConfigured,
   createConnectAccount,
@@ -269,4 +270,32 @@ export async function openBillingPortal(communityId: string, returnPath?: string
   } catch (err) {
     return { error: (err as Error).message || "Couldn't open the billing portal." };
   }
+}
+
+// The community's one currency. Every price is charged in it, so changing it
+// moves every existing tier, course and space price over too. The amounts stay
+// the same numbers (£10 was $10); nothing is converted. Anyone already
+// subscribed keeps paying what Stripe agreed with them; new checkouts use the
+// new currency.
+export async function setCommunityCurrency(
+  communityId: string,
+  communitySlug: string,
+  rawCurrency: string
+): Promise<{ error: string | null }> {
+  const currency = normalizeCurrency(rawCurrency);
+  if (!currency) return { error: "Pick a currency from the list." };
+
+  const ctx = await requireAdminCommunity(communityId);
+  if (!ctx.ok) return { error: ctx.error };
+  const { supabase } = ctx;
+
+  const { error } = await supabase.from("communities").update({ currency }).eq("id", communityId);
+  if (error) return { error: error.message };
+  for (const table of ["community_tiers", "courses", "spaces"] as const) {
+    const { error: priceError } = await supabase.from(table).update({ currency }).eq("community_id", communityId);
+    if (priceError) return { error: `Saved, but some prices weren't moved over: ${priceError.message}` };
+  }
+
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  return { error: null };
 }

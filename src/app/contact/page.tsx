@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { MessageCircle } from "lucide-react";
 import { ContactForm } from "./contact-form";
 import { WHATSAPP_DISPLAY, WHATSAPP_HREF } from "@/lib/support-contact";

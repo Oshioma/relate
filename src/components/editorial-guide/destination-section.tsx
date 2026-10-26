@@ -23,6 +23,7 @@ import { PANEL_ICONS, TAG_ICONS } from "./guide-icons";
 import { RestaurantCard, StayCard, DirectoryChips } from "./recommendation-cards";
 import { ZanzibarRoomsStays } from "./zanzibar-rooms-stays";
 
+import { Anchor } from "@/components/ui/link";
 export type CommunityLinks = {
   tip: string;
   restaurant: string;
@@ -273,18 +274,18 @@ export function DestinationSection({
           Residents and recent visitors keep this guide honest. Share what you know about {d.name} — posts go through the community&apos;s usual moderation, and our editors review suggestions before anything changes here.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <a href={links.tip} className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:opacity-90">
+          <Anchor href={links.tip} className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:opacity-90">
             <Lightbulb className="h-4 w-4" aria-hidden /> Share a local tip
-          </a>
-          <a href={links.restaurant} className={chipButton}>
+          </Anchor>
+          <Anchor href={links.restaurant} className={chipButton}>
             <UtensilsCrossed className="h-4 w-4" aria-hidden /> Recommend a restaurant
-          </a>
-          <a href={links.stay} className={chipButton}>
+          </Anchor>
+          <Anchor href={links.stay} className={chipButton}>
             <BedDouble className="h-4 w-4" aria-hidden /> Suggest somewhere to stay
-          </a>
-          <a href={links.ask} className={chipButton}>
+          </Anchor>
+          <Anchor href={links.ask} className={chipButton}>
             <MessageCircleQuestion className="h-4 w-4" aria-hidden /> Ask the community
-          </a>
+          </Anchor>
         </div>
       </div>
     </section>

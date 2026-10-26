@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { notFound, redirect } from "next/navigation";
 import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye, Compass, Lock } from "lucide-react";
 import { exitViewAsMember, startViewAsMember } from "./view-as-member-actions";
 import { ShareOriginProvider } from "@/components/ui/share-origin";
+import { CommunityHostProvider } from "@/components/ui/community-host";
+import { headers } from "next/headers";
 import { communityShareOrigin } from "@/lib/custom-domain";
+import { canonicalUrl, communityCanonicalOrigin, metaDescription, SEO_PATH_HEADER } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import {
@@ -40,6 +43,7 @@ import { NotificationsPopover } from "@/components/layout/notifications-popover"
 import { MessagesPopover } from "@/components/layout/messages-popover";
 import { TimezoneSync } from "@/components/layout/timezone-sync";
 import { LiveSessionWatcher } from "@/components/layout/live-session-watcher";
+import { LiveNowPopup } from "@/components/layout/live-now-popup";
 import { communityAccentStyle } from "@/lib/accent-color";
 import { CommunityJoinCta } from "./community-join-cta";
 import { PlanLapseBanner } from "@/components/community/plan-lapse-banner";
@@ -58,14 +62,10 @@ import { ReturnHereLink } from "@/components/layout/return-here-link";
 // Trimmed to ~160 chars (a word boundary) to stay within what search results
 // display without truncating mid-word.
 function communityMetaDescription(community: { name: string; description: string | null }): string {
-  const own = community.description?.trim();
-  if (own) {
-    if (own.length <= 160) return own;
-    const clipped = own.slice(0, 160);
-    const lastSpace = clipped.lastIndexOf(" ");
-    return `${(lastSpace > 100 ? clipped.slice(0, lastSpace) : clipped).trimEnd()}…`;
-  }
-  return `${community.name} on Relate — its feed, spaces, events, members and local businesses, all in one place.`;
+  return (
+    metaDescription(community.description) ??
+    `${community.name} on Relate — its feed, spaces, events, members and local businesses, all in one place.`
+  );
 }
 
 // Give each community its own tab title and meta description. `default` shows
@@ -89,10 +89,31 @@ export async function generateMetadata({
   // to no OG image rather than a build failure.
   const cover = community.cover_image_url;
   const ogImage = cover && /^https?:\/\//i.test(cover) ? [cover] : undefined;
+  // One canonical URL per page, on the community's own domain: the same page
+  // is reachable on its subdomain, its custom domain's www and bare forms and
+  // under /c/<slug>, and without this search engines pick one (or split the
+  // page's ranking between them). The proxy passes the clean path; a page
+  // that sets its own canonical (the guides) still wins.
+  const headerList = await headers();
+  const origin = communityCanonicalOrigin(headerList.get("host"), community);
+  const path = headerList.get(SEO_PATH_HEADER);
+  const canonical = origin && path ? canonicalUrl(origin, path) : null;
   return {
+    ...(origin ? { metadataBase: new URL(origin) } : {}),
     title: { default: community.name, template: `%s · ${community.name}` },
     description,
+    ...(canonical ? { alternates: { canonical } } : {}),
     openGraph: {
+      type: "website",
+      siteName: community.name,
+      locale: "en_GB",
+      title: community.name,
+      description,
+      ...(canonical ? { url: canonical } : {}),
+      ...(ogImage ? { images: ogImage } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
       title: community.name,
       description,
       ...(ogImage ? { images: ogImage } : {}),
@@ -105,7 +126,20 @@ export async function generateMetadata({
 const TIMELINE_NAV_SORT = 99_000;
 const GUIDES_NAV_SORT = 98_000;
 
-export default async function CommunityLayout({
+// On the community's own host (the proxy passes the clean path only there),
+// its /c/<slug>/… links are written as the clean paths that host serves — see
+// src/components/ui/link.tsx.
+export default async function CommunityLayout(props: { children: React.ReactNode; params: Promise<{ communitySlug: string }> }) {
+  const { communitySlug } = await props.params;
+  const onOwnHost = Boolean((await headers()).get(SEO_PATH_HEADER));
+  return (
+    <CommunityHostProvider slug={onOwnHost ? communitySlug : null}>
+      <CommunityShell {...props} />
+    </CommunityHostProvider>
+  );
+}
+
+async function CommunityShell({
   children,
   params,
 }: {
@@ -346,6 +380,9 @@ export default async function CommunityLayout({
           badge instantly. Outside the signed-in gate so guests on a public
           live space see it too. */}
       <LiveSessionWatcher communityId={community.id} />
+      {/* The "We're live" card (with a chime and, when allowed, a desktop
+          notification) whenever a session is live and the viewer isn't in it. */}
+      <LiveNowPopup session={liveSession} base={base} viewerId={user?.id ?? null} />
 
       {/* Sticky at full window height, so the nav stays in view while a long
           page (a directory, a timeline) scrolls past it. Only the link list in
@@ -451,7 +488,7 @@ export default async function CommunityLayout({
           )}
 
           <div className="mt-4 space-y-1 border-t border-border pt-4">
-            {community.guidelines && (
+            {community.guidelines && community.guidelines_show_in_nav !== false && (
               <NavLink href={`${base}/guidelines`} icon={<BookOpen className="h-4 w-4" />}>
                 Community guidelines
               </NavLink>
@@ -557,7 +594,7 @@ export default async function CommunityLayout({
                 the room. Shown to anyone who can see the session (RLS-scoped). */}
             {liveSession && (
               <Link
-                href={`${base}/spaces/${liveSession.spaceSlug}`}
+                href={`${base}/spaces/${liveSession.spaceSlug}?join=1`}
                 title={`${liveSession.title} is live now — join`}
                 className="inline-flex items-center gap-1.5 rounded-full bg-danger px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-danger-foreground shadow-sm transition-opacity hover:opacity-90"
               >
@@ -728,7 +765,7 @@ export default async function CommunityLayout({
             ? orderedUnits.flatMap((unit) => unit.items)
             : ungroupedUnits.flatMap((unit) => unit.items)),
           ...(showMembersLink ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-4 w-4" /> }] : []),
-          ...(community.guidelines ? [{ href: `${base}/guidelines`, label: "Community guidelines", icon: <BookOpen className="h-4 w-4" /> }] : []),
+          ...(community.guidelines && community.guidelines_show_in_nav !== false ? [{ href: `${base}/guidelines`, label: "Community guidelines", icon: <BookOpen className="h-4 w-4" /> }] : []),
           { href: `${base}/contact`, label: "Contact", icon: <Mail className="h-4 w-4" /> },
         ]}
         links={navLinks.map((link) => ({ id: link.id, label: link.label, url: link.url }))}

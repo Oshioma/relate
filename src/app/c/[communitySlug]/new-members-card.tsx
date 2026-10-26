@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import type { MemberRow } from "@/lib/data/community";
 import { Avatar } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";

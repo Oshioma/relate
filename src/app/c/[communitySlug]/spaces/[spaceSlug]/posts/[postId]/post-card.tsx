@@ -15,6 +15,8 @@ import { formatRelativeTime } from "@/lib/utils";
 import { PostGallery, TagChips } from "@/components/ui/post-gallery";
 import { postGallery, tagsPlaceholder } from "@/lib/post-media";
 import { updatePost, deletePost, setPostPinned, togglePostReaction } from "../../actions";
+import { movePost } from "../../move-post-actions";
+import type { MoveKind } from "@/lib/post-move";
 import { PostImagePicker, type CropPhotoOption, type FarmCropPhotoOption } from "../../post-image-picker";
 import { SMILE_EMOJI, type Reactor } from "@/lib/post-reactions";
 import { SmileStack } from "@/components/ui/smile-stack";
@@ -37,6 +39,7 @@ export function PostCard({
   reactors = [],
   viewer = null,
   canReact = false,
+  moveTargets = [],
 }: {
   post: PostWithAuthor;
   canEdit: boolean;
@@ -58,6 +61,8 @@ export function PostCard({
   // they click rather than a refresh later.
   viewer?: Reactor | null;
   canReact?: boolean;
+  // Staff only: the spaces this post can be moved to, and what it becomes there.
+  moveTargets?: { id: string; name: string; kind: MoveKind }[];
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(post.title);
@@ -72,6 +77,7 @@ export function PostCard({
   const [reactions, setReactions] = useState(reactionCount);
   const [stack, setStack] = useState(reactors);
   const [isReacting, startReacting] = useTransition();
+  const [moveTo, setMoveTo] = useState("");
   const router = useRouter();
 
   function toggleReaction() {
@@ -120,6 +126,26 @@ export function PostCard({
         setError(result.error);
       } else {
         router.refresh();
+      }
+    });
+  }
+
+  function handleMove() {
+    const target = moveTargets.find((t) => t.id === moveTo);
+    if (!target) return;
+    if (
+      target.kind === "guide" &&
+      !window.confirm(`Turn this post into a guide in ${target.name}? Its comments come along; its smiles don't.`)
+    ) {
+      return;
+    }
+    setError(null);
+    startTransition(async () => {
+      const result = await movePost(post.id, communitySlug, target.id);
+      if ("error" in result) {
+        setError(result.error);
+      } else {
+        router.push(target.kind === "post" ? `${result.path}/posts/${post.id}` : result.path);
       }
     });
   }
@@ -262,6 +288,35 @@ export function PostCard({
                     Delete
                   </button>
                 )}
+              </div>
+            )}
+            {moveTargets.length > 0 && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <label htmlFor={`move_${post.id}`} className="text-xs font-medium text-muted-foreground">
+                  Move to
+                </label>
+                <select
+                  id={`move_${post.id}`}
+                  value={moveTo}
+                  onChange={(event) => setMoveTo(event.target.value)}
+                  className="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="">Choose a space…</option>
+                  {moveTargets.map((target) => (
+                    <option key={target.id} value={target.id}>
+                      {target.name}
+                      {target.kind === "guide" ? " (as a guide)" : ""}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={handleMove}
+                  disabled={!moveTo || isPending}
+                  className="text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-60"
+                >
+                  {isPending ? "Moving…" : "Move"}
+                </button>
               </div>
             )}
             {error && !isEditing && <p className="mt-2 text-xs text-danger">{error}</p>}

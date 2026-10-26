@@ -1,6 +1,6 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { notFound, redirect } from "next/navigation";
-import { CalendarDays, Sparkles, Inbox, BarChart3, Eye, Mail } from "lucide-react";
+import { CalendarDays, Sparkles, Inbox, BarChart3, Eye, Mail, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
@@ -40,12 +40,15 @@ import { SpacesManager, type NavManagerItem, type NavSubItem } from "./spaces-ma
 import { CommunityBrandingForm } from "./community-branding-form";
 import { CommunityDetailsForm } from "./community-details-form";
 import { CommunityHeroForm } from "./community-hero-form";
+import { CommunityTestimonialsForm } from "./community-testimonials-form";
 import { CommunityGuidelinesForm } from "./community-guidelines-form";
 import { CommunityContactInfoForm } from "./community-contact-info-form";
 import { countUnhandledCommunityContactMessages } from "@/lib/data/contact-messages";
 import { ProfileFieldsSection } from "./profile-fields-section";
 import { NewNavLinkForm } from "./new-nav-link-form";
 import { NavLinksList } from "./nav-links-list";
+import { MovePostsSection } from "./move-posts-section";
+import { moveKindFor } from "@/lib/post-move";
 import { NavGroupsSection } from "./nav-groups-section";
 import { CustomDomainSection } from "./custom-domain-section";
 import { isVercelDomainAutomationConfigured } from "@/lib/vercel-domains";
@@ -54,6 +57,7 @@ import { BillingSection } from "./billing-section";
 import { PlanSection } from "./plan-section";
 import { MarketplaceSection } from "./marketplace-section";
 import { TiersSection } from "./tiers-section";
+import { CurrencySection } from "./currency-section";
 import { getActivePlatformPlans } from "@/lib/data/platform-plans";
 import { communityHasFeature } from "@/lib/data/plan-limits";
 import { getActiveFeaturePacks, getCommunityAddons } from "@/lib/data/feature-packs";
@@ -132,6 +136,15 @@ export default async function AdminPage({
 
   // Just the open count — the messages themselves live on the Inbox page.
   const openMessageCount = await countUnhandledCommunityContactMessages(db, community.id);
+
+  // Spaces that can take posts (feeds, or Guides as guides) and the tags in use,
+  // for "Move posts between spaces".
+  const postSpaces = spaces.flatMap((s) => {
+    const kind = moveKindFor(s.space_type);
+    return kind ? [{ id: s.id, name: s.name, kind }] : [];
+  });
+  const { data: taggedPosts } = await db.from("posts").select("tags").eq("community_id", community.id).not("tags", "is", null).limit(2000);
+  const postTags = [...new Set((taggedPosts ?? []).flatMap((p) => p.tags ?? []))].sort().slice(0, 200);
 
   // Overview stats. Members are already active-only (see getCommunityMembers);
   // "new this week" counts them by join date so the header reflects momentum,
@@ -263,20 +276,25 @@ export default async function AdminPage({
     { label: "Bundle a membership tier", hint: "Group spaces into one recurring price.", done: tiers.length > 0, href: "#tiers" },
   ];
 
-  // Sections shown in the admin nav, in page order and grouped under headings.
-  // Owner-only sections are appended only when they actually render below, so
-  // a link never points at a missing anchor.
+  // Sections shown in the admin nav, grouped under headings. Listed in the
+  // exact order they appear on the page, groups included: the highlight follows
+  // the page as you scroll, so a section listed out of order sends it jumping
+  // up and down the nav. Owner-only sections are added only when they actually
+  // render below, so a link never points at a missing anchor. The last group
+  // links to the admin pages of their own.
+  const base = `/c/${community.slug}`;
   const sections: NavSection[] = [
     { id: "overview", label: "Overview", group: "Community" },
+    { id: "who-can-see-what", label: "Who can see what?", group: "Community" },
     { id: "members", label: "Members", group: "Community" },
-    // Access settings in their four groups, after the summary that links to them.
-    { id: "who-can-see-what", label: "Who can see what?", group: "Access" },
-    { id: "spaces", label: "Spaces & Content", group: "Access" },
     { id: "details", label: "Details", group: "Profile & pages" },
     { id: "landing", label: "Landing page", group: "Profile & pages" },
+    { id: "testimonials", label: "Testimonials", group: "Profile & pages" },
     { id: "guidelines", label: "Guidelines", group: "Profile & pages" },
     { id: "contact", label: "Contact", group: "Profile & pages" },
     { id: "emails", label: "Emails", group: "Profile & pages" },
+    { id: "spaces", label: "Spaces & Content", group: "Spaces & sidebar" },
+    { id: "add-space", label: "Add a space", group: "Spaces & sidebar" },
     { id: "sidebar-sections", label: "Sidebar sections", group: "Spaces & sidebar" },
     { id: "profile-fields", label: "Profile fields", group: "Spaces & sidebar" },
     { id: "sidebar-links", label: "Sidebar links", group: "Spaces & sidebar" },
@@ -287,15 +305,23 @@ export default async function AdminPage({
   }
   if (isOwner) {
     sections.push(
-      { id: "set-up-membership", label: "Memberships & payments", group: "Access" },
+      { id: "set-up-membership", label: "Memberships & payments", group: "Plan & payments" },
       { id: "plan", label: "Plan", group: "Plan & payments" },
       { id: "marketplace", label: "Marketplace", group: "Plan & payments" },
       { id: "payments", label: "Payments", group: "Plan & payments" },
       { id: "tiers", label: "Tiers", group: "Plan & payments" },
-      { id: "domain", label: "Custom domain", group: "Settings" },
-      { id: "danger", label: "Danger zone", group: "Settings" },
+      { id: "domain", label: "Custom domain", group: "Domain & deletion" },
+      { id: "danger", label: "Danger zone", group: "Domain & deletion" },
     );
   }
+  sections.push(
+    { id: "page-settings", label: "Settings", group: "Other admin pages", href: `${base}/admin/settings` },
+    { id: "page-analytics", label: "Analytics", group: "Other admin pages", href: `${base}/admin/analytics` },
+    { id: "page-access", label: "Access check", group: "Other admin pages", href: `${base}/admin/access` },
+    { id: "page-emails", label: "Email editor", group: "Other admin pages", href: `${base}/admin/emails` },
+    { id: "page-inbox", label: "Inbox", group: "Other admin pages", href: `${base}/inbox` },
+    { id: "page-concierge", label: "Concierge queries", group: "Other admin pages", href: `${base}/admin/concierge` },
+  );
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:grid lg:max-w-6xl lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-10">
@@ -393,6 +419,18 @@ export default async function AdminPage({
       <h2 id="landing" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Feed landing page</h2>
       <div className="mb-8">
         <CommunityHeroForm community={community} spaces={spaces} />
+      </div>
+
+      <h2 id="testimonials" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Testimonials</h2>
+      <div className="mb-8">
+        <CommunityTestimonialsForm
+          community={community}
+          members={members.map((m) => ({
+            id: m.user_id,
+            name: m.profile?.full_name || "Unnamed member",
+            avatarUrl: m.profile?.avatar_url ?? null,
+          }))}
+        />
       </div>
 
       <h2 id="guidelines" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Community guidelines</h2>
@@ -522,7 +560,16 @@ export default async function AdminPage({
             </CardContent>
           </Card>
         </Link>
+        <Link href={`/c/${community.slug}/admin/settings`}>
+          <Card className="transition-shadow hover:shadow-sm">
+            <CardContent className="flex items-center gap-3 pt-5">
+              <Settings className="h-4 w-4 text-accent" />
+              <span className="text-sm font-medium text-foreground">Settings &amp; import from other platforms</span>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
+      <MovePostsSection communitySlug={community.slug} spaces={postSpaces} tags={postTags} />
 
       {isOwner && featureControls.length > 0 && (
         <>
@@ -586,6 +633,7 @@ export default async function AdminPage({
               <p className="mb-3 text-sm text-muted-foreground">
                 Connect Stripe to charge members a monthly fee for individual spaces. Once payments are connected, set a
                 price on a space in the <a href="#spaces" className="text-accent underline-offset-2 hover:underline">Spaces</a> section.
+                Every price is charged in the currency you pick below.
               </p>
               <div className="mb-8">
                 <BillingSection
@@ -596,6 +644,9 @@ export default async function AdminPage({
                   platformConfigured={isStripeConfigured()}
                   justReturned={stripeReturn === "return"}
                 />
+              </div>
+              <div className="mb-8">
+                <CurrencySection communityId={community.id} communitySlug={community.slug} currency={community.currency} />
               </div>
             </>
           ) : (
@@ -620,6 +671,7 @@ export default async function AdminPage({
                   tiers={tiers}
                   sales={tierSales}
                   spaces={tierAssignableSpaces}
+                  currency={community.currency}
                 />
               </div>
             </>

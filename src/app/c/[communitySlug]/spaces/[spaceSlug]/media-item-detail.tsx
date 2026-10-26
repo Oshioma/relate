@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ExternalLink, Pencil, Share2, Trash2 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";

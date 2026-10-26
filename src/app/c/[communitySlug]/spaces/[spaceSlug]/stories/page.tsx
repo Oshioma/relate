@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Search } from "lucide-react";
 import { loadGuidedJourneyPage } from "@/lib/data/guided-journey-page";
 import { getPublishedStories } from "@/lib/data/guided-journey";

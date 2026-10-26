@@ -14,6 +14,7 @@ import { GuideViewStatsBadge } from "@/components/editorial-guide/guide-view-sta
 import { AreaCards, AreaFilteredPlaces } from "@/components/editorial-guide/area-finder";
 import { listingKey, type GuideDirectory, type GuideViewStats } from "@/lib/data/editorial-guides";
 
+import { Anchor } from "@/components/ui/link";
 // A place guide page (/guides/most-picturesque-places-zanzibar): the same
 // layout for every PlaceGuideDefinition. Server-rendered and public; the only
 // client islands are the section nav, the photos and the comment thread,
@@ -275,9 +276,9 @@ export function PlaceGuide({
               </dl>
               <p className="mt-4 border-t border-border pt-3 text-sm text-muted-foreground">
                 <span className="font-semibold text-foreground">About the photographs.</span> {def.photoNote}{" "}
-                <a href={contactHref} className="font-medium text-accent hover:underline">
+                <Anchor href={contactHref} className="font-medium text-accent hover:underline">
                   contact {community.name}
-                </a>
+                </Anchor>
                 .
               </p>
             </div>
@@ -344,7 +345,7 @@ export function PlaceGuide({
               <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {directoryListings.map((l) => (
                   <li key={l.slug}>
-                    <a href={l.href} className="group flex h-full gap-3 rounded-lg border border-border bg-card p-3 hover:shadow-md">
+                    <Anchor href={l.href} className="group flex h-full gap-3 rounded-lg border border-border bg-card p-3 hover:shadow-md">
                       {l.imageUrl ? (
                         <GuideImage src={l.imageUrl} alt="" sizes="64px" className="h-16 w-16 shrink-0 rounded-md" />
                       ) : (
@@ -360,15 +361,15 @@ export function PlaceGuide({
                         )}
                         {places.some((p) => p.listing?.slug === l.slug) && <span className="mt-0.5 block text-xs font-medium text-accent">In this guide</span>}
                       </span>
-                    </a>
+                    </Anchor>
                   </li>
                 ))}
               </ul>
               {directoryHref && (
                 <p className="mt-4 text-sm">
-                  <a href={directoryHref} className="font-medium text-accent hover:underline">
+                  <Anchor href={directoryHref} className="font-medium text-accent hover:underline">
                     See the whole directory
-                  </a>
+                  </Anchor>
                 </p>
               )}
             </section>
@@ -445,12 +446,12 @@ export function PlaceGuide({
               ))}
             </div>
             <div className="mt-5 flex flex-wrap gap-3">
-              <a href={links.recommend} className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:opacity-90">
+              <Anchor href={links.recommend} className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:opacity-90">
                 <Compass className="h-4 w-4" aria-hidden /> Share a local recommendation
-              </a>
-              <a href={links.ask} className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
+              </Anchor>
+              <Anchor href={links.ask} className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
                 <Users className="h-4 w-4" aria-hidden /> Ask the community
-              </a>
+              </Anchor>
             </div>
             <div className="mt-8 max-w-3xl overflow-hidden rounded-lg border border-border bg-card">
               <p className="px-4 pt-4 text-sm font-semibold text-foreground">Comments on this guide</p>
@@ -468,9 +469,9 @@ export function PlaceGuide({
             <p className="mt-2 text-sm text-muted-foreground">{def.editorialStandards}</p>
             <p className="mt-2 text-sm text-muted-foreground">
               This guide has {photos} photographs. {def.photoNote}{" "}
-              <a href={contactHref} className="font-medium text-accent hover:underline">
+              <Anchor href={contactHref} className="font-medium text-accent hover:underline">
                 contact us
-              </a>
+              </Anchor>
               .
               {unverified > 0 && (
                 <>

@@ -12,6 +12,7 @@ import { GuideViewBeacon } from "@/components/editorial-guide/guide-view-beacon"
 import { GuideViewStatsBadge } from "@/components/editorial-guide/guide-view-stats";
 import type { GuideViewStats } from "@/lib/data/editorial-guides";
 
+import { Anchor } from "@/components/ui/link";
 // A hotel guide page (/guides/best-boutique-hotels-zanzibar,
 // /guides/best-luxury-resorts-zanzibar): the same layout for every
 // HotelGuideDefinition. Server-rendered and public; the only client islands
@@ -177,9 +178,9 @@ export function HotelGuide({
               ))}
               <p>
                 Still deciding which part of the island suits you? Start with our{" "}
-                <a href={`/c/${community.slug}/guides/where-to-stay-in-zanzibar`} className="font-medium text-accent hover:underline">
+                <Anchor href={`/c/${community.slug}/guides/where-to-stay-in-zanzibar`} className="font-medium text-accent hover:underline">
                   Where to Stay in Zanzibar
-                </a>{" "}
+                </Anchor>{" "}
                 guide, which compares 14 beach destinations in depth.
               </p>
               {editorsNote && <p className="rounded-md border border-border bg-muted px-4 py-3 text-base">{editorsNote}</p>}
@@ -207,9 +208,9 @@ export function HotelGuide({
               </dl>
               <p className="mt-4 border-t border-border pt-3 text-sm text-muted-foreground">
                 <span className="font-semibold text-foreground">About the photographs.</span> {def.venuePhotoNote}{" "}
-                <a href={contactHref} className="font-medium text-accent hover:underline">
+                <Anchor href={contactHref} className="font-medium text-accent hover:underline">
                   Contact {community.name}
-                </a>
+                </Anchor>
               </p>
             </div>
           </section>
@@ -441,15 +442,15 @@ export function HotelGuide({
               ))}
             </div>
             <div className="mt-5 flex flex-wrap gap-3">
-              <a href={links.stay} className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:opacity-90">
+              <Anchor href={links.stay} className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:opacity-90">
                 <BedDouble className="h-4 w-4" aria-hidden /> Recommend a place to stay
-              </a>
-              <a href={links.recommend} className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
+              </Anchor>
+              <Anchor href={links.recommend} className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
                 <Compass className="h-4 w-4" aria-hidden /> Share a local recommendation
-              </a>
-              <a href={links.ask} className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
+              </Anchor>
+              <Anchor href={links.ask} className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
                 <Users className="h-4 w-4" aria-hidden /> Ask the community
-              </a>
+              </Anchor>
             </div>
             <div className="mt-8 max-w-3xl overflow-hidden rounded-lg border border-border bg-card">
               <p className="px-4 pt-4 text-sm font-semibold text-foreground">Comments on this guide</p>
@@ -467,9 +468,9 @@ export function HotelGuide({
             <p className="mt-2 text-sm text-muted-foreground">{def.editorialStandards}</p>
             <p className="mt-2 text-sm text-muted-foreground">
               This guide has {photos} photographs, {venuePhotos} of them from the venues themselves, each linked to the page it came from. {def.venuePhotoNote}{" "}
-              <a href={contactHref} className="font-medium text-accent hover:underline">
+              <Anchor href={contactHref} className="font-medium text-accent hover:underline">
                 Contact us
-              </a>
+              </Anchor>
               . The others come from Wikimedia Commons under the free licences credited beneath each one. Pictures labelled &ldquo;The area, not the hotel&rdquo; show the surrounding beach or village{withoutPhotos > 0 ? `, and stand in for the ${withoutPhotos} venues we don't have photos of yet` : ""}; captions beginning &ldquo;UNVERIFIED&rdquo; show something relevant whose exact location we could not confirm.
             </p>
           </section>

@@ -1,10 +1,18 @@
 "use server";
 
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { arePrerequisitesMet } from "@/lib/data/courses";
-import { getProfileByUsername } from "@/lib/data/profile";
-import type { CourseStatus } from "@/types/database";
+import { getCommunityCurrency, getMembership } from "@/lib/data/community";
+import { getProfile, getProfileByUsername } from "@/lib/data/profile";
+import { communityCanCharge, communityHasFeature } from "@/lib/data/plan-limits";
+import { rememberLessonRoom } from "@/lib/courses/lesson-recordings";
+import { isStripeConfigured, createCourseCheckoutSession, createCourseInstalmentCheckoutSession } from "@/lib/stripe";
+import { cleanInstalmentInput, instalmentPlan } from "@/lib/courses/instalments";
+import { courseLessonRoomName, getJaasAppId, isJaasConfigured, mintJaasToken } from "@/lib/jitsi";
+import { courseAccess, liveLessonState } from "@/lib/courses/lesson-kinds";
+import type { CourseLessonType, CourseStatus } from "@/types/database";
 
 // Revalidate the whole space subtree (list + player + manage) in one call.
 function revalidateSpace(communitySlug: string, spaceSlug: string) {
@@ -190,6 +198,30 @@ function parseDuration(raw: FormDataEntryValue | null): number | null {
 
 export type LessonFormState = { error: string } | { ok: true } | undefined;
 
+// The kind of lesson and, for a live one, when it runs. live_starts_at and
+// live_ends_at arrive as ISO strings: the browser turns its local date and
+// time into one before sending, because this server's clock zone isn't the
+// teacher's.
+function parseLessonKind(formData: FormData):
+  | { error: string }
+  | { lesson_type: CourseLessonType; live_starts_at: string | null; live_ends_at: string | null } {
+  const raw = String(formData.get("lesson_type") ?? "text");
+  const lessonType: CourseLessonType = raw === "video" || raw === "live" ? raw : "text";
+  if (lessonType !== "live") return { lesson_type: lessonType, live_starts_at: null, live_ends_at: null };
+
+  const toIso = (value: FormDataEntryValue | null) => {
+    const text = String(value ?? "").trim();
+    if (!text) return null;
+    const ms = Date.parse(text);
+    return Number.isNaN(ms) ? null : new Date(ms).toISOString();
+  };
+  const startsAt = toIso(formData.get("live_starts_at"));
+  const endsAt = toIso(formData.get("live_ends_at"));
+  if (!startsAt) return { error: "Pick the date and time the live lesson starts." };
+  if (endsAt && Date.parse(endsAt) <= Date.parse(startsAt)) return { error: "The live lesson has to end after it starts." };
+  return { lesson_type: "live", live_starts_at: startsAt, live_ends_at: endsAt };
+}
+
 export async function createLesson(_prevState: LessonFormState, formData: FormData): Promise<LessonFormState> {
   const moduleId = String(formData.get("module_id") ?? "");
   const courseId = String(formData.get("course_id") ?? "");
@@ -200,8 +232,10 @@ export async function createLesson(_prevState: LessonFormState, formData: FormDa
   const body = String(formData.get("body") ?? "").trim();
   const videoUrl = String(formData.get("video_url") ?? "").trim();
   const durationMinutes = parseDuration(formData.get("duration_minutes"));
+  const kind = parseLessonKind(formData);
 
   if (!title) return { error: "Give the lesson a title." };
+  if ("error" in kind) return kind;
 
   const supabase = await createClient();
   const sortOrder = await nextLessonSortOrder(supabase, moduleId);
@@ -212,6 +246,7 @@ export async function createLesson(_prevState: LessonFormState, formData: FormDa
     title,
     body: body || null,
     video_url: videoUrl || null,
+    ...kind,
     duration_minutes: durationMinutes,
     sort_order: sortOrder,
   });
@@ -228,13 +263,15 @@ export async function updateLesson(_prevState: LessonFormState, formData: FormDa
   const body = String(formData.get("body") ?? "").trim();
   const videoUrl = String(formData.get("video_url") ?? "").trim();
   const durationMinutes = parseDuration(formData.get("duration_minutes"));
+  const kind = parseLessonKind(formData);
 
   if (!title) return { error: "The lesson needs a title." };
+  if ("error" in kind) return kind;
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("course_lessons")
-    .update({ title, body: body || null, video_url: videoUrl || null, duration_minutes: durationMinutes })
+    .update({ title, body: body || null, video_url: videoUrl || null, ...kind, duration_minutes: durationMinutes })
     .eq("id", lessonId);
   if (error) return { error: error.message };
   revalidateSpace(communitySlug, spaceSlug);
@@ -284,9 +321,13 @@ export async function enrollInCourse(courseId: string, communitySlug: string, sp
   } = await supabase.auth.getUser();
   if (!user) return { error: "You need to be signed in." };
 
-  // Paid courses can't be self-enrolled — they need a purchase or a staff grant.
+  // Paid courses can't be self-enrolled — they need a purchase, a staff grant,
+  // or a membership tier that includes the course.
   const { data: course } = await supabase.from("courses").select("price_cents").eq("id", courseId).maybeSingle();
-  if (course && course.price_cents > 0) return { error: "This is a paid course — buy it to enrol." };
+  if (course && course.price_cents > 0) {
+    const { data: hasTier } = await supabase.rpc("has_active_tier_for_course", { p_course_id: courseId, p_user_id: user.id });
+    if (hasTier !== true) return { error: "This is a paid course — buy it to enrol." };
+  }
 
   // Prerequisites are enforced here (RLS can't express "completed course X").
   if (!(await arePrerequisitesMet(supabase, courseId, user.id))) {
@@ -305,6 +346,15 @@ export async function unenrollFromCourse(courseId: string, communitySlug: string
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "You need to be signed in." };
+
+  // A bought course stays bought: leaving would throw the purchase away.
+  const { data: enrolment } = await supabase
+    .from("course_enrollments")
+    .select("paid")
+    .eq("course_id", courseId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (enrolment?.paid) return { error: "You bought this course, so it stays yours." };
 
   const { error } = await supabase.from("course_enrollments").delete().eq("course_id", courseId).eq("user_id", user.id);
   if (error) return { error: error.message };
@@ -441,10 +491,33 @@ export async function deleteAnnouncement(announcementId: string, communitySlug: 
 // -----------------------------------------------------------------------------
 // v3 — Pricing & access (staff)
 // -----------------------------------------------------------------------------
-export async function setCoursePrice(courseId: string, priceCents: number, currency: string, communitySlug: string, spaceSlug: string) {
+// Charged in the community's currency (Admin -> Payments), never a per-course one.
+export async function setCoursePrice(courseId: string, priceCents: number, communitySlug: string, spaceSlug: string) {
   const price = Number.isFinite(priceCents) && priceCents >= 0 ? Math.round(priceCents) : 0;
   const supabase = await createClient();
-  const { error } = await supabase.from("courses").update({ price_cents: price, currency: currency || "usd" }).eq("id", courseId);
+  const { data: course } = await supabase.from("courses").select("community_id").eq("id", courseId).maybeSingle();
+  if (!course) return { error: "That course no longer exists." };
+  const currency = await getCommunityCurrency(supabase, course.community_id);
+  // A free course has nothing to pay off monthly.
+  const update = price === 0 ? { price_cents: price, currency, instalment_count: 0, instalment_price_cents: 0 } : { price_cents: price, currency };
+  const { error } = await supabase.from("courses").update(update).eq("id", courseId);
+  if (error) return { error: error.message };
+  revalidateSpace(communitySlug, spaceSlug);
+  return { error: null };
+}
+
+// The monthly plan offered next to the one-off price (e.g. £40 a month for 4
+// months). 0 and 0 switch it off.
+export async function setCourseInstalments(courseId: string, count: number, priceCents: number, communitySlug: string, spaceSlug: string) {
+  const supabase = await createClient();
+  const { data: course } = await supabase.from("courses").select("price_cents").eq("id", courseId).maybeSingle();
+  if (!course) return { error: "That course no longer exists." };
+  const cleaned = cleanInstalmentInput(count, priceCents, course.price_cents);
+  if ("error" in cleaned) return { error: cleaned.error };
+  const { error } = await supabase
+    .from("courses")
+    .update({ instalment_count: cleaned.count, instalment_price_cents: cleaned.priceCents })
+    .eq("id", courseId);
   if (error) return { error: error.message };
   revalidateSpace(communitySlug, spaceSlug);
   return { error: null };
@@ -469,21 +542,217 @@ export async function grantCourseAccess(courseId: string, username: string, comm
   return { error: null };
 }
 
-// Buying a paid course. A payment provider (e.g. Stripe Checkout) would be
-// invoked here; until one is connected we degrade honestly rather than granting
-// access for free.
-export async function purchaseCourse(courseId: string, communitySlug: string, spaceSlug: string) {
-  // These identify the course/return path a real checkout session would use;
-  // referenced here so the stub keeps the final signature.
-  void courseId;
-  void communitySlug;
-  void spaceSlug;
-  if (!process.env.STRIPE_SECRET_KEY) {
-    return { error: "Paid enrolment isn't available yet — this community hasn't connected a payment method. Ask a course admin for access." };
+// Whether one-off buyers may also join the live lessons (tier members always
+// can).
+export async function setCourseLiveIncluded(courseId: string, included: boolean, communitySlug: string, spaceSlug: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("courses").update({ live_included_with_purchase: included }).eq("id", courseId);
+  if (error) return { error: error.message };
+  revalidateSpace(communitySlug, spaceSlug);
+  return { error: null };
+}
+
+// The membership tiers that include this course for free. Replaces the set.
+export async function setCourseTiers(courseId: string, communityId: string, tierIds: string[], communitySlug: string, spaceSlug: string) {
+  const supabase = await createClient();
+  const wanted = [...new Set(tierIds)];
+  const { data: existing, error: readError } = await supabase.from("tier_courses").select("tier_id").eq("course_id", courseId);
+  if (readError) return { error: readError.message };
+
+  const have = new Set((existing ?? []).map((row) => row.tier_id));
+  const toRemove = [...have].filter((id) => !wanted.includes(id));
+  const toAdd = wanted.filter((id) => !have.has(id));
+
+  if (toRemove.length) {
+    const { error } = await supabase.from("tier_courses").delete().eq("course_id", courseId).in("tier_id", toRemove);
+    if (error) return { error: error.message };
   }
-  // TODO: create a checkout session, redirect, and grant a paid enrolment on
-  // the payment webhook. Left unimplemented until a provider is configured.
-  return { error: "Checkout isn't wired up yet." };
+  if (toAdd.length) {
+    const { error } = await supabase
+      .from("tier_courses")
+      .insert(toAdd.map((tierId) => ({ tier_id: tierId, course_id: courseId, community_id: communityId })));
+    if (error) return { error: error.message };
+  }
+  revalidateSpace(communitySlug, spaceSlug);
+  return { error: null };
+}
+
+// Absolute base URL for Stripe's return links: the host the member is on
+// (communities live on subdomains and custom domains), as the space paywall
+// does.
+async function requestBaseUrl(): Promise<string> {
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  if (host) {
+    const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+    return `${proto}://${host}`;
+  }
+  return process.env.NEXT_PUBLIC_SITE_URL ?? "";
+}
+
+export type CoursePurchaseResult = { error: string } | { url: string };
+
+// Buying a paid course: a one-off Stripe Checkout on the community's connected
+// account (the owner keeps the payment). The webhook records the paid
+// enrolment once Stripe confirms the payment, so nothing is unlocked here.
+// `plan` picks how to pay: once, or in the course's monthly instalments.
+export async function purchaseCourse(
+  courseId: string,
+  communitySlug: string,
+  spaceSlug: string,
+  plan: "one_off" | "instalments" = "one_off"
+): Promise<CoursePurchaseResult> {
+  if (!isStripeConfigured()) {
+    return { error: "Payments aren't available on this platform yet. Ask a course admin for access." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to buy this course." };
+
+  const { data: course } = await supabase
+    .from("courses")
+    .select("id, title, price_cents, currency, status, community_id, instalment_count, instalment_price_cents")
+    .eq("id", courseId)
+    .maybeSingle();
+  if (!course || course.status !== "published") return { error: "This course isn't open yet." };
+  if (course.price_cents <= 0) return { error: "This course is free — just enrol." };
+
+  const { data: already } = await supabase
+    .from("course_enrollments")
+    .select("paid")
+    .eq("course_id", course.id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (already?.paid) return { error: "You already have this course." };
+
+  const { data: community } = await supabase
+    .from("communities")
+    .select("id, name, stripe_account_id, stripe_charges_enabled")
+    .eq("id", course.community_id)
+    .maybeSingle();
+  if (!community?.stripe_account_id || !community.stripe_charges_enabled) {
+    return { error: "This community hasn't finished setting up payments yet. Try again later." };
+  }
+  // Same rule as the space paywall: a community whose plan lapsed stops
+  // taking new payments.
+  if (!(await communityCanCharge(supabase, community.id))) {
+    return { error: "This course isn't on sale right now. Please check back later, or contact the community's admins." };
+  }
+
+  const base = await requestBaseUrl();
+  const courseUrl = `${base}/c/${communitySlug}/spaces/${spaceSlug}/courses/${course.id}`;
+
+  const metadata = { course_id: course.id, user_id: user.id, community_id: community.id };
+  if (plan === "instalments") {
+    const instalments = instalmentPlan(course);
+    if (!instalments) return { error: "This course isn't offered in monthly payments." };
+    try {
+      const session = await createCourseInstalmentCheckoutSession({
+        stripeAccount: community.stripe_account_id,
+        priceCents: instalments.priceCents,
+        currency: course.currency,
+        instalments: instalments.count,
+        productName: `${course.title} — ${community.name}`,
+        successUrl: `${courseUrl}?purchased=1`,
+        cancelUrl: courseUrl,
+        customerEmail: user.email ?? undefined,
+        metadata: { ...metadata, instalments: String(instalments.count) },
+      });
+      return { url: session.url };
+    } catch (err) {
+      return { error: (err as Error).message || "Couldn't start checkout." };
+    }
+  }
+
+  try {
+    const session = await createCourseCheckoutSession({
+      stripeAccount: community.stripe_account_id,
+      priceCents: course.price_cents,
+      currency: course.currency,
+      productName: `${course.title} — ${community.name}`,
+      successUrl: `${courseUrl}?purchased=1`,
+      cancelUrl: courseUrl,
+      customerEmail: user.email ?? undefined,
+      metadata,
+    });
+    return { url: session.url };
+  } catch (err) {
+    return { error: (err as Error).message || "Couldn't start checkout." };
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Live lessons
+// -----------------------------------------------------------------------------
+export type CourseLiveJoin =
+  | { error: string }
+  | { roomName: string; config: { mode: "public" } | { mode: "jaas"; appId: string; token: string } };
+
+// The room for a live lesson, for someone allowed in. The room name is derived
+// on the server and only handed out here, so a playback-only buyer (or anyone
+// else) can't find the room by reading the lesson.
+export async function joinCourseLiveLesson(lessonId: string): Promise<CourseLiveJoin> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  // RLS returns the lesson only to people who can open it.
+  const { data: lesson } = await supabase
+    .from("course_lessons")
+    .select("id, course_id, community_id, lesson_type, live_starts_at, live_ends_at")
+    .eq("id", lessonId)
+    .maybeSingle();
+  if (!lesson || lesson.lesson_type !== "live") return { error: "This live lesson isn't available to you." };
+
+  const [{ data: course }, membership, { data: enrolment }, { data: hasTier }] = await Promise.all([
+    supabase.from("courses").select("price_cents, live_included_with_purchase").eq("id", lesson.course_id).maybeSingle(),
+    getMembership(supabase, lesson.community_id, user.id),
+    supabase.from("course_enrollments").select("paid").eq("course_id", lesson.course_id).eq("user_id", user.id).maybeSingle(),
+    supabase.rpc("has_active_tier_for_course", { p_course_id: lesson.course_id, p_user_id: user.id }),
+  ]);
+  if (!course || !membership || membership.status !== "active") return { error: "Join this community to take part." };
+
+  const isStaff = membership.role === "owner" || membership.role === "admin" || membership.role === "moderator";
+  const access = courseAccess({
+    isPaid: course.price_cents > 0,
+    isStaff,
+    enrolled: Boolean(enrolment),
+    paidEnrolment: Boolean(enrolment?.paid),
+    hasTier: hasTier === true,
+    liveIncludedWithPurchase: course.live_included_with_purchase,
+  });
+  if (!access.canJoinLive) return { error: "Live lessons come with the membership. Your course includes the playbacks." };
+
+  // The team can open the room any time (to set up early, or run over).
+  if (!isStaff && liveLessonState(lesson, Date.now()) !== "open") {
+    return { error: "The room opens 15 minutes before the lesson starts." };
+  }
+
+  const roomName = courseLessonRoomName(lesson.id);
+  if (!isJaasConfigured()) return { roomName, config: { mode: "public" } };
+
+  // So a recording of this room can be matched back to the lesson.
+  await rememberLessonRoom(roomName, lesson.id);
+
+  const [profile, canRecord] = await Promise.all([
+    getProfile(supabase, user.id),
+    isStaff ? communityHasFeature(supabase, lesson.community_id, "session_recording") : Promise.resolve(false),
+  ]);
+  const token = mintJaasToken({
+    room: roomName,
+    userId: user.id,
+    name: profile?.full_name || profile?.username || "Member",
+    moderator: isStaff,
+    recording: canRecord,
+    email: user.email,
+    avatar: profile?.avatar_url,
+  });
+  return { roomName, config: { mode: "jaas", appId: getJaasAppId()!, token } };
 }
 
 // -----------------------------------------------------------------------------

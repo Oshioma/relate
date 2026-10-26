@@ -2,7 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { Search, Leaf, Sprout, CalendarClock, Settings2, Plus, X, Bookmark, SlidersHorizontal } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CropCard } from "./crop-card";

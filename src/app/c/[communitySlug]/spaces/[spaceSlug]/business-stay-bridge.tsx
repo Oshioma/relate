@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { useRouter } from "next/navigation";
 import { BedDouble, ArrowRight } from "lucide-react";
 import { createStayFromBusiness } from "./accommodation-actions";

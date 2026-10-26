@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getCommunityCurrency } from "@/lib/data/community";
 
 // `saved` carries the tier's name back so the form can say what it just saved.
 export type TierFormState = { error: string } | { saved: string } | undefined;
@@ -10,10 +11,6 @@ export type TierFormState = { error: string } | { saved: string } | undefined;
 function parsePriceCents(raw: FormDataEntryValue | null): number {
   const amount = Number(String(raw ?? "").trim());
   return Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) : 0;
-}
-
-function parseCurrency(raw: FormDataEntryValue | null): string {
-  return (String(raw ?? "usd").trim().toLowerCase() || "usd").slice(0, 3);
 }
 
 // Charging members is a paid-plan capability — the same gate the per-space price
@@ -29,7 +26,6 @@ export async function createTier(_prevState: TierFormState, formData: FormData):
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const priceCents = parsePriceCents(formData.get("price"));
-  const currency = parseCurrency(formData.get("currency"));
 
   if (!name) return { error: "Give the tier a name." };
   if (priceCents <= 0) return { error: "Set a monthly price above zero." };
@@ -38,6 +34,8 @@ export async function createTier(_prevState: TierFormState, formData: FormData):
   if (!(await planAllowsCharging(supabase, communityId))) {
     return { error: "Charging members is a paid-plan feature. Upgrade your plan first." };
   }
+  // Tiers are charged in the community's currency (Admin -> Payments).
+  const currency = await getCommunityCurrency(supabase, communityId);
 
   const { data: maxSort } = await supabase
     .from("community_tiers")
@@ -79,7 +77,6 @@ export async function updateTier(_prevState: TierFormState, formData: FormData):
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const priceCents = parsePriceCents(formData.get("price"));
-  const currency = parseCurrency(formData.get("currency"));
 
   if (!name) return { error: "Give the tier a name." };
   if (priceCents <= 0) return { error: "Set a monthly price above zero." };
@@ -90,6 +87,7 @@ export async function updateTier(_prevState: TierFormState, formData: FormData):
   if (!(await planAllowsCharging(supabase, tier.community_id))) {
     return { error: "Charging members is a paid-plan feature. Upgrade your plan first." };
   }
+  const currency = await getCommunityCurrency(supabase, tier.community_id);
 
   const { error } = await supabase
     .from("community_tiers")

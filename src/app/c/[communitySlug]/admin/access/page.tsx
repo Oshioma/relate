@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, ShieldCheck, Check, Lock, EyeOff, AlertTriangle, Info, Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -15,8 +15,9 @@ import { describeJoining, joinPolicyOf } from "@/lib/join-policy";
 import { SpaceAccessEditor } from "./space-access-editor";
 import { AccessCheck } from "./access-check";
 
-const STATE_LOOK: Record<AccessState, { label: string; icon: typeof Check; className: string }> = {
-  open: { label: "Opens", icon: Check, className: "text-accent" },
+// An open cell is also shaded light green, so what opens for whom shows at a glance.
+const STATE_LOOK: Record<AccessState, { label: string; icon: typeof Check; className: string; cellClassName?: string }> = {
+  open: { label: "Opens", icon: Check, className: "text-accent", cellClassName: "bg-emerald-500/10" },
   locked: { label: "Locked", icon: Lock, className: "text-foreground" },
   hidden: { label: "Not shown", icon: EyeOff, className: "text-muted-foreground" },
 };
@@ -180,7 +181,7 @@ export default async function AccessOverviewPage({ params }: { params: Promise<{
                     />
                   </th>
                   {row.cells.map((cell) => (
-                    <td key={cell.viewerKey} className="px-3 py-3">
+                    <td key={cell.viewerKey} className={cn("px-3 py-3", STATE_LOOK[cell.state].cellClassName)}>
                       <CellView cell={cell} />
                     </td>
                   ))}

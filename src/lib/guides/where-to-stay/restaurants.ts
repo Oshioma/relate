@@ -237,16 +237,6 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
       bestFor: ["Romantic dinner", "Sunset", "Special occasions"],
       area: "Dongwe, at the end of Dongwe Club's jetty",
     },
-    {
-      name: "Fishers Restaurant",
-      listing: { kind: "business", slug: "fishers-restaurant" },
-      cuisine: "Fresh local seafood",
-      price: "$",
-      why: "A small, family-run beach spot serving fish straight from the boats at around half resort prices. The setting is simple but atmospheric. Reviews are mixed on service and food can take a long time.",
-      bestFor: ["Lunch", "Local seafood", "Budget"],
-      area: "Dongwe beach",
-      verificationNote: "Cash only. Reviews are mixed: order bottled water you open yourself.",
-    },
   ],
   kizimkazi: [
     {
@@ -273,16 +263,6 @@ export const RESTAURANTS: Record<string, RestaurantRecommendation[]> = {
     },
   ],
   uroa: [
-    {
-      name: "Kambakocho Bar & Beach Restaurant",
-      listing: { kind: "business", slug: "kambakocho-bar-beach-restaurant" },
-      cuisine: "Seafood, pizza, pasta and cocktails",
-      price: "$$",
-      why: "A beachfront restaurant with ocean views. Reviewers praise the grilled lobster, octopus carpaccio and cocktails, and the multilingual staff. Recurring complaints are slow service and billing, so check your bill before paying.",
-      bestFor: ["Sunset drinks", "Dinner", "Seafood"],
-      area: "Uroa beachfront",
-      verificationNote: "We could not find dated reviews from the last year. Please confirm it is open.",
-    },
     {
       name: "Zan Taste Restaurant",
       listing: { kind: "business", slug: "zan-taste-restaurant" },

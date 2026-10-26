@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { AlertTriangle, Clock } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import type { PlanLapseNotice } from "@/lib/data/plan-limits";

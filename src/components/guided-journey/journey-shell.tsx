@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import type { ReactNode } from "react";
 import { ArrowLeft, LogIn, ShieldCheck } from "lucide-react";
 import { LinkButton } from "@/components/ui/button";

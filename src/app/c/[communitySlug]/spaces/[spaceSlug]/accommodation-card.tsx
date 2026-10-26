@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { MapPin, Building2, Images, BedDouble, Heart } from "lucide-react";
 import { accommodationTypeLabel, accommodationPhotos, formatAccommodationPrice, accommodationFactsSummary } from "@/lib/accommodation-types";
 import { ShareMenu } from "@/components/ui/share-menu";

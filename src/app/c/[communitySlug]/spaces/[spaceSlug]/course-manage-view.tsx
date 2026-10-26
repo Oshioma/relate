@@ -2,13 +2,31 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronUp, ChevronDown, Trash2, Plus, X, Pencil, GripVertical, Clock, Megaphone, ListChecks, Link2, Check } from "lucide-react";
+import {
+  ChevronUp,
+  ChevronDown,
+  Trash2,
+  Plus,
+  X,
+  Pencil,
+  GripVertical,
+  Clock,
+  Megaphone,
+  ListChecks,
+  Link2,
+  Check,
+  FileText,
+  PlayCircle,
+  Radio,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { ImageUpload } from "@/components/ui/image-upload";
-import { formatDateTime } from "@/lib/utils";
+import { cn, formatDateTime } from "@/lib/utils";
+import { useFormDraftRef } from "@/lib/use-form-draft";
+import { instalmentPlan } from "@/lib/courses/instalments";
 import {
   updateCourseSettings,
   updateCourseCover,
@@ -27,6 +45,9 @@ import {
   createAnnouncement,
   deleteAnnouncement,
   setCoursePrice,
+  setCourseInstalments,
+  setCourseLiveIncluded,
+  setCourseTiers,
   grantCourseAccess,
   addPrerequisite,
   removePrerequisite,
@@ -40,9 +61,27 @@ import {
   deleteQuizOption,
 } from "./courses-actions";
 import type { CourseDetail, CourseModuleWithLessons, StaffQuiz } from "@/lib/data/courses";
-import type { CourseLesson } from "@/types/database";
+import type { CourseLesson, CourseLessonType } from "@/types/database";
 
 type SiblingCourse = { id: string; title: string };
+type TierOption = { id: string; name: string };
+
+// Live-lesson recording: whether the plan records, and how each lesson's
+// latest recording went.
+export type LessonRecordingStatus = {
+  status: "copying" | "saved" | "failed";
+  error: string | null;
+  // The 8x8 download link, kept when copying failed (works 24 hours).
+  sourceUrl: string | null;
+  createdAt: string;
+};
+export type RecordingInfo = { canRecord: boolean; byLesson: Record<string, LessonRecordingStatus> };
+
+const LESSON_TYPES: { value: CourseLessonType; label: string; hint: string; icon: typeof FileText }[] = [
+  { value: "text", label: "Text", hint: "A written lesson", icon: FileText },
+  { value: "video", label: "Prerecorded video", hint: "A video people watch any time", icon: PlayCircle },
+  { value: "live", label: "Live video", hint: "A live session, then its playback", icon: Radio },
+];
 
 // timestamptz ISO -> the local value a datetime-local input expects.
 function toLocalInput(iso: string | null): string {
@@ -59,6 +98,8 @@ export function CourseManageView({
   spaceSlug,
   siblingCourses,
   staffQuizzes,
+  tiers,
+  recordings,
 }: {
   detail: CourseDetail;
   communityId: string;
@@ -66,6 +107,9 @@ export function CourseManageView({
   spaceSlug: string;
   siblingCourses: SiblingCourse[];
   staffQuizzes: Record<string, StaffQuiz>;
+  // The community's membership tiers, any of which can include this course.
+  tiers: TierOption[];
+  recordings: RecordingInfo;
 }) {
   const { course, modules } = detail;
   const router = useRouter();
@@ -220,6 +264,7 @@ export function CourseManageView({
               spaceSlug={spaceSlug}
               courseId={course.id}
               staffQuizzes={staffQuizzes}
+              recordings={recordings}
               isPending={isPending}
               run={run}
               setError={setError}
@@ -259,7 +304,16 @@ export function CourseManageView({
       />
 
       {/* Pricing & access */}
-      <PricingSection detail={detail} communitySlug={communitySlug} spaceSlug={spaceSlug} isPending={isPending} run={run} setError={setError} />
+      <PricingSection
+        detail={detail}
+        communityId={communityId}
+        communitySlug={communitySlug}
+        spaceSlug={spaceSlug}
+        tiers={tiers}
+        isPending={isPending}
+        run={run}
+        setError={setError}
+      />
 
       {/* Announcements */}
       <AnnouncementsSection detail={detail} communityId={communityId} communitySlug={communitySlug} spaceSlug={spaceSlug} isPending={isPending} run={run} setError={setError} />
@@ -286,6 +340,7 @@ function ModuleEditor({
   spaceSlug,
   courseId,
   staffQuizzes,
+  recordings,
   isPending,
   run,
   setError,
@@ -298,6 +353,7 @@ function ModuleEditor({
   spaceSlug: string;
   courseId: string;
   staffQuizzes: Record<string, StaffQuiz>;
+  recordings: RecordingInfo;
   isPending: boolean;
   run: (action: () => Promise<{ error: string | null }>) => void;
   setError: (message: string | null) => void;
@@ -429,13 +485,21 @@ function ModuleEditor({
                 spaceSlug={spaceSlug}
                 courseId={courseId}
                 moduleId={module.id}
+                canRecord={recordings.canRecord}
                 onDone={() => setEditingLessonId(null)}
                 onError={setError}
               />
             ) : (
               <div className="flex items-center gap-2">
                 <span className="text-xs tabular-nums text-muted-foreground">{index + 1}.{li + 1}</span>
+                <LessonTypeIcon type={lesson.lesson_type} />
                 <span className="flex-1 truncate text-sm text-foreground">{lesson.title}</span>
+                {lesson.lesson_type === "live" && lesson.live_starts_at && (
+                  <span className="text-xs text-muted-foreground">
+                    {formatDateTime(lesson.live_starts_at)}
+                    {lesson.video_url ? " · playback added" : ""}
+                  </span>
+                )}
                 {lesson.duration_minutes != null && <span className="text-xs text-muted-foreground">{lesson.duration_minutes}m</span>}
                 <button type="button" title="Edit lesson" onClick={() => setEditingLessonId(lesson.id)} className="text-muted-foreground hover:text-foreground">
                   <Pencil className="h-3.5 w-3.5" />
@@ -472,6 +536,10 @@ function ModuleEditor({
               </div>
             )}
 
+            {editingLessonId !== lesson.id && lesson.lesson_type === "live" && recordings.byLesson[lesson.id] && (
+              <RecordingNote info={recordings.byLesson[lesson.id]} />
+            )}
+
             {editingLessonId !== lesson.id && (
               <QuizEditor
                 lesson={lesson}
@@ -497,6 +565,7 @@ function ModuleEditor({
             spaceSlug={spaceSlug}
             courseId={courseId}
             moduleId={module.id}
+            canRecord={recordings.canRecord}
             onDone={() => setAddingLesson(false)}
             onError={setError}
           />
@@ -515,6 +584,36 @@ function ModuleEditor({
   );
 }
 
+function RecordingNote({ info }: { info: LessonRecordingStatus }) {
+  if (info.status === "saved") {
+    return <p className="mt-1 pl-8 text-xs text-emerald-600">Recording saved {formatDateTime(info.createdAt)}: it plays as this lesson&apos;s playback.</p>;
+  }
+  if (info.status === "copying") {
+    return <p className="mt-1 pl-8 text-xs text-muted-foreground">Saving the recording from {formatDateTime(info.createdAt)}…</p>;
+  }
+  return (
+    <p className="mt-1 pl-8 text-xs text-danger">
+      The recording from {formatDateTime(info.createdAt)} couldn&apos;t be saved{info.error ? ` (${info.error})` : ""}.{" "}
+      {info.sourceUrl && (
+        <a href={info.sourceUrl} target="_blank" rel="noopener noreferrer" className="font-medium underline">
+          Download it from 8x8
+        </a>
+      )}
+      {info.sourceUrl && " within 24 hours of the session, then add it as a link."}
+    </p>
+  );
+}
+
+function LessonTypeIcon({ type }: { type: CourseLessonType }) {
+  const entry = LESSON_TYPES.find((t) => t.value === type) ?? LESSON_TYPES[0];
+  const Icon = entry.icon;
+  return (
+    <span title={entry.label} className="shrink-0 text-muted-foreground">
+      <Icon className={cn("h-3.5 w-3.5", type === "live" && "text-rose-500")} />
+    </span>
+  );
+}
+
 function LessonForm({
   mode,
   lesson,
@@ -523,6 +622,7 @@ function LessonForm({
   spaceSlug,
   courseId,
   moduleId,
+  canRecord,
   onDone,
   onError,
 }: {
@@ -533,22 +633,47 @@ function LessonForm({
   spaceSlug: string;
   courseId: string;
   moduleId: string;
+  canRecord: boolean;
   onDone: () => void;
   onError: (message: string | null) => void;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const [lessonType, setLessonType] = useState<CourseLessonType>(lesson?.lesson_type ?? "text");
+  // What's typed survives a refresh until the lesson is saved (or cancelled).
+  const { clear: clearDraft } = useFormDraftRef(formRef, `course-lesson:${courseId}:${moduleId}:${lesson?.id ?? "new"}`, {
+    onRestore: (values) => {
+      const saved = Array.isArray(values.lesson_type) ? values.lesson_type[0] : values.lesson_type;
+      if (saved === "text" || saved === "video" || saved === "live") setLessonType(saved);
+    },
+  });
+  const idFor = (field: string) => `lesson_${field}_${moduleId}_${lesson?.id ?? "new"}`;
 
   async function handleSubmit(formData: FormData) {
     onError(null);
+    // datetime-local is the teacher's own clock; send the server a real instant.
+    for (const [local, field] of [
+      ["live_starts_local", "live_starts_at"],
+      ["live_ends_local", "live_ends_at"],
+    ] as const) {
+      const value = String(formData.get(local) ?? "").trim();
+      const ms = value ? new Date(value).getTime() : NaN;
+      formData.set(field, Number.isNaN(ms) ? "" : new Date(ms).toISOString());
+    }
     const result = mode === "create" ? await createLesson(undefined, formData) : await updateLesson(undefined, formData);
     if (result && "error" in result) {
       onError(result.error);
       return;
     }
+    clearDraft();
     formRef.current?.reset();
     onDone();
     router.refresh();
+  }
+
+  function cancel() {
+    clearDraft();
+    onDone();
   }
 
   return (
@@ -560,42 +685,105 @@ function LessonForm({
       <input type="hidden" name="module_id" value={moduleId} />
       {mode === "edit" && lesson && <input type="hidden" name="lesson_id" value={lesson.id} />}
 
+      <fieldset>
+        <legend className="mb-1.5 text-sm font-medium text-foreground">Kind of lesson</legend>
+        <div className="grid gap-2 sm:grid-cols-3">
+          {LESSON_TYPES.map((type) => {
+            const Icon = type.icon;
+            return (
+              <label
+                key={type.value}
+                className={cn(
+                  "flex cursor-pointer items-start gap-2 rounded-lg border px-3 py-2 text-sm",
+                  lessonType === type.value ? "border-accent bg-accent/5" : "border-border hover:bg-muted"
+                )}
+              >
+                <input
+                  type="radio"
+                  name="lesson_type"
+                  value={type.value}
+                  defaultChecked={(lesson?.lesson_type ?? "text") === type.value}
+                  onChange={() => setLessonType(type.value)}
+                  className="sr-only"
+                />
+                <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", type.value === "live" ? "text-rose-500" : "text-muted-foreground")} />
+                <span>
+                  <span className="block font-medium text-foreground">{type.label}</span>
+                  <span className="block text-xs text-muted-foreground">{type.hint}</span>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+
       <div>
-        <Label htmlFor={`lesson_title_${moduleId}_${lesson?.id ?? "new"}`}>Lesson title</Label>
-        <Input id={`lesson_title_${moduleId}_${lesson?.id ?? "new"}`} name="title" defaultValue={lesson?.title ?? ""} placeholder="e.g. Mixing your first wash" required />
+        <Label htmlFor={idFor("title")}>Lesson title</Label>
+        <Input
+          id={idFor("title")}
+          name="title"
+          defaultValue={lesson?.title ?? ""}
+          placeholder={lessonType === "live" ? "e.g. Wisdom School: week 1" : "e.g. Mixing your first wash"}
+          required
+        />
       </div>
+
+      {lessonType === "live" && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <Label htmlFor={idFor("starts")}>Starts</Label>
+            <Input id={idFor("starts")} name="live_starts_local" type="datetime-local" defaultValue={toLocalInput(lesson?.live_starts_at ?? null)} required />
+          </div>
+          <div>
+            <Label htmlFor={idFor("ends")}>Ends (optional)</Label>
+            <Input id={idFor("ends")} name="live_ends_local" type="datetime-local" defaultValue={toLocalInput(lesson?.live_ends_at ?? null)} />
+          </div>
+          <p className="text-xs text-muted-foreground sm:col-span-2">
+            The video room opens inside the lesson 15 minutes before the start.{" "}
+            {canRecord
+              ? "Press Start recording in the call and the recording becomes this lesson's playback by itself once the session ends. You can also paste a recording link below instead."
+              : "After the session, paste the recording link below so everyone can watch it back. (Recording straight from the call comes with the Growth and Pro plans.)"}
+          </p>
+        </div>
+      )}
+
+      {lessonType !== "text" && (
+        <div>
+          <Label htmlFor={idFor("video")}>{lessonType === "live" ? "Playback video link (after the session)" : "Video link"}</Label>
+          <Input
+            id={idFor("video")}
+            name="video_url"
+            type="url"
+            defaultValue={lesson?.video_url ?? ""}
+            placeholder="YouTube, Vimeo, Google Drive or an .mp4 link"
+            required={lessonType === "video"}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            For a paid course, use an unlisted YouTube or Vimeo video, or a Drive file shared with &quot;anyone with the link&quot;.
+          </p>
+        </div>
+      )}
+      {lessonType === "text" && lesson?.video_url && <input type="hidden" name="video_url" value={lesson.video_url} />}
+
       <div>
-        <Label htmlFor={`lesson_body_${moduleId}_${lesson?.id ?? "new"}`}>Content</Label>
+        <Label htmlFor={idFor("body")}>{lessonType === "text" ? "Content" : lessonType === "live" ? "About this session (optional)" : "Notes (optional)"}</Label>
         <Textarea
-          id={`lesson_body_${moduleId}_${lesson?.id ?? "new"}`}
+          id={idFor("body")}
           name="body"
           rows={4}
           defaultValue={lesson?.body ?? ""}
-          placeholder="Write the lesson here. Links become clickable."
+          placeholder={lessonType === "text" ? "Write the lesson here. Links become clickable." : "Anything to read alongside the video. Links become clickable."}
         />
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <Label htmlFor={`lesson_video_${moduleId}_${lesson?.id ?? "new"}`}>Video URL (optional)</Label>
-          <Input id={`lesson_video_${moduleId}_${lesson?.id ?? "new"}`} name="video_url" type="url" defaultValue={lesson?.video_url ?? ""} placeholder="https://…" />
-        </div>
-        <div>
-          <Label htmlFor={`lesson_duration_${moduleId}_${lesson?.id ?? "new"}`}>Length (minutes, optional)</Label>
-          <Input
-            id={`lesson_duration_${moduleId}_${lesson?.id ?? "new"}`}
-            name="duration_minutes"
-            type="number"
-            min={0}
-            defaultValue={lesson?.duration_minutes ?? ""}
-            placeholder="10"
-          />
-        </div>
+      <div className="sm:w-1/2">
+        <Label htmlFor={idFor("duration")}>Length (minutes, optional)</Label>
+        <Input id={idFor("duration")} name="duration_minutes" type="number" min={0} defaultValue={lesson?.duration_minutes ?? ""} placeholder="10" />
       </div>
       <div className="flex items-center gap-2">
         <SubmitButton pendingText="Saving…" className="w-auto">
           {mode === "create" ? "Add lesson" : "Save lesson"}
         </SubmitButton>
-        <button type="button" onClick={onDone} className="text-sm text-muted-foreground hover:text-foreground">
+        <button type="button" onClick={cancel} className="text-sm text-muted-foreground hover:text-foreground">
           Cancel
         </button>
       </div>
@@ -775,58 +963,250 @@ function PrerequisitesSection({
 
 function PricingSection({
   detail,
+  communityId,
   communitySlug,
   spaceSlug,
+  tiers,
   isPending,
   run,
   setError,
 }: {
   detail: CourseDetail;
+  communityId: string;
   communitySlug: string;
   spaceSlug: string;
+  tiers: TierOption[];
   isPending: boolean;
   run: (action: () => Promise<{ error: string | null }>) => void;
   setError: (message: string | null) => void;
 }) {
   const { course } = detail;
-  const [amount, setAmount] = useState((course.price_cents / 100).toFixed(2));
-  const [currency, setCurrency] = useState(course.currency);
   const [priceSaved, setPriceSaved] = useState(false);
   const [grantUser, setGrantUser] = useState("");
+  const includedIds = new Set(detail.includedInTiers.map((t) => t.id));
+  const hasLive = detail.modules.some((m) => m.lessons.some((l) => l.lesson_type === "live"));
+  const plan = instalmentPlan(course);
+  const currencyCode = course.currency.toUpperCase();
 
-  function savePrice() {
+  // The prices are typed into an uncontrolled form whose draft survives a
+  // refresh (house rule), cleared once saved. `preview` mirrors the monthly
+  // fields to show what the plan adds up to.
+  const priceFormRef = useRef<HTMLFormElement>(null);
+  const [preview, setPreview] = useState({ count: String(plan?.count ?? ""), amount: plan ? (plan.priceCents / 100).toFixed(2) : "" });
+  const { clear: clearPriceDraft } = useFormDraftRef(priceFormRef, `course-pricing:${course.id}`, {
+    onRestore: (values) =>
+      setPreview((prev) => ({
+        count: typeof values.instalment_count === "string" ? values.instalment_count : prev.count,
+        amount: typeof values.instalment_amount === "string" ? values.instalment_amount : prev.amount,
+      })),
+  });
+
+  function readPreview() {
+    const form = priceFormRef.current;
+    if (!form) return;
+    const data = new FormData(form);
+    setPreview({ count: String(data.get("instalment_count") ?? ""), amount: String(data.get("instalment_amount") ?? "") });
+  }
+
+  function savePrices(removePlan = false) {
+    const form = priceFormRef.current;
+    if (!form) return;
     setError(null);
     setPriceSaved(false);
-    const cents = Math.round(Number(amount) * 100);
-    run(() => setCoursePrice(course.id, Number.isFinite(cents) ? cents : 0, currency, communitySlug, spaceSlug).then((r) => (r?.error ? r : (setPriceSaved(true), r))));
+    const data = new FormData(form);
+    const toCents = (value: FormDataEntryValue | null) => {
+      const cents = Math.round(Number(value || 0) * 100);
+      return Number.isFinite(cents) && cents > 0 ? cents : 0;
+    };
+    const oneOff = toCents(data.get("course_price"));
+    const count = removePlan ? 0 : Math.round(Number(data.get("instalment_count") || 0));
+    const monthly = removePlan ? 0 : toCents(data.get("instalment_amount"));
+    run(async () => {
+      const priceResult = await setCoursePrice(course.id, oneOff, communitySlug, spaceSlug);
+      if (priceResult?.error) return priceResult;
+      // A free course can't have a monthly plan; setCoursePrice already cleared it.
+      if (oneOff > 0) {
+        const planResult = await setCourseInstalments(course.id, count, monthly, communitySlug, spaceSlug);
+        if (planResult?.error) return planResult;
+      }
+      clearPriceDraft();
+      if (removePlan) {
+        const countInput = form.elements.namedItem("instalment_count") as HTMLInputElement | null;
+        const amountInput = form.elements.namedItem("instalment_amount") as HTMLInputElement | null;
+        if (countInput) countInput.value = "";
+        if (amountInput) amountInput.value = "";
+        setPreview({ count: "", amount: "" });
+      }
+      setPriceSaved(true);
+      return { error: null };
+    });
   }
+
+  function toggleTier(tierId: string, on: boolean) {
+    const next = new Set(includedIds);
+    if (on) next.add(tierId);
+    else next.delete(tierId);
+    run(() => setCourseTiers(course.id, communityId, [...next], communitySlug, spaceSlug));
+  }
+
+  const previewCount = Math.round(Number(preview.count) || 0);
+  const previewAmount = Number(preview.amount) || 0;
+  const previewTotal = previewCount >= 2 && previewAmount > 0 ? previewCount * previewAmount : 0;
 
   return (
     <section className="space-y-4 rounded-xl border border-border bg-card p-4">
       <div>
         <h2 className="text-sm font-semibold text-foreground">Pricing &amp; access</h2>
-        <p className="mt-0.5 text-xs text-muted-foreground">Set a price to make this a paid course. Leave it at 0 for a free course anyone can join.</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Set a one-off price to sell this course. Leave it at 0 for a free course anyone can join. You can also let buyers pay monthly
+          instead.
+        </p>
       </div>
 
-      <div className="flex flex-wrap items-end gap-2">
+      <form
+        ref={priceFormRef}
+        onInput={readPreview}
+        onSubmit={(e) => {
+          e.preventDefault();
+          savePrices();
+        }}
+        className="space-y-4"
+      >
         <div>
-          <Label htmlFor="course_price">Price</Label>
-          <Input id="course_price" type="number" min={0} step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-32" />
+          <Label htmlFor="course_price">One-off price ({currencyCode})</Label>
+          <Input
+            id="course_price"
+            name="course_price"
+            type="number"
+            min={0}
+            step="0.01"
+            defaultValue={(course.price_cents / 100).toFixed(2)}
+            className="w-32"
+          />
         </div>
-        <div>
-          <Label htmlFor="course_currency">Currency</Label>
-          <Input id="course_currency" value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-24 uppercase" />
+
+        <div className="rounded-lg border border-border p-3">
+          <p className="text-sm font-medium text-foreground">Or pay monthly (optional)</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            For example 4 payments of 40 next to a one-off price of 144. Buyers choose when they buy. The course opens on the first payment
+            and the payments stop by themselves after the last one. Leave blank to sell it one-off only.
+          </p>
+          <div className="mt-2 flex flex-wrap items-end gap-2">
+            <div>
+              <Label htmlFor="instalment_count">Number of payments</Label>
+              <Input
+                id="instalment_count"
+                name="instalment_count"
+                type="number"
+                min={2}
+                max={24}
+                step={1}
+                defaultValue={plan ? String(plan.count) : ""}
+                placeholder="4"
+                className="w-28"
+              />
+            </div>
+            <div>
+              <Label htmlFor="instalment_amount">Each month ({currencyCode})</Label>
+              <Input
+                id="instalment_amount"
+                name="instalment_amount"
+                type="number"
+                min={0}
+                step="0.01"
+                defaultValue={plan ? (plan.priceCents / 100).toFixed(2) : ""}
+                placeholder="40.00"
+                className="w-32"
+              />
+            </div>
+            {plan && (
+              <Button type="button" variant="secondary" disabled={isPending} onClick={() => savePrices(true)} className="w-auto">
+                Remove monthly option
+              </Button>
+            )}
+          </div>
+          {previewTotal > 0 && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Buyers pay {previewAmount.toFixed(2)} {currencyCode} a month for {previewCount} months, {previewTotal.toFixed(2)} {currencyCode}{" "}
+              in all.
+            </p>
+          )}
+          {(detail.instalmentBuyers.paying > 0 || detail.instalmentBuyers.finished > 0) && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {detail.instalmentBuyers.paying} paying monthly now
+              {detail.instalmentBuyers.behind > 0 ? `, ${detail.instalmentBuyers.behind} behind on a payment (Stripe is retrying)` : ""}
+              {detail.instalmentBuyers.finished > 0 ? `, ${detail.instalmentBuyers.finished} paid in full` : ""}.
+            </p>
+          )}
         </div>
-        <Button type="button" disabled={isPending} onClick={savePrice} className="w-auto">
-          Save price
-        </Button>
-        {priceSaved && <span className="text-xs text-emerald-600">Saved</span>}
-      </div>
+
+        <div className="flex items-center gap-2">
+          <Button type="submit" disabled={isPending} className="w-auto">
+            Save prices
+          </Button>
+          {priceSaved && <span className="text-xs text-emerald-600">Saved</span>}
+        </div>
+      </form>
+      <p className="-mt-2 text-xs text-muted-foreground">
+        Charged in your community&apos;s currency. The owner changes it in{" "}
+        <a href={`/c/${communitySlug}/admin#payments`} className="text-accent underline-offset-2 hover:underline">
+          Admin → Payments
+        </a>
+        .
+      </p>
 
       {course.price_cents > 0 && (
-        <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
-          Paid courses can&apos;t be self-enrolled. Until a payment provider is connected, grant access to members manually below.
-        </p>
+        <>
+          <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+            {plan
+              ? "Members pay once, or monthly until the last payment, through Stripe and keep the course. If a monthly payment fails, Stripe retries it; if it never goes through, the course locks for them. You can also grant it to someone below."
+              : "Members pay once through Stripe and keep the course. You can also grant it to someone below."}
+          </p>
+
+          <label className="flex items-start gap-2 text-sm text-foreground">
+            <input
+              type="checkbox"
+              checked={course.live_included_with_purchase}
+              disabled={isPending}
+              onChange={(e) => run(() => setCourseLiveIncluded(course.id, e.target.checked, communitySlug, spaceSlug))}
+              className="mt-0.5 h-4 w-4 rounded border-border"
+            />
+            <span>
+              The price includes joining the live lessons
+              <span className="block text-xs text-muted-foreground">
+                {course.live_included_with_purchase
+                  ? "Buyers join live sessions and watch every playback."
+                  : "Buyers watch every playback. Joining live sessions comes with a membership tier ticked below."}
+                {!hasLive && " (This course has no live lessons yet.)"}
+              </span>
+            </span>
+          </label>
+
+          <div className="border-t border-border pt-4">
+            <p className="text-sm font-medium text-foreground">Included free with</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Members of a ticked tier get the whole course, live lessons and playbacks, for as long as they subscribe.
+            </p>
+            {tiers.length === 0 ? (
+              <p className="mt-2 text-xs text-muted-foreground">No membership tiers yet. Add one in Admin, Membership tiers.</p>
+            ) : (
+              <div className="mt-2 space-y-1.5">
+                {tiers.map((tier) => (
+                  <label key={tier.id} className="flex items-center gap-2 text-sm text-foreground">
+                    <input
+                      type="checkbox"
+                      checked={includedIds.has(tier.id)}
+                      disabled={isPending}
+                      onChange={(e) => toggleTier(tier.id, e.target.checked)}
+                      className="h-4 w-4 rounded border-border"
+                    />
+                    {tier.name}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       <div className="flex items-end gap-2 border-t border-border pt-4">

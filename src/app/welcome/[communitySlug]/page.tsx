@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { ArrowRight, CalendarDays, Lock, MapPin, MessageSquare, Store, UsersRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { absoluteUrl, canonicalUrl, communityCanonicalOrigin, communitySiteJsonLd, jsonLd, metaDescription, SEO_PATH_HEADER } from "@/lib/seo";
+import { CommunityHostProvider } from "@/components/ui/community-host";
 import { getCommunityBySlug, getCommunityStats } from "@/lib/data/community";
 import { getCommunityEditorialGuides } from "@/lib/data/editorial-guides";
 import { getCommunitySpaces, getSpaceTeasers, teaserAsSpace } from "@/lib/data/spaces";
@@ -30,9 +33,20 @@ import { getPublicCrops } from "@/lib/data/public-crops";
 import { getCommunityPosts } from "@/lib/data/posts";
 import { NaturesGardenersLanding } from "./natures-gardeners-landing";
 import { joinPolicyOf } from "@/lib/join-policy";
+import { readTestimonials } from "@/lib/testimonials";
+import { getTestimonialMemberPhotos } from "@/lib/data/testimonial-photos";
+import { TestimonialsSection } from "./testimonials-section";
 
 // Communities with their own designed front page instead of the generic one.
 const BESPOKE_LANDINGS = new Set(["naturesgardeners"]);
+
+// Search-result titles for communities whose name alone says little about
+// what the site offers. The home page title is the strongest single ranking
+// signal a site has, so these spell out what people search for. Everyone else
+// gets their community name.
+const HOME_TITLES: Record<string, string> = {
+  mzunguzanzibar: "Mzungu Zanzibar – Where to Stay, Eat & Explore in Zanzibar",
+};
 
 // A community's front door for signed-out visitors. On a community's own host
 // (its <slug> subdomain or verified custom domain) the proxy rewrites "/" here
@@ -59,18 +73,50 @@ export async function generateMetadata({
     const images = ["/communities/naturesgardeners/hero.webp"];
     return { title: { absolute: title }, description, openGraph: { title, description, images } };
   }
-  const description =
-    community.description?.trim() || `${community.name} — its spaces, events, members and local businesses, all in one place.`;
+  const description = welcomeDescription(community);
   const cover = community.cover_image_url;
   const ogImage = cover && /^https?:\/\//i.test(cover) ? [cover] : undefined;
+  // This page is what "/" serves a signed-out visitor — and so every crawler —
+  // on the community's own host: the canonical home page.
+  const origin = communityCanonicalOrigin((await headers()).get("host"), community);
+  const canonical = origin ? canonicalUrl(origin, "/") : null;
+  const homeTitle = HOME_TITLES[community.slug] ?? community.name;
   return {
-    title: community.name,
+    ...(origin ? { metadataBase: new URL(origin) } : {}),
+    title: { absolute: homeTitle },
     description,
-    openGraph: { title: community.name, description, ...(ogImage ? { images: ogImage } : {}) },
+    ...(canonical ? { alternates: { canonical } } : {}),
+    openGraph: {
+      type: "website",
+      siteName: community.name,
+      locale: "en_GB",
+      title: homeTitle,
+      description,
+      ...(canonical ? { url: canonical } : {}),
+      ...(ogImage ? { images: ogImage } : {}),
+    },
+    twitter: { card: "summary_large_image", title: homeTitle, description, ...(ogImage ? { images: ogImage } : {}) },
   };
 }
 
-export default async function CommunityWelcomePage({
+function welcomeDescription(community: { name: string; description: string | null }): string {
+  return metaDescription(community.description) ?? `${community.name} — its spaces, events, members and local businesses, all in one place.`;
+}
+
+// Served at "/" on the community's own host (the proxy passes the clean path
+// only there), where its /c/<slug>/… links are written as the clean paths that
+// host serves — see src/components/ui/link.tsx.
+export default async function CommunityWelcomePage(props: { params: Promise<{ communitySlug: string }> }) {
+  const { communitySlug } = await props.params;
+  const onOwnHost = Boolean((await headers()).get(SEO_PATH_HEADER));
+  return (
+    <CommunityHostProvider slug={onOwnHost ? communitySlug : null}>
+      <WelcomePage {...props} />
+    </CommunityHostProvider>
+  );
+}
+
+async function WelcomePage({
   params,
 }: {
   params: Promise<{ communitySlug: string }>;
@@ -133,11 +179,13 @@ export default async function CommunityWelcomePage({
   const teaserCards = (await getSpaceTeasers(supabase, community.id, spaces.map((s) => s.id)))
     .filter((t) => t.show_as_card)
     .map(teaserAsSpace);
-  const [customCategories, labelOverrides, featuredCategories, eventGoing] = await Promise.all([
+  const testimonials = readTestimonials(community.testimonials);
+  const [customCategories, labelOverrides, featuredCategories, eventGoing, testimonialPhotos] = await Promise.all([
     getCommunityBusinessCustomCategories(supabase, community.id),
     getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
     getCommunityFeaturedBusinessCategories(supabase, community.id),
     getEventRsvpCounts(supabase, upcoming.filter((e) => e.capacity !== null).map((e) => e.id)),
+    getTestimonialMemberPhotos(community.id, testimonials.flatMap((t) => (t.memberId ? [t.memberId] : []))),
   ]);
   const categoryPreviews = await getFeaturedCategoryPreviews(
     supabase,
@@ -180,8 +228,22 @@ export default async function CommunityWelcomePage({
   const onPhoto = Boolean(community.cover_image_url);
   const accentStyle = communityAccentStyle(community.accent_color);
 
+  // Who publishes the site and the site itself, so search results can show the
+  // community's name rather than the bare domain.
+  const origin = communityCanonicalOrigin((await headers()).get("host"), community);
+  const siteJsonLd = origin
+    ? communitySiteJsonLd({
+        name: community.name,
+        description: welcomeDescription(community),
+        url: canonicalUrl(origin, "/"),
+        logo: absoluteUrl(community.logo_url, origin),
+        image: absoluteUrl(community.cover_image_url, origin),
+      })
+    : null;
+
   return (
     <div className="min-h-screen bg-background" style={accentStyle} {...(accentStyle ? { "data-community-accent": "" } : {})}>
+      {siteJsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(siteJsonLd)} /> : null}
       {/* The signed-in header's twin: logo and name on the left, the way in on
           the right, in the same white bar above the cover. */}
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-card/95 px-4 backdrop-blur md:px-6">
@@ -254,6 +316,8 @@ export default async function CommunityWelcomePage({
 
       <main className="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
         <SpaceCards spaces={[...cardSpaces, ...teaserCards]} base={base} carousels={categoryCarousels} showOnMobile />
+
+        <TestimonialsSection communityName={community.name} testimonials={testimonials} memberPhotos={testimonialPhotos} />
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <Card className="flex flex-col justify-center gap-5 bg-accent-soft p-6 sm:p-8">
