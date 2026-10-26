@@ -9,6 +9,7 @@ import { UPDATE_KIND_LABELS, formatDate } from "./destination-section";
 import { PhotoCredit } from "./photo-credit";
 import { PhotoGallery, PhotoOpener } from "./photo-viewer";
 
+import { Anchor } from "@/components/ui/link";
 // One place on a place guide ("Postcards from Zanzibar"): a
 // gallery that opens in the photo viewer, the editors' description, when to
 // go (light and tide), how to visit, photography tips and honest caveats,
@@ -127,14 +128,14 @@ function AtAGlance({ place, labels, listing }: { place: Place; labels: PlaceSect
       </dl>
       <div className="mt-4 flex flex-col gap-2 border-t border-border pt-3">
         {listing && (
-          <a href={listing.href} className="inline-flex items-center gap-1.5 font-medium text-accent hover:underline">
+          <Anchor href={listing.href} className="inline-flex items-center gap-1.5 font-medium text-accent hover:underline">
             <BookOpen className="h-4 w-4" aria-hidden /> In our directory
             {listing.avgRating !== null && listing.ratingCount > 0 && (
               <span className="inline-flex items-center gap-0.5 text-xs font-normal text-muted-foreground">
                 · <Star className="h-3 w-3" aria-hidden /> {listing.avgRating.toFixed(1)} ({listing.ratingCount})
               </span>
             )}
-          </a>
+          </Anchor>
         )}
         {place.seeAlso?.map((s) => (
           // A sibling guide's URL, relative so it works on custom domains too.

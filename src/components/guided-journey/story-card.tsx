@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Clock, MapPin } from "lucide-react";
 import type { StoryWithPeople } from "@/lib/data/guided-journey";
 import { displayName } from "@/lib/data/guided-journey";

@@ -176,6 +176,11 @@ export type MemberActivityDay = {
 // against PLACE_LOCATION_TYPES at the application layer, which keeps adding
 // new place kinds a code-only change. Both stay null for every non-place
 // template.
+// avatarUrl: optional uploaded photo of the person. memberId: optional linked
+// member, whose own profile photo shows instead (and follows their changes).
+// Initials from the name show when neither gives a photo.
+export type CommunityTestimonial = { quote: string; name: string; avatarUrl?: string | null; memberId?: string | null };
+
 export type Community = {
   id: string;
   name: string;
@@ -185,6 +190,9 @@ export type Community = {
   // community admin page and shown at /c/<slug>/guidelines. Sanitised HTML or
   // Markdown, rendered through <RichText>. Null = none set yet.
   guidelines: string | null;
+  // Whether the guidelines link shows in the sidebar and mobile menu. False
+  // keeps the page live (reachable by its link) but out of the nav.
+  guidelines_show_in_nav: boolean;
   // Contact details the owner shows above their community's contact form
   // (/c/<slug>/contact) — phone, hours, address, etc. Sanitised HTML/Markdown
   // rendered through <RichText>. Null = nothing shown above the form.
@@ -221,6 +229,9 @@ export type Community = {
   hero_background_video_url: string | null;
   // The same, for the signed-out landing page (/welcome/<slug>).
   landing_background_video_url: string | null;
+  // Quotes from members shown on the signed-out landing page, in order
+  // (migration community_testimonials). Empty = no testimonials section.
+  testimonials: CommunityTestimonial[];
   featured_space_id: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
@@ -292,6 +303,9 @@ export type Community = {
   // 20260729185900_space_paywall.sql.
   stripe_account_id: string | null;
   stripe_charges_enabled: boolean;
+  // The one currency every price in the community is charged in (Stripe's
+  // lowercase ISO code). See 20261024205624_community_currency.sql.
+  currency: string;
   // Platform plan (the platform charging the owner). plan_status 'none' = free.
   // All plan_* columns are written only by the Stripe webhook — a DB trigger
   // rejects anon/authenticated writes. See 20260729233000_platform_plans.sql.
@@ -407,6 +421,16 @@ export type CommunityTier = {
 export type TierSpace = {
   tier_id: string;
   space_id: string;
+  created_at: string;
+};
+
+// Join row: which paid courses a tier includes for free. Kept apart from
+// TierSpace because a tier'd space is closed to everyone else, and one-off
+// buyers still need to open the course.
+export type TierCourse = {
+  tier_id: string;
+  course_id: string;
+  community_id: string;
   created_at: string;
 };
 
@@ -1655,6 +1679,13 @@ export type Course = {
   // staff grant or a payment flow.
   price_cents: number;
   currency: string;
+  // Whether a one-off purchase also lets the buyer join the live lessons, or
+  // only watch their playbacks. Tier members always get both.
+  live_included_with_purchase: boolean;
+  // An instalment plan offered next to the one-off price, e.g. 4 payments of
+  // 4000 (£40 a month for 4 months). 0/0 means none. See lib/courses/instalments.
+  instalment_count: number;
+  instalment_price_cents: number;
   created_at: string;
   updated_at: string;
 };
@@ -1679,9 +1710,41 @@ export type CourseLesson = {
   community_id: string;
   title: string;
   body: string | null;
+  // 'video' plays video_url; 'live' runs a live room at live_starts_at and
+  // afterwards plays its recording from video_url.
+  lesson_type: CourseLessonType;
   video_url: string | null;
+  live_starts_at: string | null;
+  live_ends_at: string | null;
   duration_minutes: number | null;
   sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CourseLessonType = "text" | "video" | "live";
+
+// Which lesson a JaaS room belongs to (service role only).
+export type CourseLiveRoom = {
+  room_name: string;
+  lesson_id: string;
+  created_at: string;
+};
+
+// A recording of a live lesson, as JaaS reported it and the app copied it.
+export type CourseLessonRecording = {
+  id: string;
+  lesson_id: string;
+  course_id: string;
+  community_id: string;
+  idempotency_key: string;
+  jaas_session_id: string | null;
+  status: "copying" | "saved" | "failed";
+  storage_path: string | null;
+  source_url: string | null;
+  error: string | null;
+  duration_seconds: number | null;
+  recorded_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -1691,8 +1754,18 @@ export type CourseEnrollment = {
   course_id: string;
   user_id: string;
   enrolled_at: string;
-  // v3: whether this enrolment was paid for (vs a free/granted enrolment).
+  // v3: whether this enrolment was paid for (bought, or granted by the team)
+  // vs a free or tier-included enrolment. Only paid ones open a paid course.
   paid: boolean;
+  // The Stripe Checkout that bought it, when it was bought.
+  stripe_checkout_session_id: string | null;
+  // How it was bought, and for instalments where the plan stands. Only the
+  // Stripe webhook writes these.
+  payment_plan: "one_off" | "instalments" | null;
+  stripe_subscription_id: string | null;
+  instalments_paid: number;
+  instalments_total: number;
+  instalment_status: "active" | "past_due" | "completed" | "canceled" | null;
 };
 
 // One learner has finished one lesson. course_id/community_id are denormalised
@@ -2265,10 +2338,22 @@ export type FarmShare = {
 // Platform-wide legal documents, a one-row singleton (id = 1) edited by the
 // super admin at /platform-admin and shown at /terms and /privacy. Content is
 // sanitised HTML/Markdown rendered through <RichText>.
+// A community creator's quote on the platform homepage (Platform admin →
+// Homepage). See src/lib/creator-testimonials.ts.
+export type CreatorTestimonial = { quote: string; name: string; role: string };
+
 export type PlatformSettings = {
   id: number;
   terms: string | null;
   privacy: string | null;
+  // Creator quotes for the homepage, in order (migration
+  // platform_creator_testimonials). Empty = only member quotes are shown.
+  creator_testimonials: CreatorTestimonial[];
+  // Homepage photos picked in Platform admin → Homepage (migration
+  // homepage_photo_settings). Null = chosen from the featured communities.
+  hero_community_id: string | null;
+  why_photo_url: string | null;
+  closing_photo_url: string | null;
   updated_at: string;
 };
 
@@ -3287,6 +3372,29 @@ export type Database = {
         Insert: Partial<CommunityTier> & { community_id: string; name: string };
         Update: Partial<CommunityTier>;
         Relationships: [FKey<"community_id", "communities">];
+      };
+      course_live_rooms: {
+        Row: CourseLiveRoom;
+        Insert: Partial<CourseLiveRoom> & { room_name: string; lesson_id: string };
+        Update: Partial<CourseLiveRoom>;
+        Relationships: [FKey<"lesson_id", "course_lessons">];
+      };
+      course_lesson_recordings: {
+        Row: CourseLessonRecording;
+        Insert: Partial<CourseLessonRecording> & {
+          lesson_id: string;
+          course_id: string;
+          community_id: string;
+          idempotency_key: string;
+        };
+        Update: Partial<CourseLessonRecording>;
+        Relationships: [FKey<"lesson_id", "course_lessons">, FKey<"course_id", "courses">];
+      };
+      tier_courses: {
+        Row: TierCourse;
+        Insert: Partial<TierCourse> & { tier_id: string; course_id: string; community_id: string };
+        Update: Partial<TierCourse>;
+        Relationships: [FKey<"tier_id", "community_tiers">, FKey<"course_id", "courses">];
       };
       tier_spaces: {
         Row: TierSpace;
@@ -4437,6 +4545,10 @@ export type Database = {
         Args: { p_community_id: string };
         Returns: string | null;
       };
+      has_active_tier_for_course: {
+        Args: { p_course_id: string; p_user_id: string };
+        Returns: boolean;
+      };
       community_can_charge: {
         Args: { p_community_id: string };
         Returns: boolean;
@@ -4569,6 +4681,9 @@ export type Database = {
           sort_order: number;
           created_at: string;
           updated_at: string;
+          lesson_type: CourseLessonType;
+          live_starts_at: string | null;
+          live_ends_at: string | null;
         }[];
       };
       course_quiz_data: {

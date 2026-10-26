@@ -77,6 +77,18 @@ export type CourseDetail = {
   prerequisitesMet: boolean;
   quizzesByLesson: Record<string, LessonQuiz>;
   viewerAttempts: Record<string, ViewerAttempt>;
+  // Paying for a course: whether the viewer bought it (or was granted it),
+  // whether a tier they subscribe to includes it, and which tiers do.
+  viewerPaid: boolean;
+  // The viewer's monthly plan, when they're paying in instalments.
+  viewerInstalments: { paid: number; total: number; status: string | null } | null;
+  // For the team: buyers on monthly plans, and how many are behind on one.
+  instalmentBuyers: { paying: number; behind: number; finished: number };
+  viewerHasTier: boolean;
+  includedInTiers: { id: string; name: string }[];
+  // Lessons the viewer can open in full (RLS returned them), e.g. to hand out
+  // playback links for exactly those.
+  readableLessonIds: string[];
 };
 
 // RLS hides draft courses from non-staff, so this returns only what the viewer
@@ -119,7 +131,7 @@ async function getLessonOutline(supabase: Client, courseIds: string[]): Promise<
   if (!error) return { data: data ?? [], error: null };
   const fallback = await supabase
     .from("course_lessons")
-    .select("id, module_id, course_id, community_id, title, duration_minutes, sort_order, created_at, updated_at")
+    .select("id, module_id, course_id, community_id, title, duration_minutes, sort_order, created_at, updated_at, lesson_type, live_starts_at, live_ends_at")
     .in("course_id", courseIds)
     .order("sort_order", { ascending: true });
   if (fallback.error) throw fallback.error;
@@ -206,6 +218,8 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
     quizRowsResult,
     attemptsResult,
     prereqRowsResult,
+    tierLinksResult,
+    viewerTierResult,
   ] = await Promise.all([
       supabase.from("course_modules").select("*").eq("course_id", courseId).order("sort_order", { ascending: true }),
       supabase.from("course_lessons").select("*").eq("course_id", courseId).order("sort_order", { ascending: true }),
@@ -213,7 +227,10 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
       // course still shows what's inside before someone enrols (RLS returns
       // its full lessons only to the enrolled and the team).
       getLessonOutline(supabase, [courseId]),
-      supabase.from("course_enrollments").select("course_id, user_id").eq("course_id", courseId),
+      supabase
+        .from("course_enrollments")
+        .select("course_id, user_id, paid, payment_plan, instalments_paid, instalments_total, instalment_status")
+        .eq("course_id", courseId),
       viewerId
         ? supabase.from("lesson_completions").select("lesson_id").eq("course_id", courseId).eq("user_id", viewerId)
         : Promise.resolve({ data: [], error: null }),
@@ -227,6 +244,10 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
         ? supabase.from("quiz_attempts").select("quiz_id, score_percent, passed").eq("course_id", courseId).eq("user_id", viewerId)
         : Promise.resolve({ data: [], error: null }),
       supabase.from("course_prerequisites").select("prerequisite_course_id").eq("course_id", courseId),
+      supabase.from("tier_courses").select("tier:tier_id (id, name, archived_at)").eq("course_id", courseId),
+      viewerId
+        ? supabase.rpc("has_active_tier_for_course", { p_course_id: courseId, p_user_id: viewerId })
+        : Promise.resolve({ data: false, error: null }),
     ]);
 
   if (modulesResult.error) throw modulesResult.error;
@@ -240,6 +261,12 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
   if (quizRowsResult.error) throw quizRowsResult.error;
   if (attemptsResult.error) throw attemptsResult.error;
   if (prereqRowsResult.error) throw prereqRowsResult.error;
+  // Tier links are extras: a database without them yet still shows the course.
+  const includedInTiers = (tierLinksResult.error ? [] : tierLinksResult.data ?? [])
+    .map((row) => (row as unknown as { tier: { id: string; name: string; archived_at: string | null } | null }).tier)
+    .filter((tier): tier is { id: string; name: string; archived_at: string | null } => Boolean(tier && !tier.archived_at))
+    .map((tier) => ({ id: tier.id, name: tier.name }));
+  const viewerHasTier = !viewerTierResult.error && viewerTierResult.data === true;
 
   // Every outline row, with its body and video filled in only where RLS
   // returned the full lesson (enrolled, free course, or the team).
@@ -317,6 +344,19 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
     lessonCount: lessons.length,
     enrollmentCount: enrollments.length,
     viewerEnrolled: enrollments.some((e) => e.user_id === viewerId),
+    viewerPaid: enrollments.some((e) => e.user_id === viewerId && e.paid),
+    viewerInstalments: (() => {
+      const mine = enrollments.find((e) => e.user_id === viewerId && e.payment_plan === "instalments");
+      return mine ? { paid: mine.instalments_paid, total: mine.instalments_total, status: mine.instalment_status } : null;
+    })(),
+    instalmentBuyers: {
+      paying: enrollments.filter((e) => e.payment_plan === "instalments" && (e.instalment_status === "active" || e.instalment_status === "past_due")).length,
+      behind: enrollments.filter((e) => e.payment_plan === "instalments" && e.instalment_status === "past_due").length,
+      finished: enrollments.filter((e) => e.payment_plan === "instalments" && e.instalment_status === "completed").length,
+    },
+    readableLessonIds: [...fullLessons.keys()],
+    viewerHasTier,
+    includedInTiers,
     completedLessonIds: (completionsResult.data ?? []).map((row) => row.lesson_id),
     announcements,
     comments,

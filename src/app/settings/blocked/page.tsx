@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft, ShieldOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";

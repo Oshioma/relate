@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { ArrowRight, Lock } from "lucide-react";
 import type { LockableSpace } from "@/lib/data/spaces";
 import { SPACE_TYPES } from "@/lib/space-types";

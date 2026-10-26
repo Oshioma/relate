@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { SafeImage } from "@/components/ui/safe-image";
 import { Bookmark } from "lucide-react";
 import { formatDuration, lessonThumbnail, type LessonRow } from "@/lib/school/lesson-types";

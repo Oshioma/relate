@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent, ReactNode } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { ArrowRight, BookOpen, ChevronDown, Clapperboard, ExternalLink, Gamepad2, Globe, Headphones, Smartphone, Package, ShieldAlert, ShieldCheck, ShieldQuestion, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { SafeImage } from "@/components/ui/safe-image";

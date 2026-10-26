@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { createClient } from "@/lib/supabase/server";
 import { getAllCommunities } from "@/lib/data/community";
 import { getFeatureDefaults, getAllCommunityFeatureOverrides } from "@/lib/data/features";

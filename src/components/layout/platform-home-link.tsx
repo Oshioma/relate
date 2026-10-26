@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { useSyncExternalStore } from "react";
 import { isPlatformHost } from "@/lib/custom-domain";
 

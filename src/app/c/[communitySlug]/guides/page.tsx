@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, BookOpenCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { metaDescription } from "@/lib/seo";
 import { getCommunityBySlug, getMembership, isCommunityAdmin } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCurrentUser } from "@/lib/data/profile";
@@ -12,7 +13,23 @@ import { GuideImage } from "@/components/editorial-guide/guide-image";
 import { EmptyState } from "@/components/ui/empty-state";
 import { GuideViewStatsBadge } from "@/components/editorial-guide/guide-view-stats";
 
-export const metadata: Metadata = { title: "Guides" };
+// The guides index's own description, naming the guides it lists, so the
+// search snippet says what's here rather than repeating the community's.
+export async function generateMetadata({ params }: { params: Promise<{ communitySlug: string }> }): Promise<Metadata> {
+  const { communitySlug } = await params;
+  const supabase = await createClient();
+  const community = await getCommunityBySlug(supabase, communitySlug);
+  if (!community) return { title: "Guides" };
+  const guides = (await getCommunityEditorialGuides(supabase, community.id)).filter((g) => g.status === "published");
+  const names = guides.map((g) => editorialGuideEntry(g.slug)?.cardTitle).filter((name): name is string => Boolean(name));
+  const description =
+    metaDescription(names.length ? `Local guides from ${community.name}: ${names.join(", ")}.` : null) ?? `Local guides from ${community.name}.`;
+  return {
+    title: "Guides",
+    description,
+    openGraph: { type: "website", siteName: community.name, locale: "en_GB", title: `Guides · ${community.name}`, description },
+  };
+}
 
 // /guides — the community's editorial guides, plus a pointer to its
 // member-written Guides space when it has one the visitor can see and the
@@ -52,9 +69,18 @@ export default async function GuidesIndexPage({ params }: { params: Promise<{ co
             return (
               <li key={guide.id}>
                 <Link href={`/c/${community.slug}/guides/${guide.slug}`} className="group block overflow-hidden rounded-xl border border-border bg-card hover:shadow-md">
-                  {hero ? <GuideImage src={hero.src} alt={hero.alt} width={hero.width} sizes="(min-width: 640px) 440px, 100vw" className="aspect-[16/9]" /> : <div className="aspect-[16/9] bg-muted" />}
+                  {/* The card's heading is the guide's short name; its full title
+                      sits over the photo. */}
+                  <div className="relative">
+                    {hero ? <GuideImage src={hero.src} alt={hero.alt} width={hero.width} sizes="(min-width: 640px) 440px, 100vw" className="aspect-[16/9]" /> : <div className="aspect-[16/9] bg-muted" />}
+                    {entry && entry.cardTitle !== guide.title && (
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/40 to-transparent px-4 pb-3 pt-10">
+                        <p className="text-base font-semibold leading-snug text-white drop-shadow-sm sm:text-lg">{guide.title}</p>
+                      </div>
+                    )}
+                  </div>
                   <div className="p-4">
-                    <h2 className="text-lg font-semibold text-foreground group-hover:text-accent">{guide.title}</h2>
+                    <h2 className="text-lg font-semibold text-foreground group-hover:text-accent">{entry?.cardTitle ?? guide.title}</h2>
                     {entry && <p className="mt-1 text-sm text-muted-foreground">{entry.blurb}</p>}
                     {guide.status === "draft" && <p className="mt-2 text-xs font-medium text-muted-foreground">Draft — visible to staff only</p>}
                     {isStaff && (

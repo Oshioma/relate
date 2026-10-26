@@ -840,6 +840,43 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "corpus of stone vessels and Umm el-Qaab material.",
       },
     ],
+    media: [
+      {
+        url: commons("TombStelaOfPeribsen-BritishMuseum-August21-08.jpg"),
+        sourcePageUrl: commonsPage("TombStelaOfPeribsen-BritishMuseum-August21-08.jpg"),
+        fileName: "TombStelaOfPeribsen-BritishMuseum-August21-08.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/TombStelaOfPeribsen-BritishMuseum-August21-08.jpg",
+        caption:
+          "One of the two granite tomb stelae of Peribsen from his tomb at Umm el-Qaab, Abydos, now British Museum EA 35597. The Set animal that stood above the serekh, where the Horus falcon normally sits, was deliberately erased in antiquity, so the erasure itself is part of the evidence.",
+        kind: "image",
+        shows: "artefact",
+        institution: "British Museum, London",
+        accessionNumber: "EA 35597",
+        creator: "Captmondo",
+        objectDate: "c. 28th century BCE, Second Dynasty",
+        photographDate: "21 August 2008",
+        licence: "Creative Commons Attribution-Share Alike 3.0",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Jar_sealing_MET_01.4.163_EGDP012146.jpg"),
+        sourcePageUrl: commonsPage("Jar_sealing_MET_01.4.163_EGDP012146.jpg"),
+        fileName: "Jar sealing MET 01.4.163 EGDP012146.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Jar_sealing_MET_01.4.163_EGDP012146.jpg",
+        caption:
+          "UNVERIFIED — the Met dates this unfired clay jar sealing from Abydos to the reign of Peribsen, but its record does not describe the impression, so it is not confirmed that this sealing shows the Set animal above the serekh. What it shows securely is a Second Dynasty sealing of Peribsen's time from the Egypt Exploration Fund excavations (Met 01.4.163).",
+        kind: "image",
+        shows: "artefact",
+        institution: "Metropolitan Museum of Art, New York",
+        accessionNumber: "01.4.163",
+        creator: "Metropolitan Museum of Art (photo: Gustavo Camps)",
+        objectDate: "about 2650 BCE, reign of Peribsen",
+        licence: "Creative Commons CC0 License",
+        identificationStatus: "unverified",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {

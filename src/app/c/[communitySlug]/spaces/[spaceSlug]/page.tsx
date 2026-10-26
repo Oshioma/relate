@@ -1,8 +1,10 @@
-import Link from "next/link";
+import type { Metadata } from "next";
+import Link from "@/components/ui/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, ScanLine, LayoutTemplate } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { metaDescription } from "@/lib/seo";
 import { RichText, toPlainText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { MembersOnlyGate } from "../../members-only-gate";
@@ -17,6 +19,7 @@ import { SMILE_EMOJI } from "@/lib/post-reactions";
 import { SmileStack } from "@/components/ui/smile-stack";
 import { DiscussionSpaceHeader } from "./discussion-space-header";
 import { SpaceCover } from "./space-cover";
+import { SpaceTypeBar } from "./space-type-bar";
 import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
 import { getMemberTimeline } from "@/lib/data/growth-journey";
@@ -104,20 +107,46 @@ import { GuidedJourneySpaceView } from "@/components/guided-journey/space-view";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
+import { showsPostFeed } from "@/lib/post-move";
 
 // Posts longer than this (as plain text) show an excerpt in the feed rather
 // than their whole body.
 const LONG_POST_CHARS = 1200;
+
+// The space's own title and description in search results, instead of the
+// community's. A space the visitor can't see (RLS) resolves to nothing here
+// and gives nothing away.
+export async function generateMetadata({ params }: { params: Promise<{ communitySlug: string; spaceSlug: string }> }): Promise<Metadata> {
+  const { communitySlug, spaceSlug } = await params;
+  const supabase = await createClient();
+  const community = await getCommunityBySlug(supabase, communitySlug);
+  if (!community) return {};
+  const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
+  if (!space) return {};
+  const description = metaDescription(toPlainText(space.description ?? "")) ?? `${space.name} on ${community.name}.`;
+  return {
+    title: space.name,
+    description,
+    openGraph: {
+      type: "website",
+      siteName: community.name,
+      locale: "en_GB",
+      title: `${space.name} · ${community.name}`,
+      description,
+      ...(space.image_url && /^https?:\/\//i.test(space.image_url) ? { images: [space.image_url] } : {}),
+    },
+  };
+}
 
 export default async function SpaceDetailPage({
   params,
   searchParams,
 }: {
   params: Promise<{ communitySlug: string; spaceSlug: string }>;
-  searchParams: Promise<{ category?: string | string[]; subscribed?: string; import?: string | string[]; ended?: string }>;
+  searchParams: Promise<{ category?: string | string[]; subscribed?: string; import?: string | string[]; ended?: string; join?: string }>;
 }) {
   const { communitySlug, spaceSlug } = await params;
-  const { category: rawCategory, subscribed, import: rawImport, ended } = await searchParams;
+  const { category: rawCategory, subscribed, import: rawImport, ended, join } = await searchParams;
   // A link handed over from the directory's add form when what was pasted turned
   // out to be a place to stay — see the `handoff` on an import result.
   const importUrl = Array.isArray(rawImport) ? rawImport[0] : rawImport;
@@ -233,33 +262,9 @@ export default async function SpaceDetailPage({
   // A standalone page: its description is the whole content (rendered as
   // sanitised HTML/Markdown), with no post form and no feed.
   const isCustomPageSpace = space.space_type === "custom";
-  const isDiscussionLike =
-    !isCustomPageSpace &&
-    !isResourceSpace &&
-    !isJournalSpace &&
-    !isGrowthJourneySpace &&
-    !isDirectorySpace &&
-    !isChallengeSpace &&
-    !isBusinessDirectorySpace &&
-    !isMapSpace &&
-    !isMarketplaceSpace &&
-    !isJobsSpace &&
-    !isAccommodationSpace &&
-    !isRecommendationsSpace &&
-    !isClubsSpace &&
-    !isGuidesSpace &&
-    !isVolunteerHubSpace &&
-    !isCourseSpace &&
-    !isCropGuidesSpace &&
-    !isPlantScannerSpace &&
-    !isMyCropsSpace &&
-    !isPlantIdSpace &&
-    !isLiveSpace &&
-    !isMeetupsSpace &&
-    !isLessonsSpace &&
-    !isBooksMediaSpace &&
-    !isArtsBoardSpace &&
-    !isGuidedJourneySpace;
+  // Every type above renders its own view; anything else is the post feed.
+  // The list lives in post-move.ts, which needs it to know where a post can go.
+  const isDiscussionLike = showsPostFeed(space.space_type);
   // The discussion composer's crop photo pickers and crop-flavoured tags hint
   // belong only in growing communities — not, say, a wellness journal.
   const offerCropTools = isDiscussionLike && (await isGrowingCommunity(supabase, community));
@@ -327,7 +332,7 @@ export default async function SpaceDetailPage({
   ]);
   const editorialGuides = editorialGuideRows.map((g) => {
     const entry = editorialGuideEntry(g.slug);
-    return { slug: g.slug, title: g.title, blurb: entry?.blurb ?? null, imageUrl: entry?.cardImage(g.content) ?? null, isDraft: g.status === "draft" };
+    return { slug: g.slug, title: entry?.cardTitle ?? g.title, blurb: entry?.blurb ?? null, imageUrl: entry?.cardImage(g.content) ?? null, isDraft: g.status === "draft" };
   });
 
   const { active: activeLiveSession, scheduled: scheduledLiveSessions, past: pastLiveSessions } = splitLiveSessions(liveSessions);
@@ -474,6 +479,7 @@ export default async function SpaceDetailPage({
         page's hero (its own upload, or its type's default photo), above
         whatever masthead (or none) the type renders. */}
     <SpaceCover spaceId={space.id} communityId={community.id} spaceType={space.space_type} imageUrl={space.image_url} canEdit={Boolean(isAdmin)} categoryImageUrl={categoryCoverUrl} />
+    {isAdmin && <SpaceTypeBar communitySlug={community.slug} spaceId={space.id} spaceType={space.space_type} />}
     {/* A directory opens straight onto its own controls, so it also gives back
         the page's top padding — every line above the first listing is a line of
         the directory nobody can see.
@@ -982,6 +988,9 @@ export default async function SpaceDetailPage({
           canJoin={canPost}
           displayName={liveDisplayName}
           jaasConfigured={isJaasConfigured()}
+          // "Join now" on the live pop-up and the header "Live now!" badge link
+          // here with ?join=1, so the viewer lands straight in the call.
+          autoJoin={join === "1"}
         />
       ) : (
         <>

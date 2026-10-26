@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Mail } from "lucide-react";
 import { NavLink } from "@/components/layout/nav-link";
 import { cn } from "@/lib/utils";

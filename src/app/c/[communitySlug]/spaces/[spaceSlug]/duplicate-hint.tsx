@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { CircleAlert } from "lucide-react";
 import { lookupPlaceMatches } from "./place-match-actions";
 import type { PlaceMatch } from "@/lib/data/places";

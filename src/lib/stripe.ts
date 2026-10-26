@@ -244,6 +244,8 @@ export function createTierCheckoutSession(params: {
   priceCents: number;
   currency: string;
   productName: string;
+  // Shown under the name on the Checkout page (what the membership includes).
+  productDescription?: string;
   successUrl: string;
   cancelUrl: string;
   customerEmail?: string;
@@ -263,7 +265,10 @@ export function createTierCheckoutSession(params: {
             currency: params.currency,
             unit_amount: params.priceCents,
             recurring: { interval: "month" },
-            product_data: { name: params.productName },
+            product_data: {
+              name: params.productName,
+              ...(params.productDescription ? { description: params.productDescription } : {}),
+            },
           },
         },
       ],
@@ -271,6 +276,98 @@ export function createTierCheckoutSession(params: {
       subscription_data: { metadata: params.metadata },
     },
   });
+}
+
+// --- Course purchase (one-off payment, direct charge on the connected account)
+// A single payment, not a subscription: the course is the buyer's for good.
+// Metadata carries course_id so the webhook records a paid enrolment.
+export function createCourseCheckoutSession(params: {
+  stripeAccount: string;
+  priceCents: number;
+  currency: string;
+  productName: string;
+  successUrl: string;
+  cancelUrl: string;
+  customerEmail?: string;
+  metadata: { course_id: string; user_id: string; community_id: string };
+}): Promise<{ id: string; url: string }> {
+  return stripeFetch<{ id: string; url: string }>("/checkout/sessions", {
+    stripeAccount: params.stripeAccount,
+    body: {
+      mode: "payment",
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl,
+      ...(params.customerEmail ? { customer_email: params.customerEmail } : {}),
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: params.currency,
+            unit_amount: params.priceCents,
+            product_data: { name: params.productName },
+          },
+        },
+      ],
+      metadata: params.metadata,
+      payment_intent_data: { metadata: params.metadata },
+    },
+  });
+}
+
+// --- Course instalments (monthly subscription that stops after N payments) --
+// A monthly subscription on the connected account. Checkout can't say "stop
+// after 4", so the webhook counts paid invoices and switches on
+// cancel_at_period_end after the last one (see lib/courses/instalments.ts).
+// The metadata rides on the subscription too, so its invoices and status
+// events can be traced back to (course, buyer).
+export function createCourseInstalmentCheckoutSession(params: {
+  stripeAccount: string;
+  priceCents: number;
+  currency: string;
+  instalments: number;
+  productName: string;
+  successUrl: string;
+  cancelUrl: string;
+  customerEmail?: string;
+  metadata: { course_id: string; user_id: string; community_id: string; instalments: string };
+}): Promise<{ id: string; url: string }> {
+  return stripeFetch<{ id: string; url: string }>("/checkout/sessions", {
+    stripeAccount: params.stripeAccount,
+    body: {
+      mode: "subscription",
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl,
+      ...(params.customerEmail ? { customer_email: params.customerEmail } : {}),
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: params.currency,
+            unit_amount: params.priceCents,
+            recurring: { interval: "month" },
+            product_data: {
+              name: params.productName,
+              description: `${params.instalments} monthly payments, then it stops automatically.`,
+            },
+          },
+        },
+      ],
+      metadata: params.metadata,
+      subscription_data: { metadata: params.metadata },
+    },
+  });
+}
+
+// How many of a subscription's invoices have actually taken money. Asked of
+// Stripe rather than counted from webhook events, so a retried or out-of-order
+// event can never count a payment twice.
+export async function countPaidInvoices(params: { stripeAccount?: string; subscriptionId: string }): Promise<number> {
+  const list = await stripeFetch<{ data: { amount_paid?: number; status?: string }[] }>("/invoices", {
+    method: "GET",
+    stripeAccount: params.stripeAccount,
+    body: { subscription: params.subscriptionId, status: "paid", limit: 100 },
+  });
+  return (list.data ?? []).filter((inv) => (inv.amount_paid ?? 0) > 0).length;
 }
 
 // --- Webhook signature verification -----------------------------------------

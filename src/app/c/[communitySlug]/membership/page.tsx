@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityTiers, getMyTierSubscriptions } from "@/lib/data/tiers";
+import { getPublicTiers } from "@/lib/data/public-tiers";
 import { getMyActiveSpaceSubscriptions } from "@/lib/data/space-access";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -41,20 +42,35 @@ export default async function MembershipPage({
     user ? getMyActiveSpaceSubscriptions(supabase, community.id, user.id) : Promise.resolve([]),
   ]);
 
-  const tiers = allTiers.filter((t) => !t.archived_at);
   const spaceById = new Map(spaces.map((s) => [s.id, s] as const));
   const spaceName = new Map(spaces.map((s) => [s.id, s.name] as const));
+  // Members read the tiers (and the spaces they unlock) under RLS. Anyone else,
+  // signed out included, sees the same plans from the public price list, so
+  // this page can be linked to from anywhere as the community's plans page.
+  const isActiveMember = membership?.status === "active";
+  const tiers = isActiveMember
+    ? allTiers
+        .filter((t) => !t.archived_at)
+        .map((t) => ({
+          id: t.id,
+          name: t.name,
+          description: t.description,
+          priceCents: t.price_cents,
+          currency: t.currency,
+          spaceNames: t.spaceIds.map((id) => spaceName.get(id)).filter((n): n is string => Boolean(n)),
+        }))
+    : await getPublicTiers(community.id);
   // Only individually-subscribed spaces we can still name (staff-managed edge
   // cases aside).
   const spaceSubs = mySpaceSubs.filter((s) => spaceById.has(s.spaceId));
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
-      <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
-        <Gem className="h-5 w-5 text-accent" />
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+      <h1 className="flex items-center gap-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+        <Gem className="h-6 w-6 text-accent" />
         Membership
       </h1>
-      <p className="mt-1 text-sm text-muted-foreground">
+      <p className="mt-2 text-base text-muted-foreground sm:text-lg">
         Join a membership to unlock premium spaces in {community.name}. Cancel anytime — you keep access until the end of
         the paid period.
       </p>
@@ -77,22 +93,20 @@ export default async function MembershipPage({
             icon={<Gem className="h-6 w-6" />}
             title="No memberships yet"
             description={
-              user
-                ? "This community doesn't offer any paid memberships right now."
-                : "Sign in and join this community to see its memberships."
+              "This community doesn't offer any paid memberships right now."
             }
           />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-2">
             {tiers.map((tier) => (
               <MembershipTierCard
                 key={tier.id}
                 tierId={tier.id}
                 name={tier.name}
                 description={tier.description}
-                priceCents={tier.price_cents}
+                priceCents={tier.priceCents}
                 currency={tier.currency}
-                spaceNames={tier.spaceIds.map((id) => spaceName.get(id)).filter((n): n is string => Boolean(n))}
+                spaceNames={tier.spaceNames}
                 communitySlug={community.slug}
                 isSubscribed={Boolean(mySubs.get(tier.id)?.active)}
                 cancelAtPeriodEnd={Boolean(mySubs.get(tier.id)?.cancelAtPeriodEnd)}

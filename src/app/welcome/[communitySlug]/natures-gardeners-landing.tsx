@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { HeroBackgroundVideo } from "@/app/c/[communitySlug]/hero-background-video";
 import { ArrowRight, CalendarDays, Check, Clock, Leaf, Sprout } from "lucide-react";
 import type { Community, Event, Space } from "@/types/database";

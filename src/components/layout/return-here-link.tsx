@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { usePathname } from "next/navigation";
 import type { ComponentProps } from "react";
 import { returnHereHref } from "@/lib/auth-return";

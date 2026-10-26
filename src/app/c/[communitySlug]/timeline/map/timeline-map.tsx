@@ -2,7 +2,7 @@
 
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Map as MapGL, Marker, NavigationControl, Popup } from "react-map-gl/maplibre";
 import { MapPin } from "lucide-react";
 import { timelineCategory } from "@/lib/timeline/taxonomy";

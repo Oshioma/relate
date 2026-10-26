@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { ExternalLink } from "lucide-react";
 
 // How to give the video worker cookies, for when YouTube (or Facebook /

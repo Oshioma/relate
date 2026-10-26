@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Globe, CheckCircle2, Copy, Check } from "lucide-react";
 import { setCustomDomain, verifyCustomDomain, removeCustomDomain, type CustomDomainState } from "./actions";
 import { Card, CardContent } from "@/components/ui/card";
