@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Badge } from "@/components/ui/badge";
 import type { TierSales, TierWithSpaces } from "@/lib/data/tiers";
+import { CopyCheckoutLink } from "@/components/community/copy-checkout-link";
+import { tierCheckoutPath } from "@/lib/checkout-links";
 
 function formatMonthlyPrice(cents: number, currency: string): string {
   try {
@@ -123,6 +125,9 @@ export function TierRow({
               <CheckCircle2 className="h-3.5 w-3.5" />
               {savedNote}
             </p>
+          )}
+          {!archived && tier.price_cents > 0 && tier.spaceIds.length > 0 && (
+            <CopyCheckoutLink path={tierCheckoutPath(communitySlug, tier.id)} communitySlug={communitySlug} />
           )}
         </div>
         <button type="button" onClick={() => setEditing((v) => !v)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Edit">

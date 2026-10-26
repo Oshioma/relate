@@ -1,112 +1,27 @@
 "use server";
 
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isStripeConfigured, createTierCheckoutSession, setSubscriptionCancellation } from "@/lib/stripe";
-import { communityCanCharge } from "@/lib/data/plan-limits";
-import { tierCheckoutDescription } from "@/lib/checkout-description";
+import { isStripeConfigured, setSubscriptionCancellation } from "@/lib/stripe";
+import { startTierCheckout, type CheckoutResult } from "@/lib/start-checkout";
 
-export type CheckoutResult = { error: string } | { url: string };
+export type { CheckoutResult };
 export type CancelResult = { error: string | null };
-
-// Build an absolute base URL for Stripe's return links from the request host, so
-// checkout returns to whatever host (subdomain / custom domain) the member is
-// on. Mirrors paywall-actions.ts.
-async function requestBaseUrl(): Promise<string> {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  if (host) {
-    const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-    return `${proto}://${host}`;
-  }
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "";
-}
 
 // Start a Stripe Checkout subscription for a membership tier and hand the
 // browser the redirect URL. Like subscribeToSpace, this is a direct charge on
 // the community's connected account (the owner keeps 100%); the webhook records
-// the tier subscription on success, which unlocks the tier's spaces.
+// the tier subscription on success, which unlocks the tier's spaces. Anyone
+// signed in may buy a plan, member or not: paying makes them a member. Signed
+// out visitors use the shareable link instead (membership/join/<tier>).
 export async function subscribeToTier(tierId: string, communitySlug: string): Promise<CheckoutResult> {
-  if (!isStripeConfigured()) {
-    return { error: "Payments aren't available on this platform yet." };
-  }
-
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sign in to join this membership." };
-
-  // Anyone signed in may buy a plan, member or not: the Membership page is the
-  // community's public price list, and paying makes them a member (the Stripe
-  // webhook adds the membership). RLS only shows tiers to members, so read it
-  // with the service role; only this one unarchived tier's price is used.
-  const admin = createAdminClient();
-  const { data: tier } = await admin
-    .from("community_tiers")
-    .select("id, name, price_cents, currency, community_id, archived_at")
-    .eq("id", tierId)
-    .maybeSingle();
-  if (!tier) return { error: "Membership tier not found." };
-  if (tier.archived_at) return { error: "This membership is no longer available." };
-  if (tier.price_cents <= 0) return { error: "This membership is free — no subscription needed." };
-
-  const { data: existing } = await supabase
-    .from("community_memberships")
-    .select("status")
-    .eq("community_id", tier.community_id)
-    .eq("user_id", user.id)
-    .maybeSingle();
-  if (existing?.status === "banned") return { error: "You can't join this community." };
-
-  const { data: community } = await supabase
-    .from("communities")
-    .select("id, name, stripe_account_id, stripe_charges_enabled")
-    .eq("id", tier.community_id)
-    .maybeSingle();
-  if (!community?.stripe_account_id || !community.stripe_charges_enabled) {
-    return { error: "This community hasn't finished setting up payments yet. Try again later." };
-  }
-
-  // Same gate as the per-space paywall: a lapsed plan stops NEW paid
-  // memberships. Members already on this tier keep it and keep renewing.
-  if (!(await communityCanCharge(supabase, community.id))) {
-    return {
-      error: "This membership isn't open to new subscribers right now. Please check back later, or contact the community's admins.",
-    };
-  }
-
-  // What the tier includes, for the Checkout page: the spaces it unlocks (the
-  // full description is on the Membership page). Read with the service role:
-  // the buyer can't see inside the private spaces they're about to pay for,
-  // but their names are what's on offer.
-  const { data: tierSpaces } = await admin.from("tier_spaces").select("spaces(name)").eq("tier_id", tier.id);
-  const spaceNames = (tierSpaces ?? []).flatMap((row) => {
-    const s = row.spaces as { name: string } | { name: string }[] | null;
-    return Array.isArray(s) ? s.map((x) => x.name) : s ? [s.name] : [];
-  });
-
-  const base = await requestBaseUrl();
-  const communityUrl = `${base}/c/${communitySlug}`;
-
-  try {
-    const session = await createTierCheckoutSession({
-      stripeAccount: community.stripe_account_id,
-      priceCents: tier.price_cents,
-      currency: tier.currency,
-      productName: `${tier.name} — ${community.name}`,
-      productDescription: tierCheckoutDescription(spaceNames),
-      successUrl: `${communityUrl}?subscribed=1`,
-      cancelUrl: communityUrl,
-      customerEmail: user.email ?? undefined,
-      metadata: { tier_id: tier.id, user_id: user.id, community_id: community.id },
-    });
-    return { url: session.url };
-  } catch (err) {
-    return { error: (err as Error).message || "Couldn't start checkout." };
-  }
+  return startTierCheckout(tierId, communitySlug, { id: user.id, email: user.email ?? null });
 }
 
 // Schedule the member's own tier subscription to cancel at period end (or, with

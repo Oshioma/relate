@@ -213,7 +213,7 @@ export function CoursePlayer({
   function handlePurchase(how: "one_off" | "instalments" = "one_off") {
     setError(null);
     startTransition(async () => {
-      const result = await purchaseCourse(course.id, communitySlug, spaceSlug, how);
+      const result = await purchaseCourse(course.id, communitySlug, how);
       if ("error" in result) setError(result.error);
       else window.location.assign(result.url);
     });
