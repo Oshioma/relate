@@ -1630,6 +1630,9 @@ export type LiveSession = {
   // Stamped by the reminder job once a scheduled session's pre-start reminder
   // has been sent, so it fires at most once.
   reminder_sent_at: string | null;
+  // Stamped about once a minute while someone has the meeting open
+  // (touch_live_session); a cron job ends sessions left unstamped.
+  last_seen_at: string | null;
   started_at: string;
   ended_at: string | null;
   created_at: string;
@@ -4557,6 +4560,10 @@ export type Database = {
         Args: { p_community_id: string; p_days?: number };
         // jsonb — parsed and typed in src/lib/data/community-analytics.ts.
         Returns: unknown;
+      };
+      touch_live_session: {
+        Args: { p_session_id: string };
+        Returns: undefined;
       };
       record_editorial_guide_view: {
         Args: { p_guide_id: string; p_visitor_id: string };

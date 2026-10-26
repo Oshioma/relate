@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Radio, Video, History, LogOut, ShieldCheck, TriangleAlert, CalendarClock, Trash2, Check, UserPlus, Mail, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn, formatDateTime, formatRelativeTime } from "@/lib/utils";
 import { useFormDraft, clearFormDraft } from "@/lib/use-form-draft";
+import { createClient } from "@/lib/supabase/client";
+import { LIVE_HEARTBEAT_MS, LIVE_STALE_AFTER_MINUTES } from "@/lib/live-heartbeat";
 import {
   startLiveSession,
   scheduleLiveSession,
@@ -95,6 +97,33 @@ export function LiveEventsView({
   const [inviteFor, setInviteFor] = useState<LiveSessionWithStarter | null>(null);
   // Whether the "email members" composer is open.
   const [messageOpen, setMessageOpen] = useState(false);
+  // Staff who just left the meeting get a reminder to end the session, since
+  // leaving the call doesn't end it for everyone.
+  const [hostLeft, setHostLeft] = useState(false);
+
+  // While the meeting is open here, tell the database someone is still in it.
+  // A Supabase cron job ends live sessions nobody has been in for a while (see
+  // end_stale_live_sessions), so a host who closes the tab without pressing
+  // End session doesn't leave "Live now!" on for everyone.
+  const heartbeatSessionId = roomOpen && active ? active.id : null;
+  useEffect(() => {
+    if (!heartbeatSessionId) return;
+    const supabase = createClient();
+    const beat = () => void supabase.rpc("touch_live_session", { p_session_id: heartbeatSessionId });
+    beat();
+    const timer = setInterval(beat, LIVE_HEARTBEAT_MS);
+    return () => clearInterval(timer);
+  }, [heartbeatSessionId]);
+
+  function closeRoom() {
+    setRoomOpen(false);
+    if (isStaff) setHostLeft(true);
+  }
+
+  function openRoom() {
+    setRoomOpen(true);
+    setHostLeft(false);
+  }
 
   function run(action: () => Promise<{ error: string | null }>, after?: () => void) {
     setError(null);
@@ -262,14 +291,14 @@ export function LiveEventsView({
               <div className="flex shrink-0 items-center gap-2">
                 {!roomOpen ? (
                   canJoin ? (
-                    <Button type="button" onClick={() => setRoomOpen(true)}>
+                    <Button type="button" onClick={openRoom}>
                       <Video className="h-4 w-4" /> Join now
                     </Button>
                   ) : (
                     <span className="text-sm text-muted-foreground">Join this community to take part.</span>
                   )
                 ) : (
-                  <Button type="button" variant="secondary" onClick={() => setRoomOpen(false)}>
+                  <Button type="button" variant="secondary" onClick={closeRoom}>
                     <LogOut className="h-4 w-4" /> Leave
                   </Button>
                 )}
@@ -286,6 +315,13 @@ export function LiveEventsView({
               </div>
             </div>
 
+            {hostLeft && !roomOpen && (
+              <p className="mt-3 rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-sm text-foreground">
+                You&apos;ve left the meeting, but it&apos;s still showing as live to members. If it&apos;s over, press End
+                session. Otherwise it ends by itself about {LIVE_STALE_AFTER_MINUTES} minutes after everyone has left.
+              </p>
+            )}
+
             <InvitedRow invites={invitesBySession[active.id] ?? []} isStaff={isStaff} />
 
             {roomOpen && (
@@ -295,7 +331,7 @@ export function LiveEventsView({
                   communityId={communityId}
                   displayName={displayName}
                   subject={active.title}
-                  onClose={() => setRoomOpen(false)}
+                  onClose={closeRoom}
                   onSnapshot={
                     isStaff
                       ? (image) =>
