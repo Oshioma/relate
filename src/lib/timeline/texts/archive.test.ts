@@ -16,6 +16,7 @@ import { MITHRIAC_UNITS } from "./corpus/mithras-liturgy-text";
 import { IRENAEUS_NOTES, IRENAEUS_UNITS } from "./corpus/irenaeus-text";
 import { ORIGEN_NOTES, ORIGEN_UNITS } from "./corpus/origen-contra-celsum-text";
 import { ASCENSION_UNITS } from "./corpus/ascension-of-isaiah-text";
+import { SECRETS_OF_ENOCH_UNITS } from "./corpus/secrets-of-enoch-text";
 import { MARKER_PICTURES } from "./marker-pictures";
 import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
@@ -2552,6 +2553,218 @@ test("the Ascension's pictures are from Commons and all are marked UNVERIFIED: n
   assert.equal(marker[0].url, papyrus.url);
   assert.equal(marker[1].url, seen.get("ascisa-alcobaca-bible-martyrdom-of-isaiah")!.url);
   for (const picture of marker) assert.equal(picture.identificationStatus, "unverified");
+});
+
+test("2 Enoch is imported as its own work, verse by verse, from Morfill and Charles 1896, with Charles's signs", () => {
+  const file = corpusFor("gnostic.secrets-of-enoch")!;
+  const work = INVENTORY.find((w) => w.workKey === "gnostic.secrets-of-enoch")!;
+  assert.equal(work.passagePrefix, "gnostic.2en");
+  assert.equal(work.briefItem, 23);
+  assert.equal(work.corpusGroup, "gnostic");
+  assert.equal(work.traditionClass, "ancient_late_transmission");
+  assert.equal(work.unitDivisionKind, "verse");
+  assert.equal(work.expectedUnits, 357);
+  assert.equal(work.inventoryVerified, false, "Charles's chapter and verse, not checked against other editions");
+  assert.match(work.attributionNote!, /survives complete only in Slavonic manuscripts of the fourteenth to eighteenth centuries/);
+  assert.match(work.attributionNote!, /Milik's \(1976\) for a Byzantine monk of the ninth century/);
+  // Item 23 of the brief points here, and lists Morfill & Charles 1896 as the full-text edition.
+  const related = INVENTORY.find((w) => w.workKey === "gnostic.related")!;
+  assert.ok(related.proposedMembers!.includes("2 Enoch — the seven heavens; imported as its own work, gnostic.secrets-of-enoch"));
+  assert.ok(related.fullTextEditions.includes("Morfill & Charles 1896 (2 Enoch)"));
+  for (const key of ["morfill-charles-1896-enoch", "orlov-2enoch-intro", "wikipedia-2-enoch"]) {
+    assert.ok(INVENTORY_SOURCES.some((s) => s.key === key), key);
+  }
+  // One record for the book (citing the Slavonic only), the prologue, 68 chapters and 356 verses.
+  const book = file.passages[0];
+  assert.equal(book.key, "gnostic.2en.book");
+  assert.equal(book.layers.filter((l) => l.content && l.key !== PLAIN_LAYER_KEY).length, 0);
+  assert.ok(book.layers.some((l) => l.key === "chu" && l.content == null && l.language === "Church Slavonic"));
+  assert.match(book.summary!, /survives complete only in Slavonic manuscripts, none earlier than the fourteenth century/);
+  assert.match(book.summary!, /It is not a Gnostic text\.$/);
+  assert.match(book.notes!, /Not imported, and listed here: Charles's footnotes .*xxi\. 6 and xxii\. 1–3/);
+  assert.match(book.notes!, /the Melchizedekian fragment \(pp\. 85–93\)/);
+  const prologue = file.passages[1];
+  assert.equal(prologue.key, "gnostic.2en.prologue");
+  assert.match(prologue.layers.find((l) => l.key === "eng-1896")!.content!, /^THE BOOK OF THE SECRETS OF ENOCH THE SON OF ARED; A MAN WISE AND BELOVED OF GOD¹\.\n\n\[\*Concerning the Life and the Dream of Enoch²\.\]\n\nThere was a very³ wise man/);
+  const chapters = file.passages.filter((p) => p.divisionKind === "chapter");
+  assert.deepEqual(chapters.map((c) => c.key), Array.from({ length: 68 }, (_, i) => `gnostic.2en.${i + 1}`));
+  const verses = file.passages.filter((p) => p.divisionKind === work.unitDivisionKind);
+  assert.equal(verses.length, 356);
+  assert.equal(SECRETS_OF_ENOCH_UNITS.length, 356);
+  assert.equal(file.passages.length, 1 + 1 + 68 + 356);
+  assert.equal(file.passages.filter((p) => p.layers.some((l) => l.key === "eng-1896")).length, work.expectedUnits);
+  const counts = chapters.map((c) => verses.filter((v) => v.parentKey === c.key).length);
+  assert.deepEqual(counts, [
+    10, 4, 3, 2, 2, 1, 5, 8, 1, 6, 5, 3, 5, 3, 4, 8, 1, 9, 6, 4, 5, 9, 6, 5, 5, 3, 4, 5, 5, 18, 8, 2, 12, 3, 3, 2, 2, 3, 8, 13, 2, 14, 3, 5, 4, 3, 5, 9, 2,
+    5, 5, 15, 4, 1, 3, 2, 2, 6, 5, 5, 5, 3, 4, 5, 10, 8, 3, 7,
+  ]);
+  // xxii begins at verse 4: A's tenth heaven (xxii. 1–3) is in Charles's notes, not his text.
+  assert.deepEqual(verses.filter((v) => v.parentKey === "gnostic.2en.22").map((v) => v.label), Array.from({ length: 9 }, (_, i) => `xxii. ${i + 4}`));
+  assert.match(file.passages.find((p) => p.key === "gnostic.2en.22")!.notes!, /Verses 1–3 in manuscript A, .* the tenth heaven, Aravoth/);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 357, verifiedUnits: 0 }), "verified_against_edition");
+  const text = (key: string) => file.passages.find((p) => p.key === `gnostic.2en.${key}`)!.layers.find((l) => l.key === "eng-1896")!.content!;
+  for (const verse of verses) {
+    assert.equal(verse.verificationStatus, "unverified", verse.key);
+    const layer = verse.layers.find((l) => l.key === "eng-1896")!;
+    assert.equal(layer.licence, "public_domain", verse.key);
+    assert.equal(layer.layer, "translation", verse.key);
+    assert.equal(layer.sourceKey, "morfill-charles-1896-enoch", verse.key);
+    assert.match(layer.evidence, /scripts\/texts\/secrets-of-enoch\.py/, verse.key);
+    assert.match(verse.reference, /^2 Enoch [ivxl]+\. \d+ \(Charles's chapter and verse\); Morfill and Charles, The Book of the Secrets of Enoch \(Oxford, 1896\), (p\. \d+|pp\. \d+–\d+)$/, verse.key);
+    assert.ok(verse.layers.some((l) => l.key === PLAIN_LAYER_KEY), `${verse.key} has no plain words`);
+    // No OCR debris: no straight quotation marks, no stray marks, no doubled spaces, no hyphen breaks, no leftover verse numbers or Cyrillic.
+    assert.doesNotMatch(layer.content!, /"|™|_|�|\{|\||  |\w- |[a-z]\. \d+\. [A-Z]|[А-я]/, verse.key);
+  }
+  // A's chapter titles are kept in square brackets at the head of the verse they precede: 63 of them.
+  assert.equal(SECRETS_OF_ENOCH_UNITS.filter((u) => u.title).length, 63);
+  for (const unit of SECRETS_OF_ENOCH_UNITS.filter((u) => u.title)) assert.match(unit.title!, /^\[.*\]$/, `${unit.chapter}.${unit.verse}`);
+  // Charles's signs are kept: a * span may run on into the next verse, but every one is closed by a raised note number, and ( ) pair up.
+  const signs = SECRETS_OF_ENOCH_UNITS.map((u) => `${u.title ?? ""} ${u.text}`).join(" ");
+  assert.ok((signs.match(/[⁰¹²³⁴⁵⁶⁷⁸⁹]+/g) ?? []).length >= (signs.match(/\*/g) ?? []).length, "more * than note numbers");
+  for (const unit of SECRETS_OF_ENOCH_UNITS) {
+    const t = `${unit.title ?? ""} ${unit.text}`;
+    assert.equal((t.match(/\(/g) ?? []).length, (t.match(/\)/g) ?? []).length, `${unit.chapter}.${unit.verse}`);
+  }
+  assert.match(text("3.2"), /\*And again \(going\) higher I saw the air and \(going still\) higher I saw the ether⁹, and they placed me in the first heaven\.$/);
+  assert.match(text("16.5"), /\[Thus the great circle has five hundred and thirty-two years\.\]$/);
+  assert.match(text("19.1"), /there is no difference \*in their countenances, or their manner, or the style of their clothing⁸\.$/);
+  assert.match(text("22.8"), /take from Enoch his earthly robe, and anoint him with My holy³ oil, and clothe him with the raiment of My glory/);
+  assert.match(text("25.1"), /And out came Adoil very great²/);
+  assert.match(text("29.4"), /^\[Here Satanail was hurled from the Heights with his Angels\.\]\n\n\*One of these in the ranks of the Archangels/);
+  assert.match(text("30.3"), /^In the first and highest circle I placed the star Kruno; and on the second⁷ Aphrodite; on the third Ares; \*on the fourth the Sun¹; on the fifth Zeus; on the sixth Hermes; on the seventh² the moon\.$/);
+  assert.match(text("30.8"), /\(1\) His flesh from the earth; .*\(7\) his spirit from My spirit and from the wind\.$/);
+  assert.match(text("31.7"), /them I did not curse⁴,$/);
+  assert.match(text("33.11"), /Ariukh and Pariukh/);
+  assert.match(text("37.1"), /^\[Here God summons an Angel\.\]\n\n\[And God called one of His greatest angels/);
+  assert.match(text("37.2"), /no man can look upon thy face⁶\.’\]$/);
+  assert.match(text("47.5"), /\* so that¹¹\.$|\*so that¹¹\.$/);
+  assert.match(text("48.9"), /^Blessed is the man who bears their yoke/);
+  assert.match(text("54.1"), /be the inheritance of your peace³/);
+  assert.match(text("68.7"), /from generation to generation, for ever\. Amen⁵\.$/);
+  // The notes give the recension decisions and Charles's own arguments as his.
+  assert.match(file.passages.find((p) => p.key === "gnostic.2en.20.3")!.notes!, /In the tenth heaven, in the tenth heaven is God/);
+  assert.match(file.passages.find((p) => p.key === "gnostic.2en.37")!.notes!, /'xxxvii seems foreign to the entire text\.'/);
+  assert.match(file.passages.find((p) => p.key === "gnostic.2en.19.1")!.notes!, /his argument, not shown/);
+});
+
+test("2 Enoch is dated from Charles 1896 and from later scholarship as reported, and neither date stands alone", () => {
+  const file = corpusFor("gnostic.secrets-of-enoch")!;
+  const book = file.passages[0];
+  assert.deepEqual(
+    book.dates!.map((d) => [d.role, d.startYear, d.endYear, d.datePrecision, d.isApproximate, d.sourceKey]),
+    [
+      ["composition", 1, 50, "decade", true, "morfill-charles-1896-enoch"],
+      ["composition", 800, 900, "century", true, "orlov-2enoch-intro"],
+      ["earliest_evidence", 1300, 1400, "century", true, "morfill-charles-1896-enoch"],
+      ["manuscript", 1500, 1600, "century", true, "morfill-charles-1896-enoch"],
+      ["manuscript", 1650, 1700, "decade", true, "morfill-charles-1896-enoch"],
+      ["translation_publication", 1896, 1896, "year", false, "morfill-charles-1896-enoch"],
+    ]
+  );
+  const [charles, milik, earliest] = book.dates!;
+  assert.match(charles.originalDateText!, /with reasonable certainty assign the composition of our text to the period 1-50 A\.D\./);
+  assert.match(charles.evidence, /the temple is still standing; see lix\. 2/);
+  assert.match(charles.evidence, /later scholars disagree/);
+  assert.match(milik.originalDateText!, /Byzantine monk in the ninth century/);
+  assert.match(milik.evidence, /reported second-hand/);
+  assert.match(earliest.originalDateText!, /Tikhonravov cites from a fourteenth century MS/);
+  const work = INVENTORY.find((w) => w.workKey === "gnostic.secrets-of-enoch")!;
+  const event = work.anchor && "event" in work.anchor ? work.anchor.event : undefined;
+  assert.equal(event!.slug, "secrets-of-enoch-seven-heavens");
+  assert.deepEqual(
+    event!.claims.map((c) => [dateRoleFromWhatIsDated(c.whatIsDated!), c.startYear, c.endYear, c.sourceKey]),
+    [
+      ["composition", 1, 50, "morfill-charles-1896-enoch"],
+      ["composition", 800, 900, "orlov-2enoch-intro"],
+      ["earliest_evidence", 1300, 1400, "orlov-2enoch-intro"],
+      ["translation_publication", 1896, undefined, "morfill-charles-1896-enoch"],
+    ]
+  );
+});
+
+test("2 Enoch's links are proposed resemblances, and none claims one text knew another", () => {
+  const file = corpusFor("gnostic.secrets-of-enoch")!;
+  const links = file.links ?? [];
+  assert.equal(links.length, 11);
+  const keys = new Set(ALL_CORPORA.flatMap((f) => f.passages.map((p) => p.key)));
+  assert.equal(new Set(links.map((l) => l.key)).size, links.length, "duplicate link key");
+  for (const link of links) {
+    assert.ok(keys.has(link.from) && keys.has(link.to), link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^gnostic\.2en\.\d+\.\d+$/, link.key);
+    assert.ok(["close_conceptual_parallel", "symbolic_similarity", "broad_thematic_resemblance", "speculative_connection"].includes(link.connectionClass), link.key);
+    assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+    assert.doesNotMatch(`${link.similarities} ${link.differences} ${link.transmissionEvidence}`, /\bcop(ied|y)\b/, link.key);
+  }
+  assert.deepEqual(
+    links.map((l) => [l.from, l.to, l.connectionClass]),
+    [
+      ["gnostic.2en.19.1", "gnostic.ascisa.8.16", "close_conceptual_parallel"],
+      ["gnostic.2en.22.8", "gnostic.ascisa.9.9", "close_conceptual_parallel"],
+      ["gnostic.2en.22.10", "herm.ch.1.26", "symbolic_similarity"],
+      ["gnostic.2en.33.11", "gnostic.ps.134", "close_conceptual_parallel"],
+      ["gnostic.2en.30.3", "gnostic.origen.6.22", "symbolic_similarity"],
+      ["gnostic.2en.30.3", "greek.tim.38d", "broad_thematic_resemblance"],
+      ["gnostic.2en.29.4", "gnostic.iren.1.30.6", "broad_thematic_resemblance"],
+      ["gnostic.2en.25.3", "herm.ch.1.4", "broad_thematic_resemblance"],
+      ["gnostic.2en.3.2", "greek.mithras.1907.3", "broad_thematic_resemblance"],
+      ["gnostic.2en.68.1", "modern.hall.39.p2", "speculative_connection"],
+      ["gnostic.2en.64.5", "modern.hall.5.s1", "speculative_connection"],
+    ]
+  );
+  // Charles's own argument that the Ascension used 2 Enoch is reported as an editor's argument, not as evidence.
+  assert.match(links[0].transmissionEvidence, /an editor's argument from resemblance, not evidence of borrowing in either direction/);
+});
+
+test("2 Enoch's pictures: pages of the 1896 edition are secure; the Merilo leaf and the later pictures of Enoch are UNVERIFIED", () => {
+  const file = corpusFor("gnostic.secrets-of-enoch")!;
+  const placed = file.passages.flatMap((p) => (p.images ?? []).map((i) => [p.key, i] as const));
+  const images = [...(file.images ?? []), ...placed.map(([, i]) => i)];
+  const seen = new Map(images.map((i) => [i.key, i]));
+  assert.equal(seen.size, images.length, "duplicate image key");
+  assert.equal(seen.size, 8);
+  const elsewhere = new Set(ALL_CORPORA.filter((f) => f.workKey !== "gnostic.secrets-of-enoch").flatMap((f) => [...(f.images ?? []), ...f.passages.flatMap((p) => p.images ?? [])].map((i) => i.url)));
+  for (const image of seen.values()) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.equal(image.licenceStatus, "open", image.key);
+    assert.ok(image.licence, image.key);
+    assert.ok(!elsewhere.has(image.url), `${image.key} repeats a picture shown elsewhere`);
+    if (image.identificationStatus === "unverified") {
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else {
+      assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+    }
+  }
+  // Where each one hangs.
+  assert.deepEqual(
+    placed.map(([key, i]) => [key, i.key, i.identificationStatus]),
+    [
+      ["gnostic.2en.book", "2en-morfill-charles-1896-title-page", "secure"],
+      ["gnostic.2en.book", "2en-merilo-pravednoe-troitsky-codex-leaf-2", "unverified"],
+      ["gnostic.2en.prologue", "2en-morfill-charles-1896-page-1", "secure"],
+      ["gnostic.2en.23", "2en-blake-enoch-lithograph-british-museum", "unverified"],
+      ["gnostic.2en.30", "2en-morfill-charles-1896-page-37", "secure"],
+      ["gnostic.2en.67", "2en-sanok-icon-elijah-and-enoch", "unverified"],
+      ["gnostic.2en.67", "2en-hoet-figures-de-la-bible-1728-god-took-enoch", "unverified"],
+      ["gnostic.2en.67", "2en-shields-enoch-translated-1877-wellcome", "unverified"],
+    ]
+  );
+  for (const [, image] of placed) {
+    if (image.identificationStatus === "secure") assert.equal(image.shows, "historical_document", image.key);
+  }
+  const merilo = seen.get("2en-merilo-pravednoe-troitsky-codex-leaf-2")!;
+  assert.equal(merilo.shows, "manuscript");
+  assert.match(merilo.caption, /^UNVERIFIED — Related evidence, not a page of 2 Enoch: /);
+  // Its own marker: the 1896 title page, then the Sanok icon, UNVERIFIED.
+  const marker = MARKER_PICTURES["secrets-of-enoch-seven-heavens"];
+  assert.equal(marker.length, 2);
+  assert.equal(marker[0].url, seen.get("2en-morfill-charles-1896-title-page")!.url);
+  assert.equal(marker[0].identificationStatus, "secure");
+  assert.equal(marker[1].url, seen.get("2en-sanok-icon-elijah-and-enoch")!.url);
+  assert.equal(marker[1].identificationStatus, "unverified");
+  assert.match(marker[1].caption ?? "", /^UNVERIFIED — /);
 });
 
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {

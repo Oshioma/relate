@@ -1007,6 +1007,37 @@ export const MARKER_PICTURES: Record<string, SeedPicture[]> = {
       depictsActualRemains: false,
     },
   ],
+  "secrets-of-enoch-seven-heavens": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/The_book_of_the_secrets_of_Enoch%3B_%28IA_cu31924014633568%29.pdf/page9-960px-The_book_of_the_secrets_of_Enoch%3B_%28IA_cu31924014633568%29.pdf.jpg",
+      kind: "image",
+      shows: "historical_document",
+      caption:
+        "The title page of the first English edition of 2 Enoch, the edition the archive imports: 'The Book of the Secrets of Enoch, translated from the Slavonic by W. R. Morfill, M.A. ... and edited, with introduction, notes and indices by R. H. Charles, M.A.' (Oxford: Clarendon Press, 1896), from Cornell University Library's copy. No picture of a Slavonic manuscript of the book was found.",
+      credit: "Cornell University Library, scanned by the Internet Archive (cu31924014633568), Public domain, via Wikimedia Commons",
+      licence: "Public domain (PD-old-100-expired) and Public Domain Mark, as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:The_book_of_the_secrets_of_Enoch;_(IA_cu31924014633568).pdf?page=9",
+      institution: "Cornell University Library (the scanned copy)",
+      accessionNumber: "Internet Archive cu31924014633568",
+      identificationStatus: "secure",
+      verifiedIdentity: true,
+      depictsActualRemains: false,
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/b/b4/MHS_Eliasz_i_Enoch_XVII_w_p.jpg",
+      kind: "image",
+      shows: "later_artwork",
+      caption:
+        "UNVERIFIED — A later picture of Enoch, not an illustration of 2 Enoch: a painted icon of two haloed old men seated before a rocky hill, labelled Enoch (left, in a brown fur garment) and Elijah (right, in a red cloak, holding an open book), under the inscription 'The holy prophets Elijah and Enoch', the two men the Bible says were taken up without dying. The file page dates it to the seventeenth century and places it in the Historical Museum in Sanok, Poland; neither was checked.",
+      credit: "Photograph by Przykuta, Public domain, via Wikimedia Commons",
+      licence: "Public domain, as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:MHS_Eliasz_i_Enoch_XVII_w_p.jpg",
+      institution: "Historical Museum in Sanok, Poland (as the file page says)",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+  ],
   "story-of-atlantis-published": [
     {
       url: "https://upload.wikimedia.org/wikipedia/commons/d/d3/ELLIOT%281896%29_Atlantis%2C_Map4.jpg",
