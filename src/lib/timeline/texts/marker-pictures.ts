@@ -1038,6 +1038,36 @@ export const MARKER_PICTURES: Record<string, SeedPicture[]> = {
       depictsActualRemains: false,
     },
   ],
+  "turba-philosophorum-assembly": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/f/f0/Title_page%3B%22Artis_Auriferae%22%2C_volume_1%2C_1572_Wellcome_L0000510.jpg",
+      kind: "image",
+      shows: "historical_document",
+      caption:
+        "The title page of the first printing of the Latin Turba: 'Auriferae artis, quam chemiam vocant, antiquissimi authores, sive Turba philosophorum', with an oval woodcut device of a robed woman holding a staff and a lamp, and the imprint 'Basileae. Apud Petrum Pernam. M. D. LXXII.' (Basel: Pietro Perna, 1572), in the Wellcome Collection's copy. No picture of a medieval manuscript of the Turba was found.",
+      credit: "Wellcome Collection, CC BY 4.0, via Wikimedia Commons",
+      licence: "CC BY 4.0, as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Title_page;%22Artis_Auriferae%22,_volume_1,_1572_Wellcome_L0000510.jpg",
+      institution: "Wellcome Collection, London (as the file page says)",
+      accessionNumber: "Wellcome Images L0000510 (as the file page says)",
+      identificationStatus: "secure",
+      verifiedIdentity: true,
+      depictsActualRemains: false,
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/8/82/Turba_phil.jpg",
+      kind: "image",
+      shows: "later_artwork",
+      caption:
+        "UNVERIFIED — A woodcut of an assembly of sages standing round a fire, two of them crowned, under banderoles reading 'Solve coagula' and 'Solvite corpora in aquas'. Wikipedia uses it for the Turba, but which book it comes from is not established: the file page says the Artis auriferae of 1752 and names Johann Paul Krauss, the French Wikipedia the 1572 first edition; neither was checked, and the 1572 title page shown here does not carry it.",
+      credit: "Wikimedia Commons (from a private website, as the file page says)",
+      licence: "Public domain, as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Turba_phil.jpg",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+  ],
   "story-of-atlantis-published": [
     {
       url: "https://upload.wikimedia.org/wikipedia/commons/d/d3/ELLIOT%281896%29_Atlantis%2C_Map4.jpg",

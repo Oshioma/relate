@@ -1218,6 +1218,90 @@ export const INVENTORY_SOURCES: SeedSource[] = [
       "Cited only for two reports, neither checked at its source: that 'Dates ranging from the 1st century BCE to the 10th century CE have been proposed', and that 'In 2009, four fragments in Coptic from Chapters 36–42 were identified', following the short recension (its own source for this is a blog post). Nothing in the import rests on it.",
   },
   {
+    key: "waite-1896-turba",
+    title:
+      "The Turba Philosophorum or Assembly of the Sages, called also the Book of Truth in the Art and the Third Pythagorical Synod: an ancient alchemical treatise translated from the Latin, the chief readings of the shorter codex, parallels from the Greek alchemists, and explanations of obscure terms",
+    author: "Arthur Edward Waite (trans.)",
+    publisher: "George Redway, London",
+    publishedYear: 1896,
+    reference:
+      "The text, pp. 1–207: the heading, the Epistle of Arisleus, Dicta 1–72 by Waite's numbering and the Conclusion. Read in three scans on archive.org: the Cornell University Library copy (cu31924012366088, the gift of C. W. Snoad), two University of California Libraries copies (alchemyturbaphil00waitrich and turbaphilosophor00gratiala)",
+    url: "https://archive.org/details/cu31924012366088",
+    sourceType: "primary",
+    notes:
+      "The edition and English imported. Waite translates the longer Latin recension from the 1572 Auriferae artis, gives 'the chief readings of the shorter codex' (the second recension) in his footnotes, and prints as the Conclusion the last Dictum of the second recension, which the longer version omits (his note on p. 206). His Preface (pp. i–iv) and footnotes, which draw on Berthelot for Greek parallels, are listed, not imported. The text was voted from the OCR of the three scans, with the alchemywebsite.com transcription as a fourth check, and read against the Cornell page images; every correction made by hand is in scripts/texts/turba-philosophorum.py. Public domain (Waite died in 1942).",
+  },
+  {
+    key: "auriferae-artis-1572",
+    title: "Auriferae artis, quam chemiam vocant, antiquissimi authores, sive Turba philosophorum",
+    author: "Anonymous collection",
+    publisher: "Pietro Perna, Basel",
+    publishedYear: 1572,
+    reference:
+      "The title page of the Wellcome Collection's copy, on Wikimedia Commons (File:Title page;\"Artis Auriferae\", volume 1, 1572 Wellcome L0000510.jpg, CC BY 4.0), seen; the Latin text inside was not read",
+    url: "https://commons.wikimedia.org/wiki/File:Title_page;%22Artis_Auriferae%22,_volume_1,_1572_Wellcome_L0000510.jpg",
+    sourceType: "historical_document",
+    notes:
+      "The first printing of the Latin Turba, in a collection of alchemical authors whose title names it. Cited only for its title and imprint ('Basileae. Apud Petrum Pernam. M. D. LXXII.'), read on the title page. The Latin was not read or imported.",
+  },
+  {
+    key: "ruska-1931-problemes",
+    title: "Quelques problèmes de littérature alchimiste",
+    author: "Julius Ruska",
+    publisher: "Institut Adrien Guébhard-Séverine, Neuchâtel",
+    publishedYear: 1931,
+    reference:
+      "pp. 169–170, on the Turba; read in the Wellcome Collection's scan on archive.org (b30628830), which is marked in copyright",
+    url: "https://archive.org/details/b30628830",
+    sourceType: "academic_paper",
+    notes:
+      "Ruska's short report, in French, on the Turba and his edition of the same year. Read for his own words: that the Turba had been held 'une mystification latine', that the manuscripts and the finding of many of its speeches in Arabic 'ont écarté tous les doutes concernant l'origine arabe', that its author is to be sought 'parmi les alchimistes musulmans d'Egypte', and that it calls itself 'Le Troisième Synode Pythagoricien ou le Codex veritatis'. His edition (Turba Philosophorum: ein Beitrag zur Geschichte der Alchemie, Berlin, 1931) was not read. In copyright: only short quotations are given.",
+  },
+  {
+    key: "wikipedia-turba",
+    title: "Turba Philosophorum",
+    author: "Wikipedia contributors",
+    publisher: "Wikipedia (English)",
+    reference: "https://en.wikipedia.org/wiki/Turba_Philosophorum, read on 2026-10-26",
+    url: "https://en.wikipedia.org/wiki/Turba_Philosophorum",
+    sourceType: "encyclopedia",
+    notes:
+      "Cited, second-hand, for Martin Plessner's dating ('written c. 900 A. D.', Isis 45, 1954, pp. 331–338, at p. 337, as quoted) and his argument from Ibn Umayl and the 'poison-maiden', and for the title's occurrence in the Auriferae artis of 1572. Plessner was not read.",
+  },
+  {
+    key: "wikipedia-ibn-umayl",
+    title: "Ibn Umayl",
+    author: "Wikipedia contributors",
+    publisher: "Wikipedia (English)",
+    reference: "https://en.wikipedia.org/wiki/Ibn_Umayl, read on 2026-10-26",
+    url: "https://en.wikipedia.org/wiki/Ibn_Umayl",
+    sourceType: "encyclopedia",
+    notes:
+      "Cited, second-hand, for the reports that H. E. Stapleton argued the Turba's Arabic provenance and that Plessner dated it c. 900, with Ibn Umayl's Silvery Water among the earliest works to use it. Not checked at its sources.",
+  },
+  {
+    key: "de-wikipedia-turba",
+    title: "Turba Philosophorum",
+    author: "Wikipedia contributors",
+    publisher: "Wikipedia (German)",
+    reference: "https://de.wikipedia.org/wiki/Turba_Philosophorum, read on 2026-10-26",
+    url: "https://de.wikipedia.org/wiki/Turba_Philosophorum",
+    sourceType: "encyclopedia",
+    notes:
+      "Cited, second-hand, for: the Arabic title Muṣḥaf al-jamāʿa, 'um 900'; the oldest Latin manuscripts of the thirteenth century (citing Ruska's edition, §1.4); Ullmann's report of the Turba's currency in the West by the mid-twelfth century; the first printing (Perna, Basel, 1572) and German translations of 1597 and 1613; and the identifications of speakers' names with Presocratics (Plessner: Eximenus as Xenophanes, Iximidrus as Anaximander; Ruska: Pandolfus as Empedocles). Its sources were not read.",
+  },
+  {
+    key: "fr-wikipedia-turba",
+    title: "Turba philosophorum",
+    author: "Wikipedia contributors",
+    publisher: "Wikipedia (French)",
+    reference: "https://fr.wikipedia.org/wiki/Turba_philosophorum, read on 2026-10-26",
+    url: "https://fr.wikipedia.org/wiki/Turba_philosophorum",
+    sourceType: "encyclopedia",
+    notes:
+      "Cited, second-hand, for its list of manuscripts (among them 'MS QU 584 Berlin (deuxième moitié du XIIIe)' and MS G.14 of St John's College, Cambridge), for Plessner's placing of the author at Panopolis and his naming of ʿUthmān ibn Suwaid (via Duval), for a Latin translation at Toledo in the twelfth century, and for calling the woodcut Turba_phil.jpg the frontispiece of the 1572 edition. None of this was checked at its source.",
+  },
+  {
     key: "hall-secret-teachings",
     title: "The Secret Teachings of All Ages",
     author: "Manly P. Hall",
@@ -3609,6 +3693,110 @@ export const INVENTORY: InventoryWork[] = [
     prominence: 3,
   },
   {
+    workKey: "arab.turba-philosophorum",
+    passagePrefix: "arab.turba",
+    briefItem: 28,
+    title: "The Turba Philosophorum (the Assembly of the Sages)",
+    alternativeTitles: [
+      "The Assembly of the Sages",
+      "The Book of Truth in the Art",
+      "The Third Pythagorical Synod",
+      "Codex veritatis",
+      "Muṣḥaf al-jamāʿa (the Arabic title, as the German Wikipedia gives it; the Arabic is lost)",
+    ],
+    corpusGroup: "arabic_medieval",
+    traditionClass: "medieval",
+    civilisation: "Medieval Europe",
+    originalLanguage: "Latin, in medieval manuscripts; a lost Arabic original has been argued (Ruska 1931, Plessner)",
+    attribution: "Anonymous; the speeches are put in the mouths of named philosophers, presided over by Pythagoras",
+    attributionNote:
+      "The book presents itself as the record of a council of philosophers called by Pythagoras, each speaking in turn; the names (Anaxagoras, Pythagoras, Socrates, Plato, Moses and many garbled ones such as Iximidrus, Pandolfus and Bonellus) are the text's attributions, not historical authorship. Scholars have read some garbled names as Presocratics (as the German Wikipedia reports, Plessner took Iximidrus for Anaximander and Eximenus for Xenophanes, and Ruska Pandolfus for Empedocles; not checked). What survives is Latin, in medieval manuscripts, first printed in 1572. Julius Ruska (1931) argued for a lost Arabic original by an Egyptian Muslim alchemist, and Martin Plessner developed this, dating it c. 900 and linking it to the circle of Ibn Umayl, the first author known to use it; Plessner is known here only second-hand. The English is A. E. Waite's (1896), from the longer Latin recension.",
+    summary:
+      "A council of philosophers, called by Pythagoras, speaks in turn on the elements and the making of the philosophers' stone, in riddles of copper, lead, gum, vinegar and the marriage of the bodies. In A. E. Waite's English from the Latin (1896): the Epistle of Arisleus, seventy-two Dicta and a Conclusion.",
+    referenceEdition: "A. E. Waite, The Turba Philosophorum (London: George Redway, 1896), pp. 1–207, by Waite's numbering of the Dicta",
+    expectedUnits: 74,
+    unitLabel: "units: the Epistle of Arisleus, Dicta 1–72 (Waite's numbering) and the Conclusion",
+    unitDivisionKind: "chapter",
+    inventoryBasis:
+      "Waite's own division, read on the page images of the 1896 printing (pp. 1–207): the Epistle of Arisleus that opens the book, seventy-two Dicta numbered by Waite ('The First Dictum' to 'The Seventy-Second Dictum'), and the Conclusion, Agmon's corollary, which Waite says is the last Dictum of the second recension, omitted from the longer version. Every one is imported, with the heading on p. 1. Ruska's edition and other Latin texts divide the speeches differently (sermones), and Waite's count has not been checked against a stated inventory of the manuscripts, so it is not marked verified. The second recension is not imported except for the Conclusion: Waite gives its 'chief readings' only in footnotes, which are listed, not imported, with the title page, the Preface (pp. i–iv) and the Index (pp. 209–210).",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Public domain: Waite's translation was published in 1896 (Waite died in 1942); the Latin of 1572 is public domain. Ruska 1931 and Plessner are in copyright and are cited, not reproduced. The pictures carry the licences their Commons file pages state.",
+    fullTextEditions: ["A. E. Waite, The Turba Philosophorum (London, 1896): the English of the Epistle, Dicta 1–72 and the Conclusion"],
+    referenceOnlyEditions: [
+      "Auriferae artis, quam chemiam vocant, antiquissimi authores, sive Turba philosophorum (Basel: Pietro Perna, 1572), the first printing of the Latin; title page seen, text not read",
+      "Julius Ruska, Turba Philosophorum: ein Beitrag zur Geschichte der Alchemie (Berlin, 1931), the critical edition; not read",
+      "Martin Plessner, 'The Place of the Turba Philosophorum in the Development of Alchemy', Isis 45 (1954), pp. 331–338; known only from the English Wikipedia's quotation",
+      "The second recension (the shorter codex), known here only from Waite's footnotes; listed, not imported, except its last Dictum, which Waite prints as the Conclusion",
+      "Waite's Preface (pp. i–iv), footnotes and Index (pp. 209–210), listed and not imported",
+    ],
+    imageCollections: [
+      "Wikimedia Commons: the Wellcome Collection's copy of the 1572 Auriferae artis",
+      "Wikimedia Commons and the Internet Archive: the Cornell University Library copy of Waite 1896 (cu31924012366088)",
+    ],
+    anchor: {
+      event: {
+        slug: "turba-philosophorum-assembly",
+        title: "The Turba Philosophorum: an assembly of sages on the art of alchemy",
+        summary:
+          "A Latin alchemical dialogue in which philosophers, called together by Pythagoras, speak in turn on the elements and the philosophers' stone; an Arabic original of about 900 has been argued.",
+        description:
+          "The Turba Philosophorum ('the crowd', or assembly, of philosophers) survives in Latin, in medieval manuscripts of which the oldest are reported to be of the thirteenth century, and was first printed at Basel in 1572. In it, philosophers named after Greek sages, many of them in garbled forms, speak one after another on how the four elements came to be and on the work of the stone, in a language of copper, lead, gum and vinegar, the marriage of the bodies and their whitening and reddening. Julius Ruska (1931) argued that it was translated from a lost Arabic original written by a Muslim alchemist in Egypt, and Martin Plessner dated that original to about 900 and linked it to the circle of Ibn Umayl; this is argued, not established. A. E. Waite translated the longer Latin recension into English in 1896.",
+        category: "culture",
+        eventType: "historical",
+        tags: ["ancient texts", "alchemy", "turba philosophorum", "philosophers' stone", "pythagoras"],
+        civilisations: ["Abbasid Caliphate", "Medieval Europe"],
+        people: ["Julius Ruska", "Martin Plessner", "A. E. Waite"],
+        claims: [
+          dated("composition", {
+            qualifier: "the lost Arabic original, as Martin Plessner dated it (reported by Wikipedia)",
+            sourceKey: "wikipedia-turba",
+            startYear: 850,
+            endYear: 950,
+            datePrecision: "century",
+            originalDateText: "'the Turba Philosophorum, written c. 900 A. D.' (Plessner, Isis 45, 1954, p. 337, as quoted by the English Wikipedia)",
+            evidence:
+              "Second-hand: Plessner was not read. He argued a later limit from Ibn Umayl (died mid-tenth century), the first author known to use the Turba, and an earlier one from its echo of the Indian 'poison-maiden', which reached Arabic in the first half of the ninth century. That an Arabic original existed at all was argued by Ruska (1931, read). Debated; not established.",
+          }),
+          dated("earliest_evidence", {
+            qualifier: "the oldest Latin manuscripts (reported)",
+            sourceKey: "de-wikipedia-turba",
+            startYear: 1200,
+            endYear: 1300,
+            datePrecision: "century",
+            originalDateText: "'die ältesten aus dem 13. Jahrhundert' (German Wikipedia, citing Ruska 1931)",
+            evidence:
+              "Second-hand: the German Wikipedia reports from Ruska's edition (not read) that the oldest Latin manuscripts are of the thirteenth century; the French lists a Berlin manuscript, 'MS QU 584', of the second half of that century. No manuscript was seen.",
+          }),
+          dated("translation_publication", {
+            qualifier: "first printing of the Latin",
+            sourceKey: "auriferae-artis-1572",
+            startYear: 1572,
+            endYear: 1572,
+            datePrecision: "year",
+            isApproximate: false,
+            datingMethod: "historical_record",
+            originalDateText: "Basileae. Apud Petrum Pernam. M. D. LXXII.",
+            evidence: "The imprint on the title page of Auriferae artis ... sive Turba philosophorum, seen in the Wellcome Collection's copy.",
+          }),
+          dated("translation_publication", {
+            qualifier: "Waite's English",
+            sourceKey: "waite-1896-turba",
+            startYear: 1896,
+            endYear: 1896,
+            datePrecision: "year",
+            isApproximate: false,
+            datingMethod: "historical_record",
+            originalDateText: "London: George Redway, 1896",
+            evidence: "The title page of the English imported, read in three scans.",
+          }),
+        ],
+      },
+    },
+    prominence: 3,
+  },
+  {
     workKey: "arab.related",
     passagePrefix: "arab.rel",
     briefItem: 28,
@@ -3631,7 +3819,7 @@ export const INVENTORY: InventoryWork[] = [
     imageCollections: [],
     anchor: null,
     proposedMembers: [
-      "Turba Philosophorum",
+      "Turba Philosophorum — imported as its own work, arab.turba-philosophorum",
       "Ibn Umayl, al-Māʾ al-waraqī (with the image of Hermes holding a tablet)",
       "Ghāyat al-ḥakīm (Picatrix) — the seven planetary spirits",
       "Jābirian Kitāb Usṭuqus al-uss al-thānī (carries the Tablet)",
