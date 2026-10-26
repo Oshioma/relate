@@ -75,6 +75,7 @@ export const CHECKOUT_MESSAGES = {
   courseNotOpen: "This course isn't open yet.",
   courseFree: "This course is free — just enrol.",
   alreadyHaveCourse: "You already have this course.",
+  noInstalments: "This course isn't offered in monthly payments.",
   courseNotOnSale: "This course isn't on sale right now. Please check back later, or contact the community's admins.",
   paymentNotFound: "We couldn't find that payment.",
   checkoutUnfinished: "That checkout wasn't finished, so nothing was charged.",

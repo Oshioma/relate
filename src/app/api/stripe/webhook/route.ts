@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { constructWebhookEvent, type StripeCheckoutSession, type StripeEvent } from "@/lib/stripe";
+import { constructWebhookEvent, countPaidInvoices, setSubscriptionCancellation, type StripeCheckoutSession, type StripeEvent } from "@/lib/stripe";
+import { instalmentStateFor, shouldStopCharging } from "@/lib/courses/instalments";
 import { ensureActiveMembership, fulfilGuestCheckout } from "@/lib/guest-checkout";
 import { isResendConfigured, sendPlanLapsedEmail } from "@/lib/email";
 
@@ -85,11 +86,23 @@ export async function POST(request: NextRequest) {
                 course_id: meta.course_id,
                 user_id: meta.user_id,
                 paid: true,
+                payment_plan: "one_off",
                 stripe_checkout_session_id: session.id ?? null,
               },
               { onConflict: "course_id,user_id" }
             );
           }
+        } else if (meta.course_id && meta.user_id && session.mode === "subscription" && session.subscription) {
+          // A course paid in monthly instalments. The first payment has gone
+          // through, so the course opens now; invoice.paid keeps the count.
+          await recordCourseInstalments(admin, {
+            courseId: meta.course_id,
+            userId: meta.user_id,
+            subscriptionId: session.subscription,
+            total: Number(meta.instalments) || 0,
+            stripeAccount: event.account,
+            checkoutSessionId: session.id ?? null,
+          });
         } else if (meta.space_id && meta.user_id && meta.community_id && session.subscription) {
           await admin.from("space_subscriptions").upsert(
             {
@@ -223,6 +236,31 @@ export async function POST(request: NextRequest) {
             },
             { onConflict: "tier_id,user_id" }
           );
+        } else if (meta.course_id && meta.user_id) {
+          // A course instalment plan: open while paying (and while Stripe
+          // retries a failed payment), locked if Stripe gives up before the
+          // last instalment, the buyer's for good once every one is paid.
+          const { data: row } = await admin
+            .from("course_enrollments")
+            .select("instalments_paid, instalments_total, payment_plan, stripe_subscription_id")
+            .eq("course_id", meta.course_id)
+            .eq("user_id", meta.user_id)
+            .maybeSingle();
+          const next = instalmentStateFor({
+            stripeStatus: status,
+            instalmentsPaid: row?.instalments_paid ?? 0,
+            instalmentsTotal: row?.instalments_total ?? (Number(meta.instalments) || 0),
+          });
+          // Only the plan this subscription paid for: a buyer whose plan
+          // lapsed and who then bought the course outright keeps it.
+          const isThisPlan = row?.payment_plan === "instalments" && row.stripe_subscription_id === sub.id;
+          if (next && isThisPlan) {
+            await admin
+              .from("course_enrollments")
+              .update({ paid: next.paid, instalment_status: next.status })
+              .eq("course_id", meta.course_id)
+              .eq("user_id", meta.user_id);
+          }
         } else {
           // No metadata (older subscription): fall back to matching the row by
           // its Stripe subscription id, in whichever table holds it (the update
@@ -230,6 +268,31 @@ export async function POST(request: NextRequest) {
           const patch = { status, current_period_end: periodEnd, cancel_at_period_end: cancelAtPeriodEnd, updated_at: new Date().toISOString() };
           await admin.from("space_subscriptions").update(patch).eq("stripe_subscription_id", sub.id);
           await admin.from("tier_subscriptions").update(patch).eq("stripe_subscription_id", sub.id);
+        }
+        break;
+      }
+
+      // Each monthly instalment of a course. Ignored for every other kind of
+      // subscription (they carry no course_id).
+      case "invoice.paid": {
+        const invoice = event.data.object as {
+          subscription?: string | null;
+          subscription_details?: { metadata?: Record<string, string> } | null;
+          parent?: { subscription_details?: { subscription?: string; metadata?: Record<string, string> } | null } | null;
+        };
+        // Older API versions put the subscription on the invoice itself; newer
+        // ones under parent.subscription_details.
+        const subscriptionId = invoice.subscription ?? invoice.parent?.subscription_details?.subscription ?? null;
+        const meta = invoice.subscription_details?.metadata ?? invoice.parent?.subscription_details?.metadata ?? {};
+        if (subscriptionId && meta.course_id && meta.user_id) {
+          await recordCourseInstalments(admin, {
+            courseId: meta.course_id,
+            userId: meta.user_id,
+            subscriptionId,
+            total: Number(meta.instalments) || 0,
+            stripeAccount: event.account,
+            checkoutSessionId: null,
+          });
         }
         break;
       }
@@ -309,4 +372,58 @@ async function notifyPlanLapsed(
   } catch (err) {
     console.error("[stripe/webhook] plan-lapsed notification failed:", (err as Error).message);
   }
+}
+
+// Bring a buyer's instalment plan up to date: count the paid instalments (from
+// Stripe, so repeated events never double-count), open the course, and once
+// the last instalment is in, tell Stripe to stop at the end of that month so
+// there's never an extra charge. Safe to run any number of times.
+async function recordCourseInstalments(
+  admin: ReturnType<typeof createAdminClient>,
+  params: {
+    courseId: string;
+    userId: string;
+    subscriptionId: string;
+    total: number;
+    stripeAccount?: string;
+    checkoutSessionId: string | null;
+  }
+): Promise<void> {
+  // Already bought outright (say, after an earlier plan lapsed): a late
+  // instalment event mustn't turn that purchase back into a plan.
+  const { data: existing } = await admin
+    .from("course_enrollments")
+    .select("paid, payment_plan")
+    .eq("course_id", params.courseId)
+    .eq("user_id", params.userId)
+    .maybeSingle();
+  if (existing?.paid && existing.payment_plan === "one_off") return;
+
+  const paidCount = await countPaidInvoices({ stripeAccount: params.stripeAccount, subscriptionId: params.subscriptionId });
+  if (paidCount === 0) return; // nothing has been paid yet
+
+  const complete = shouldStopCharging(paidCount, params.total);
+  if (complete && params.stripeAccount) {
+    await setSubscriptionCancellation({
+      stripeAccount: params.stripeAccount,
+      subscriptionId: params.subscriptionId,
+      cancelAtPeriodEnd: true,
+    });
+  }
+
+  const { error } = await admin.from("course_enrollments").upsert(
+    {
+      course_id: params.courseId,
+      user_id: params.userId,
+      paid: true,
+      payment_plan: "instalments",
+      stripe_subscription_id: params.subscriptionId,
+      instalments_paid: Math.min(paidCount, params.total || paidCount),
+      instalments_total: params.total,
+      instalment_status: complete ? "completed" : "active",
+      ...(params.checkoutSessionId ? { stripe_checkout_session_id: params.checkoutSessionId } : {}),
+    },
+    { onConflict: "course_id,user_id" }
+  );
+  if (error) throw new Error(error.message);
 }

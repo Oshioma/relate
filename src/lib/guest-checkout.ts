@@ -98,7 +98,7 @@ export async function fulfilGuestCheckout(admin: Admin, session: StripeCheckoutS
     if (error) throw new Error(`tier subscription: ${error.message}`);
   } else if (meta.course_id) {
     const { error } = await admin.from("course_enrollments").upsert(
-      { course_id: meta.course_id, user_id: buyer.userId, paid: true, stripe_checkout_session_id: session.id },
+      { course_id: meta.course_id, user_id: buyer.userId, paid: true, payment_plan: "one_off", stripe_checkout_session_id: session.id },
       { onConflict: "course_id,user_id" }
     );
     if (error) throw new Error(`course enrolment: ${error.message}`);

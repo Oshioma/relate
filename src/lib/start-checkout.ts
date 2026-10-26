@@ -1,7 +1,14 @@
 import "server-only";
 import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isStripeConfigured, createTierCheckoutSession, createCourseCheckoutSession, type CheckoutMetadata } from "@/lib/stripe";
+import {
+  isStripeConfigured,
+  createTierCheckoutSession,
+  createCourseCheckoutSession,
+  createCourseInstalmentCheckoutSession,
+  type CheckoutMetadata,
+} from "@/lib/stripe";
+import { instalmentPlan } from "@/lib/courses/instalments";
 import { communityCanCharge } from "@/lib/data/plan-limits";
 import { tierCheckoutDescription } from "@/lib/checkout-description";
 import { CHECKOUT_MESSAGES, guestCheckoutReturnPath } from "@/lib/checkout-links";
@@ -129,7 +136,14 @@ export async function startTierCheckout(tierId: string, communitySlug: string, b
   }
 }
 
-export async function startCourseCheckout(courseId: string, communitySlug: string, buyer: CheckoutBuyer): Promise<CheckoutResult> {
+// `plan` "instalments" is for signed-in buyers only: a guest link always sells
+// the course outright (the instalment webhook path keys on the buyer's id).
+export async function startCourseCheckout(
+  courseId: string,
+  communitySlug: string,
+  buyer: CheckoutBuyer,
+  plan: "one_off" | "instalments" = "one_off"
+): Promise<CheckoutResult> {
   if (!isStripeConfigured()) {
     return { error: CHECKOUT_MESSAGES.courseNotConfigured };
   }
@@ -137,7 +151,7 @@ export async function startCourseCheckout(courseId: string, communitySlug: strin
   const admin = createAdminClient();
   const { data: course } = await admin
     .from("courses")
-    .select("id, title, price_cents, currency, status, community_id, spaces(slug)")
+    .select("id, title, price_cents, currency, status, community_id, instalment_count, instalment_price_cents, spaces(slug)")
     .eq("id", courseId)
     .maybeSingle();
   if (!course || course.status !== "published") return { error: CHECKOUT_MESSAGES.courseNotOpen };
@@ -168,6 +182,27 @@ export async function startCourseCheckout(courseId: string, communitySlug: strin
   const spaceSlug = Array.isArray(space) ? space[0]?.slug : space?.slug;
   const base = await requestBaseUrl();
   const courseUrl = spaceSlug ? `${base}/c/${communitySlug}/spaces/${spaceSlug}/courses/${course.id}` : `${base}/c/${communitySlug}`;
+
+  if (plan === "instalments" && buyer) {
+    const instalments = instalmentPlan(course);
+    if (!instalments) return { error: CHECKOUT_MESSAGES.noInstalments };
+    try {
+      const session = await createCourseInstalmentCheckoutSession({
+        stripeAccount: community.stripe_account_id,
+        priceCents: instalments.priceCents,
+        currency: course.currency,
+        instalments: instalments.count,
+        productName: `${course.title} — ${community.name}`,
+        successUrl: `${courseUrl}?purchased=1`,
+        cancelUrl: courseUrl,
+        customerEmail: buyer.email ?? undefined,
+        metadata: { course_id: course.id, user_id: buyer.id, community_id: community.id, instalments: String(instalments.count) },
+      });
+      return { url: session.url };
+    } catch (err) {
+      return { error: (err as Error).message || "Couldn't start checkout." };
+    }
+  }
 
   try {
     const session = await createCourseCheckoutSession({

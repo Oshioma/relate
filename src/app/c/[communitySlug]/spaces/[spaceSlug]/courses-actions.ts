@@ -8,6 +8,7 @@ import { getProfile, getProfileByUsername } from "@/lib/data/profile";
 import { communityHasFeature } from "@/lib/data/plan-limits";
 import { rememberLessonRoom } from "@/lib/courses/lesson-recordings";
 import { startCourseCheckout } from "@/lib/start-checkout";
+import { cleanInstalmentInput } from "@/lib/courses/instalments";
 import { courseLessonRoomName, getJaasAppId, isJaasConfigured, mintJaasToken } from "@/lib/jitsi";
 import { courseAccess, liveLessonState } from "@/lib/courses/lesson-kinds";
 import type { CourseLessonType, CourseStatus } from "@/types/database";
@@ -496,7 +497,26 @@ export async function setCoursePrice(courseId: string, priceCents: number, commu
   const { data: course } = await supabase.from("courses").select("community_id").eq("id", courseId).maybeSingle();
   if (!course) return { error: "That course no longer exists." };
   const currency = await getCommunityCurrency(supabase, course.community_id);
-  const { error } = await supabase.from("courses").update({ price_cents: price, currency }).eq("id", courseId);
+  // A free course has nothing to pay off monthly.
+  const update = price === 0 ? { price_cents: price, currency, instalment_count: 0, instalment_price_cents: 0 } : { price_cents: price, currency };
+  const { error } = await supabase.from("courses").update(update).eq("id", courseId);
+  if (error) return { error: error.message };
+  revalidateSpace(communitySlug, spaceSlug);
+  return { error: null };
+}
+
+// The monthly plan offered next to the one-off price (e.g. £40 a month for 4
+// months). 0 and 0 switch it off.
+export async function setCourseInstalments(courseId: string, count: number, priceCents: number, communitySlug: string, spaceSlug: string) {
+  const supabase = await createClient();
+  const { data: course } = await supabase.from("courses").select("price_cents").eq("id", courseId).maybeSingle();
+  if (!course) return { error: "That course no longer exists." };
+  const cleaned = cleanInstalmentInput(count, priceCents, course.price_cents);
+  if ("error" in cleaned) return { error: cleaned.error };
+  const { error } = await supabase
+    .from("courses")
+    .update({ instalment_count: cleaned.count, instalment_price_cents: cleaned.priceCents })
+    .eq("id", courseId);
   if (error) return { error: error.message };
   revalidateSpace(communitySlug, spaceSlug);
   return { error: null };
@@ -561,13 +581,18 @@ export type CoursePurchaseResult = { error: string } | { url: string };
 // Buying a paid course: a one-off Stripe Checkout on the community's connected
 // account (the owner keeps the payment). The webhook records the paid
 // enrolment once Stripe confirms the payment, so nothing is unlocked here.
-export async function purchaseCourse(courseId: string, communitySlug: string): Promise<CoursePurchaseResult> {
+// `plan` picks how to pay: once, or in the course's monthly instalments.
+export async function purchaseCourse(
+  courseId: string,
+  communitySlug: string,
+  plan: "one_off" | "instalments" = "one_off"
+): Promise<CoursePurchaseResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sign in to buy this course." };
-  return startCourseCheckout(courseId, communitySlug, { id: user.id, email: user.email ?? null });
+  return startCourseCheckout(courseId, communitySlug, { id: user.id, email: user.email ?? null }, plan);
 }
 
 // -----------------------------------------------------------------------------

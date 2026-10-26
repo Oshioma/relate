@@ -28,6 +28,8 @@ You can set up Flow B first and add Flow A later. Do the two parts in order.
      - `customer.subscription.created`
      - `customer.subscription.updated`
      - `customer.subscription.deleted`
+     - `invoice.paid` (counts course instalments and stops the plan after the
+       last one; must also be sent for connected accounts)
      - `account.updated`
    - Save, then copy the **Signing secret** (`whsec_…`). This is
      `STRIPE_WEBHOOK_SECRET`.

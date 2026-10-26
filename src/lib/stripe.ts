@@ -342,6 +342,62 @@ export function createCourseCheckoutSession(params: {
   });
 }
 
+// --- Course instalments (monthly subscription that stops after N payments) --
+// A monthly subscription on the connected account. Checkout can't say "stop
+// after 4", so the webhook counts paid invoices and switches on
+// cancel_at_period_end after the last one (see lib/courses/instalments.ts).
+// The metadata rides on the subscription too, so its invoices and status
+// events can be traced back to (course, buyer).
+export function createCourseInstalmentCheckoutSession(params: {
+  stripeAccount: string;
+  priceCents: number;
+  currency: string;
+  instalments: number;
+  productName: string;
+  successUrl: string;
+  cancelUrl: string;
+  customerEmail?: string;
+  metadata: { course_id: string; user_id: string; community_id: string; instalments: string };
+}): Promise<{ id: string; url: string }> {
+  return stripeFetch<{ id: string; url: string }>("/checkout/sessions", {
+    stripeAccount: params.stripeAccount,
+    body: {
+      mode: "subscription",
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl,
+      ...(params.customerEmail ? { customer_email: params.customerEmail } : {}),
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: params.currency,
+            unit_amount: params.priceCents,
+            recurring: { interval: "month" },
+            product_data: {
+              name: params.productName,
+              description: `${params.instalments} monthly payments, then it stops automatically.`,
+            },
+          },
+        },
+      ],
+      metadata: params.metadata,
+      subscription_data: { metadata: params.metadata },
+    },
+  });
+}
+
+// How many of a subscription's invoices have actually taken money. Asked of
+// Stripe rather than counted from webhook events, so a retried or out-of-order
+// event can never count a payment twice.
+export async function countPaidInvoices(params: { stripeAccount?: string; subscriptionId: string }): Promise<number> {
+  const list = await stripeFetch<{ data: { amount_paid?: number; status?: string }[] }>("/invoices", {
+    method: "GET",
+    stripeAccount: params.stripeAccount,
+    body: { subscription: params.subscriptionId, status: "paid", limit: 100 },
+  });
+  return (list.data ?? []).filter((inv) => (inv.amount_paid ?? 0) > 0).length;
+}
+
 // --- Webhook signature verification -----------------------------------------
 // Mirrors Stripe's constructEvent: recompute the HMAC over `${t}.${payload}`
 // and constant-time compare it to the v1 signature in the Stripe-Signature
