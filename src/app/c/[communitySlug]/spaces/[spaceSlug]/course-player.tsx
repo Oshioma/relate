@@ -29,6 +29,7 @@ import { cn, formatDateTime, formatRelativeTime } from "@/lib/utils";
 import { ProgressBar } from "./course-progress";
 import { CourseLessonVideo, CourseLiveLesson } from "./course-lesson-media";
 import { courseAccess, liveLessonState } from "@/lib/courses/lesson-kinds";
+import { instalmentLabel, instalmentPlan } from "@/lib/courses/instalments";
 import {
   enrollInCourse,
   unenrollFromCourse,
@@ -203,10 +204,16 @@ export function CoursePlayer({
   const showPrereqGate = !enrolled && !isStaff && prerequisites.length > 0;
   const blockedByPrereqs = showPrereqGate && !prerequisitesMet;
 
-  function handlePurchase() {
+  // A course can also be paid monthly (e.g. £40 a month for 4 months); the
+  // buyer picks which at the buy button.
+  const plan = instalmentPlan(course);
+  const planLabel = plan ? instalmentLabel(plan, (cents) => formatPrice(cents, course.currency)) : null;
+  const myPlan = detail.viewerInstalments;
+
+  function handlePurchase(how: "one_off" | "instalments" = "one_off") {
     setError(null);
     startTransition(async () => {
-      const result = await purchaseCourse(course.id, communitySlug, spaceSlug);
+      const result = await purchaseCourse(course.id, communitySlug, spaceSlug, how);
       if ("error" in result) setError(result.error);
       else window.location.assign(result.url);
     });
@@ -225,8 +232,17 @@ export function CoursePlayer({
     <Button type="button" disabled={isPending} onClick={toggleEnroll} className="w-auto">
       Start (included in your membership)
     </Button>
+  ) : isPaid && plan && planLabel ? (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button type="button" disabled={isPending} onClick={() => handlePurchase("one_off")} className="w-auto">
+        Buy {formatPrice(course.price_cents, course.currency)} once
+      </Button>
+      <Button type="button" variant="secondary" disabled={isPending} onClick={() => handlePurchase("instalments")} className="w-auto">
+        Or pay {planLabel}
+      </Button>
+    </div>
   ) : isPaid ? (
-    <Button type="button" disabled={isPending} onClick={handlePurchase} className="w-auto">
+    <Button type="button" disabled={isPending} onClick={() => handlePurchase("one_off")} className="w-auto">
       Buy {formatPrice(course.price_cents, course.currency)}
     </Button>
   ) : blockedByPrereqs ? (
@@ -294,6 +310,29 @@ export function CoursePlayer({
           <p className="mt-3 text-sm text-muted-foreground">
             Or get it included with {tierLink}
             {course.live_included_with_purchase ? "" : ", which also lets you join the live sessions"}.
+          </p>
+        )}
+
+        {myPlan && myPlan.status !== "canceled" && (
+          <p
+            className={cn(
+              "mt-3 rounded-md px-3 py-2 text-sm",
+              myPlan.status === "past_due"
+                ? "bg-amber-500/10 text-amber-800 dark:text-amber-300"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
+            {myPlan.status === "completed"
+              ? `All ${myPlan.total} monthly payments made. The course is yours to keep.`
+              : myPlan.status === "past_due"
+                ? "Your last monthly payment didn't go through. Stripe will try again; please check the card you paid with so you keep the course."
+                : `Paying monthly: ${myPlan.paid} of ${myPlan.total} payments made. They stop automatically after the last one.`}
+          </p>
+        )}
+
+        {myPlan?.status === "canceled" && !detail.viewerPaid && !isStaff && (
+          <p className="mt-3 rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-800 dark:text-amber-300">
+            Your monthly plan stopped after {myPlan.paid} of {myPlan.total} payments, so the course is locked. Buy it again to carry on.
           </p>
         )}
 
@@ -419,6 +458,7 @@ export function CoursePlayer({
                 {isPaid && (
                   <p className="mt-2 text-sm font-medium text-foreground">
                     {formatPrice(course.price_cents, course.currency)} once
+                    {planLabel ? `, or ${planLabel}` : ""}
                     {liveCount > 0 && !course.live_included_with_purchase ? ", for every playback" : ""}
                   </p>
                 )}

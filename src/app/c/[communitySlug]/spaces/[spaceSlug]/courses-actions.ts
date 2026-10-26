@@ -8,7 +8,8 @@ import { getCommunityCurrency, getMembership } from "@/lib/data/community";
 import { getProfile, getProfileByUsername } from "@/lib/data/profile";
 import { communityCanCharge, communityHasFeature } from "@/lib/data/plan-limits";
 import { rememberLessonRoom } from "@/lib/courses/lesson-recordings";
-import { isStripeConfigured, createCourseCheckoutSession } from "@/lib/stripe";
+import { isStripeConfigured, createCourseCheckoutSession, createCourseInstalmentCheckoutSession } from "@/lib/stripe";
+import { cleanInstalmentInput, instalmentPlan } from "@/lib/courses/instalments";
 import { courseLessonRoomName, getJaasAppId, isJaasConfigured, mintJaasToken } from "@/lib/jitsi";
 import { courseAccess, liveLessonState } from "@/lib/courses/lesson-kinds";
 import type { CourseLessonType, CourseStatus } from "@/types/database";
@@ -497,7 +498,26 @@ export async function setCoursePrice(courseId: string, priceCents: number, commu
   const { data: course } = await supabase.from("courses").select("community_id").eq("id", courseId).maybeSingle();
   if (!course) return { error: "That course no longer exists." };
   const currency = await getCommunityCurrency(supabase, course.community_id);
-  const { error } = await supabase.from("courses").update({ price_cents: price, currency }).eq("id", courseId);
+  // A free course has nothing to pay off monthly.
+  const update = price === 0 ? { price_cents: price, currency, instalment_count: 0, instalment_price_cents: 0 } : { price_cents: price, currency };
+  const { error } = await supabase.from("courses").update(update).eq("id", courseId);
+  if (error) return { error: error.message };
+  revalidateSpace(communitySlug, spaceSlug);
+  return { error: null };
+}
+
+// The monthly plan offered next to the one-off price (e.g. £40 a month for 4
+// months). 0 and 0 switch it off.
+export async function setCourseInstalments(courseId: string, count: number, priceCents: number, communitySlug: string, spaceSlug: string) {
+  const supabase = await createClient();
+  const { data: course } = await supabase.from("courses").select("price_cents").eq("id", courseId).maybeSingle();
+  if (!course) return { error: "That course no longer exists." };
+  const cleaned = cleanInstalmentInput(count, priceCents, course.price_cents);
+  if ("error" in cleaned) return { error: cleaned.error };
+  const { error } = await supabase
+    .from("courses")
+    .update({ instalment_count: cleaned.count, instalment_price_cents: cleaned.priceCents })
+    .eq("id", courseId);
   if (error) return { error: error.message };
   revalidateSpace(communitySlug, spaceSlug);
   return { error: null };
@@ -575,7 +595,13 @@ export type CoursePurchaseResult = { error: string } | { url: string };
 // Buying a paid course: a one-off Stripe Checkout on the community's connected
 // account (the owner keeps the payment). The webhook records the paid
 // enrolment once Stripe confirms the payment, so nothing is unlocked here.
-export async function purchaseCourse(courseId: string, communitySlug: string, spaceSlug: string): Promise<CoursePurchaseResult> {
+// `plan` picks how to pay: once, or in the course's monthly instalments.
+export async function purchaseCourse(
+  courseId: string,
+  communitySlug: string,
+  spaceSlug: string,
+  plan: "one_off" | "instalments" = "one_off"
+): Promise<CoursePurchaseResult> {
   if (!isStripeConfigured()) {
     return { error: "Payments aren't available on this platform yet. Ask a course admin for access." };
   }
@@ -588,7 +614,7 @@ export async function purchaseCourse(courseId: string, communitySlug: string, sp
 
   const { data: course } = await supabase
     .from("courses")
-    .select("id, title, price_cents, currency, status, community_id")
+    .select("id, title, price_cents, currency, status, community_id, instalment_count, instalment_price_cents")
     .eq("id", courseId)
     .maybeSingle();
   if (!course || course.status !== "published") return { error: "This course isn't open yet." };
@@ -619,6 +645,28 @@ export async function purchaseCourse(courseId: string, communitySlug: string, sp
   const base = await requestBaseUrl();
   const courseUrl = `${base}/c/${communitySlug}/spaces/${spaceSlug}/courses/${course.id}`;
 
+  const metadata = { course_id: course.id, user_id: user.id, community_id: community.id };
+  if (plan === "instalments") {
+    const instalments = instalmentPlan(course);
+    if (!instalments) return { error: "This course isn't offered in monthly payments." };
+    try {
+      const session = await createCourseInstalmentCheckoutSession({
+        stripeAccount: community.stripe_account_id,
+        priceCents: instalments.priceCents,
+        currency: course.currency,
+        instalments: instalments.count,
+        productName: `${course.title} — ${community.name}`,
+        successUrl: `${courseUrl}?purchased=1`,
+        cancelUrl: courseUrl,
+        customerEmail: user.email ?? undefined,
+        metadata: { ...metadata, instalments: String(instalments.count) },
+      });
+      return { url: session.url };
+    } catch (err) {
+      return { error: (err as Error).message || "Couldn't start checkout." };
+    }
+  }
+
   try {
     const session = await createCourseCheckoutSession({
       stripeAccount: community.stripe_account_id,
@@ -628,7 +676,7 @@ export async function purchaseCourse(courseId: string, communitySlug: string, sp
       successUrl: `${courseUrl}?purchased=1`,
       cancelUrl: courseUrl,
       customerEmail: user.email ?? undefined,
-      metadata: { course_id: course.id, user_id: user.id, community_id: community.id },
+      metadata,
     });
     return { url: session.url };
   } catch (err) {
