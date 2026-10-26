@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { cn, formatDateTime } from "@/lib/utils";
 import { useFormDraftRef } from "@/lib/use-form-draft";
+import { instalmentPlan } from "@/lib/courses/instalments";
 import {
   updateCourseSettings,
   updateCourseCover,
@@ -44,6 +45,7 @@ import {
   createAnnouncement,
   deleteAnnouncement,
   setCoursePrice,
+  setCourseInstalments,
   setCourseLiveIncluded,
   setCourseTiers,
   grantCourseAccess,
@@ -979,17 +981,65 @@ function PricingSection({
   setError: (message: string | null) => void;
 }) {
   const { course } = detail;
-  const [amount, setAmount] = useState((course.price_cents / 100).toFixed(2));
   const [priceSaved, setPriceSaved] = useState(false);
   const [grantUser, setGrantUser] = useState("");
   const includedIds = new Set(detail.includedInTiers.map((t) => t.id));
   const hasLive = detail.modules.some((m) => m.lessons.some((l) => l.lesson_type === "live"));
+  const plan = instalmentPlan(course);
+  const currencyCode = course.currency.toUpperCase();
 
-  function savePrice() {
+  // The prices are typed into an uncontrolled form whose draft survives a
+  // refresh (house rule), cleared once saved. `preview` mirrors the monthly
+  // fields to show what the plan adds up to.
+  const priceFormRef = useRef<HTMLFormElement>(null);
+  const [preview, setPreview] = useState({ count: String(plan?.count ?? ""), amount: plan ? (plan.priceCents / 100).toFixed(2) : "" });
+  const { clear: clearPriceDraft } = useFormDraftRef(priceFormRef, `course-pricing:${course.id}`, {
+    onRestore: (values) =>
+      setPreview((prev) => ({
+        count: typeof values.instalment_count === "string" ? values.instalment_count : prev.count,
+        amount: typeof values.instalment_amount === "string" ? values.instalment_amount : prev.amount,
+      })),
+  });
+
+  function readPreview() {
+    const form = priceFormRef.current;
+    if (!form) return;
+    const data = new FormData(form);
+    setPreview({ count: String(data.get("instalment_count") ?? ""), amount: String(data.get("instalment_amount") ?? "") });
+  }
+
+  function savePrices(removePlan = false) {
+    const form = priceFormRef.current;
+    if (!form) return;
     setError(null);
     setPriceSaved(false);
-    const cents = Math.round(Number(amount) * 100);
-    run(() => setCoursePrice(course.id, Number.isFinite(cents) ? cents : 0, communitySlug, spaceSlug).then((r) => (r?.error ? r : (setPriceSaved(true), r))));
+    const data = new FormData(form);
+    const toCents = (value: FormDataEntryValue | null) => {
+      const cents = Math.round(Number(value || 0) * 100);
+      return Number.isFinite(cents) && cents > 0 ? cents : 0;
+    };
+    const oneOff = toCents(data.get("course_price"));
+    const count = removePlan ? 0 : Math.round(Number(data.get("instalment_count") || 0));
+    const monthly = removePlan ? 0 : toCents(data.get("instalment_amount"));
+    run(async () => {
+      const priceResult = await setCoursePrice(course.id, oneOff, communitySlug, spaceSlug);
+      if (priceResult?.error) return priceResult;
+      // A free course can't have a monthly plan; setCoursePrice already cleared it.
+      if (oneOff > 0) {
+        const planResult = await setCourseInstalments(course.id, count, monthly, communitySlug, spaceSlug);
+        if (planResult?.error) return planResult;
+      }
+      clearPriceDraft();
+      if (removePlan) {
+        const countInput = form.elements.namedItem("instalment_count") as HTMLInputElement | null;
+        const amountInput = form.elements.namedItem("instalment_amount") as HTMLInputElement | null;
+        if (countInput) countInput.value = "";
+        if (amountInput) amountInput.value = "";
+        setPreview({ count: "", amount: "" });
+      }
+      setPriceSaved(true);
+      return { error: null };
+    });
   }
 
   function toggleTier(tierId: string, on: boolean) {
@@ -999,26 +1049,104 @@ function PricingSection({
     run(() => setCourseTiers(course.id, communityId, [...next], communitySlug, spaceSlug));
   }
 
+  const previewCount = Math.round(Number(preview.count) || 0);
+  const previewAmount = Number(preview.amount) || 0;
+  const previewTotal = previewCount >= 2 && previewAmount > 0 ? previewCount * previewAmount : 0;
+
   return (
     <section className="space-y-4 rounded-xl border border-border bg-card p-4">
       <div>
         <h2 className="text-sm font-semibold text-foreground">Pricing &amp; access</h2>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          Set a one-off price to sell this course. Leave it at 0 for a free course anyone can join.
+          Set a one-off price to sell this course. Leave it at 0 for a free course anyone can join. You can also let buyers pay monthly
+          instead.
         </p>
       </div>
 
-      <div className="flex flex-wrap items-end gap-2">
+      <form
+        ref={priceFormRef}
+        onInput={readPreview}
+        onSubmit={(e) => {
+          e.preventDefault();
+          savePrices();
+        }}
+        className="space-y-4"
+      >
         <div>
-          <Label htmlFor="course_price">One-off price</Label>
-          <Input id="course_price" type="number" min={0} step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-32" />
+          <Label htmlFor="course_price">One-off price ({currencyCode})</Label>
+          <Input
+            id="course_price"
+            name="course_price"
+            type="number"
+            min={0}
+            step="0.01"
+            defaultValue={(course.price_cents / 100).toFixed(2)}
+            className="w-32"
+          />
         </div>
-        <p className="pb-2 text-sm font-medium text-foreground">{course.currency.toUpperCase()}</p>
-        <Button type="button" disabled={isPending} onClick={savePrice} className="w-auto">
-          Save price
-        </Button>
-        {priceSaved && <span className="text-xs text-emerald-600">Saved</span>}
-      </div>
+
+        <div className="rounded-lg border border-border p-3">
+          <p className="text-sm font-medium text-foreground">Or pay monthly (optional)</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            For example 4 payments of 40 next to a one-off price of 144. Buyers choose when they buy. The course opens on the first payment
+            and the payments stop by themselves after the last one. Leave blank to sell it one-off only.
+          </p>
+          <div className="mt-2 flex flex-wrap items-end gap-2">
+            <div>
+              <Label htmlFor="instalment_count">Number of payments</Label>
+              <Input
+                id="instalment_count"
+                name="instalment_count"
+                type="number"
+                min={2}
+                max={24}
+                step={1}
+                defaultValue={plan ? String(plan.count) : ""}
+                placeholder="4"
+                className="w-28"
+              />
+            </div>
+            <div>
+              <Label htmlFor="instalment_amount">Each month ({currencyCode})</Label>
+              <Input
+                id="instalment_amount"
+                name="instalment_amount"
+                type="number"
+                min={0}
+                step="0.01"
+                defaultValue={plan ? (plan.priceCents / 100).toFixed(2) : ""}
+                placeholder="40.00"
+                className="w-32"
+              />
+            </div>
+            {plan && (
+              <Button type="button" variant="secondary" disabled={isPending} onClick={() => savePrices(true)} className="w-auto">
+                Remove monthly option
+              </Button>
+            )}
+          </div>
+          {previewTotal > 0 && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Buyers pay {previewAmount.toFixed(2)} {currencyCode} a month for {previewCount} months, {previewTotal.toFixed(2)} {currencyCode}{" "}
+              in all.
+            </p>
+          )}
+          {(detail.instalmentBuyers.paying > 0 || detail.instalmentBuyers.finished > 0) && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {detail.instalmentBuyers.paying} paying monthly now
+              {detail.instalmentBuyers.behind > 0 ? `, ${detail.instalmentBuyers.behind} behind on a payment (Stripe is retrying)` : ""}
+              {detail.instalmentBuyers.finished > 0 ? `, ${detail.instalmentBuyers.finished} paid in full` : ""}.
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button type="submit" disabled={isPending} className="w-auto">
+            Save prices
+          </Button>
+          {priceSaved && <span className="text-xs text-emerald-600">Saved</span>}
+        </div>
+      </form>
       <p className="-mt-2 text-xs text-muted-foreground">
         Charged in your community&apos;s currency. The owner changes it in{" "}
         <a href={`/c/${communitySlug}/admin#payments`} className="text-accent underline-offset-2 hover:underline">
@@ -1030,7 +1158,9 @@ function PricingSection({
       {course.price_cents > 0 && (
         <>
           <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
-            Members pay once through Stripe and keep the course. You can also grant it to someone below.
+            {plan
+              ? "Members pay once, or monthly until the last payment, through Stripe and keep the course. If a monthly payment fails, Stripe retries it; if it never goes through, the course locks for them. You can also grant it to someone below."
+              : "Members pay once through Stripe and keep the course. You can also grant it to someone below."}
           </p>
 
           <label className="flex items-start gap-2 text-sm text-foreground">

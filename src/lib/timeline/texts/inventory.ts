@@ -1146,6 +1146,43 @@ export const INVENTORY_SOURCES: SeedSource[] = [
       "Says that 'very little is known about his personal history except that he lived during the reign of Marcus Aurelius, that his literary activity falls between the years 175 and 180', and that he wrote the True Word against the Christians, which survives only in Origen's reply; also that 'about the year 240 a copy of the work was sent to Origen by his friend Ambrosius', which does not square exactly with Eusebius's placing of the reply under Philip (244–249). Cited for the date of Celsus's work, which is debated. Read in New Advent's transcription.",
   },
   {
+    key: "charles-1900-ascension",
+    title:
+      "The Ascension of Isaiah, translated from the Ethiopic version, which, together with the new Greek fragment, the Latin versions and the Latin translation of the Slavonic, is here published in full",
+    author: "R. H. Charles (ed. and trans.)",
+    publisher: "Adam and Charles Black, London",
+    publishedYear: 1900,
+    reference:
+      "The English translation of chapters vi–xi, pp. 42–82, cited by Charles's chapter and verse; the Introduction (pp. vii–lxxiv) for the manuscripts, versions and dates. Read in two scans on archive.org: the Cornell University Library copy (cu31924014590529, page images n121–n161 for pp. 42–82) and the Princeton Theological Seminary copy (ascensionofisaia00unse)",
+    url: "https://archive.org/details/cu31924014590529",
+    sourceType: "primary",
+    notes:
+      "The edition and English imported. Charles translated from the Ethiopic, following in the main the Bodleian manuscript, and marked his emendations, the words he held corrupt or interpolated, and the words of one branch of the Greek (G1) absent from the other (G2); the signs are kept. His Introduction is the only source read for the dates (the Vision 'in its primitive form' at 'the close of the first century'; the final editing early in the third century or the second; the Ethiopic version probably fifth century) and for the manuscripts and versions. The text was voted from the OCR of the two scans and an independent web transcription and read against the Cornell page images; every correction made by hand is in scripts/texts/ascension-of-isaiah.py. Public domain (Charles died in 1931).",
+  },
+  {
+    key: "laurence-1819-ascension",
+    title: "Ascensio Isaiae Vatis, opusculum pseudepigraphum, multis abhinc seculis, ut videtur, deperditum, nunc autem apud Aethiopas compertum, et cum versione Latina Anglicanaque publici juris factum",
+    author: "Richard Laurence (ed. and trans.)",
+    publisher: "Oxford",
+    publishedYear: 1819,
+    reference: "The English translation of chapters vi–xi, compared in the archive.org OCR (ascensioisaiaeva00laur); chapter xi from about p. 133",
+    url: "https://archive.org/details/ascensioisaiaeva00laur",
+    sourceType: "primary",
+    notes:
+      "The first edition of the Ethiopic text, from the Bodleian manuscript alone, with Latin and English translations; Charles calls it the publication of manuscript a 'as it stands'. Its English was compared with Charles's on chapter xi and is a different, freer translation (xi. 8: 'while Mary was attentively gazing on the ground, she suddenly perceived with astonishment a small infant'); it is not imported. The title is as the archive.org record gives it and was not checked on the title page. Public domain.",
+  },
+  {
+    key: "ecw-ascension-transcription",
+    title: "Ascension of Isaiah (web transcription of R. H. Charles's 1900 English)",
+    author: "Unsigned; published on Early Christian Writings (Peter Kirby)",
+    publisher: "earlychristianwritings.com",
+    reference: "https://www.earlychristianwritings.com/text/ascension.html, chapters 6–11",
+    url: "https://www.earlychristianwritings.com/text/ascension.html",
+    sourceType: "website",
+    notes:
+      "A transcription of Charles's English without his signs and with modern double quotation marks, used only as the third witness in the vote that made the imported text, and then compared with the result: it differs in 44 places, all slips or omissions of the transcription on the page images (for example 'descent' for 'descend', 'forth' for 'fourth', 'astonished' for Charles's 'astonied', and no 'for these are great things' in xi. 34). Not imported.",
+  },
+  {
     key: "hall-secret-teachings",
     title: "The Secret Teachings of All Ages",
     author: "Manly P. Hall",
@@ -2771,6 +2808,93 @@ export const INVENTORY: InventoryWork[] = [
     prominence: 2,
   },
   {
+    // The Vision of Isaiah (chapters vi–xi) is a Christian apocalypse, not a
+    // Gnostic text; it is a proposed member of item 23 ("Other ancient texts
+    // on planetary rulers, archons and ascent") for its seven heavens and the
+    // descent hidden from the powers, so it is shelved in the group that
+    // holds item 23 and given its own work. No marker existed for it.
+    workKey: "gnostic.ascension-of-isaiah",
+    passagePrefix: "gnostic.ascisa",
+    briefItem: 23,
+    title: "The Ascension of Isaiah, chapters VI–XI: the Vision of Isaiah",
+    alternativeTitles: ["Ascensio Isaiae", "Visio Isaiae", "The Vision of Isaiah"],
+    corpusGroup: "gnostic",
+    traditionClass: "ancient_late_transmission",
+    civilisation: "Roman Empire",
+    originalLanguage: "Greek (lost); complete only in Ethiopic (Ge'ez)",
+    attribution: "Pseudepigraphal: told in the name of the prophet Isaiah; author unknown",
+    attributionNote:
+      "A composite book, 'partly of Jewish, partly of Christian origin', as R. H. Charles describes it (1900): the Martyrdom of Isaiah (Jewish), the Testament of Hezekiah (iii. 13b–iv. 18) and the Vision of Isaiah (vi.–xi. 40), both Christian, joined by an editor (xi. 41–43). Only the Vision is imported. Charles dates it in its first form to the close of the first century and the final editing to early in the third century or the second. The Greek original is lost; the whole book survives only in Ethiopic, chapters vi–xi also in a Latin version and in Slavonic, vii. 1–19 in a Latin palimpsest fragment and ii. 4–iv. 4 in a Greek papyrus, all as Charles reports them. The English is Charles's, from the Ethiopic.",
+    summary:
+      "Isaiah, in a trance before King Hezekiah, is led by an angel through the firmament and the seven heavens, sees the Beloved sent down unrecognized through them, taking each heaven's form and giving the gatekeepers the password, born of Mary, crucified, and ascending again to the right hand of the Great Glory: a Christian apocalypse, in R. H. Charles's English from the Ethiopic (1900).",
+    referenceEdition: "R. H. Charles, The Ascension of Isaiah (London, 1900), chapters vi–xi, by Charles's chapter and verse",
+    expectedUnits: 197,
+    unitLabel: "verses (vi. 1–xi. 43, with ix. 12–13 as one)",
+    unitDivisionKind: "verse",
+    inventoryBasis:
+      "Charles's own chapters and verses, read on the page images of the 1900 printing (pp. 42–82): vi. 1–17, vii. 1–37, viii. 1–28, ix. 1–42, x. 1–31 and xi. 1–43, 198 verses printed as 197 units because ix. 12 and 13 are printed together ('12, 13.') where Charles restores their order. All are imported. The verse numbering is Charles's (after Dillmann's edition of 1877, which was not read); other editions may divide differently, so the count is not marked verified. Listed, not imported: chapters i–v, Charles's footnotes, and the Ethiopic, Greek, Latin and Slavonic texts printed in the same book.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Public domain: Charles's translation was published in 1900 (he died in 1931); Laurence's of 1819 is compared only. The pictures carry the licences their Commons file pages state.",
+    fullTextEditions: ["R. H. Charles, The Ascension of Isaiah (London, 1900): the English of chapters vi–xi"],
+    referenceOnlyEditions: [
+      "The Ethiopic text, in Charles 1900 (pp. 83–139) and Dillmann, Ascensio Isaiae (Leipzig, 1877), not read",
+      "The Latin versions (L1, L2) and Bonwetsch's Latin translation of the Slavonic, printed by Charles 1900, not read",
+      "Richard Laurence, Ascensio Isaiae Vatis (Oxford, 1819), with an English translation from the Bodleian manuscript, compared only",
+      "R. H. Charles's revised translation (London: SPCK, 1917), not found and not used",
+    ],
+    imageCollections: [
+      "Wikimedia Commons: the Amherst Greek papyrus of the Ascension (ii. 4–iv. 4, the Martyrdom, now in the Morgan Library), and pictures of the martyrdom of Isaiah sawn asunder (xi. 41)",
+    ],
+    anchor: {
+      event: {
+        slug: "ascension-of-isaiah-vision",
+        title: "The Vision of Isaiah: an ascent through the seven heavens",
+        summary: "A Christian apocalypse, later joined to the Martyrdom of Isaiah, tells of the prophet's ascent through the seven heavens and of the Beloved's descent hidden from the powers.",
+        description:
+          "The Vision of Isaiah (Ascension of Isaiah vi–xi) is a Christian apocalypse told in the prophet's name: led by an angel through the firmament and the seven heavens, Isaiah sees the Beloved commanded to descend through them unrecognized, taking each heaven's form and giving the gatekeepers a password, and then his birth, death, descent to Sheol and ascent. R. H. Charles (1900) dated it in its first form to the close of the first century, and the joining of it to the Jewish Martyrdom of Isaiah to early in the third century or the second. The Greek original is lost; the whole book survives only in Ethiopic, translated, Charles thought, in the fifth century.",
+        category: "religion",
+        eventType: "historical",
+        tags: ["ancient texts", "apocalypse", "seven heavens", "ascent", "pseudepigrapha"],
+        civilisations: ["Roman Empire"],
+        people: ["R. H. Charles"],
+        claims: [
+          dated("composition", {
+            qualifier: "the Vision of Isaiah (Ascension of Isaiah vi–xi), in its first form",
+            sourceKey: "charles-1900-ascension",
+            startYear: 80,
+            endYear: 100,
+            datePrecision: "decade",
+            originalDateText: "'Thus the composition of the Vision in its primitive form G belongs to the close of the first century' (Charles 1900, p. xlv)",
+            evidence:
+              "Charles argues from its use by Jerome, Hieracas and the Archontici, its attestation in the Actus Petri Vercellenses (second century, or at latest early third), the Protevangelium of James's apparent knowledge of it, and Ignatius's apparent dependence on xi. 16 (To the Ephesians 19). The range 80–100 renders 'the close of the first century'; it is one scholar's dating, approximate.",
+          }),
+          dated("composition", {
+            qualifier: "the final editing of the whole Ascension",
+            sourceKey: "charles-1900-ascension",
+            startYear: 150,
+            endYear: 230,
+            datePrecision: "century",
+            originalDateText: "'it is probable that the work of editing goes back to early in the third century, or even to the second' (Charles 1900, p. xlv)",
+            evidence: "Argued from the corrupt state of the fifth- or sixth-century Greek papyrus and Latin palimpsest, and the probable fifth-century date of the Ethiopic version. Approximate.",
+          }),
+          dated("translation_publication", {
+            qualifier: "Charles's English, translated from the Ethiopic",
+            sourceKey: "charles-1900-ascension",
+            startYear: 1900,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "London: Adam and Charles Black, 1900",
+            datingMethod: "historical_record",
+            evidence: "The printing imported, read in two scans; the Preface is signed at Oxford, September 1900.",
+          }),
+        ],
+      },
+    },
+    prominence: 2,
+  },
+  {
     workKey: "gnostic.pistis-sophia",
     passagePrefix: "gnostic.ps",
     briefItem: 20,
@@ -3073,7 +3197,7 @@ export const INVENTORY: InventoryWork[] = [
     proposedMembers: [
       "Irenaeus, Against Heresies I (c. 180) — Gnostic systems and their archons",
       "Origen, Contra Celsum VI.22–38 — the Ophite diagram and the seven archons; imported as its own work, gnostic.origen-contra-celsum",
-      "Ascension of Isaiah 6–11 — ascent through seven heavens",
+      "Ascension of Isaiah 6–11 — ascent through seven heavens; imported as its own work, gnostic.ascension-of-isaiah",
       "2 Enoch — the seven heavens",
     ],
   },
