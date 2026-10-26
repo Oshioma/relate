@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MembershipTierCard } from "./membership-tier-card";
 import { SpaceSubscriptionCard } from "./space-subscription-card";
+import { checkoutNotice } from "@/lib/checkout-links";
 
 export const metadata = { title: "Membership" };
 
@@ -19,10 +20,11 @@ export default async function MembershipPage({
   searchParams,
 }: {
   params: Promise<{ communitySlug: string }>;
-  searchParams: Promise<{ subscribed?: string }>;
+  searchParams: Promise<{ subscribed?: string; checkout_error?: string }>;
 }) {
   const { communitySlug } = await params;
-  const { subscribed } = await searchParams;
+  const { subscribed, checkout_error } = await searchParams;
+  const checkoutError = checkoutNotice(checkout_error);
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
@@ -83,6 +85,15 @@ export default async function MembershipPage({
               We&apos;re finalizing your membership — access usually unlocks within a few seconds. Refresh if a space still
               looks locked.
             </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {checkoutError && (
+        <Card className="mt-6 border-danger/40">
+          <CardContent className="pt-5">
+            <p className="text-sm font-medium text-foreground">Checkout didn&apos;t start</p>
+            <p className="mt-1 text-sm text-muted-foreground">{checkoutError}</p>
           </CardContent>
         </Card>
       )}

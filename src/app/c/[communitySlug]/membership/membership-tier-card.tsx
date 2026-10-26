@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { subscribeToTier, cancelTierSubscription, resumeTierSubscription } from "../membership-actions";
 import { planDescriptionBlocks } from "@/lib/plan-description";
+import { tierCheckoutPath } from "@/lib/checkout-links";
 
 function formatPrice(cents: number, currency: string): string {
   try {
@@ -168,23 +169,26 @@ export function MembershipTierCard({
             )
           ) : isStaff ? (
             <p className="text-sm text-muted-foreground">Staff already have access to every space.</p>
+          ) : !paymentsReady ? (
+            <p className="text-sm text-muted-foreground">This community hasn&apos;t finished setting up payments yet.</p>
           ) : !isSignedIn ? (
             <div>
-              <Link
-                href={`/signup?next=${encodeURIComponent(returnTo)}`}
+              {/* Straight to Stripe, no account first: the account is made (or
+                  matched) from the email given at checkout. A plain <a>, never
+                  a prefetching Link, since opening it starts a Checkout. */}
+              <a
+                href={tierCheckoutPath(communitySlug, tierId)}
                 className="inline-flex w-full items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground transition-colors hover:opacity-90"
               >
                 Join for {price}/mo
-              </Link>
+              </a>
               <p className="mt-2 text-center text-xs text-muted-foreground">
-                You&apos;ll make a free account first, then pay.{" "}
+                Pay securely with Stripe. Your account is set up from your email.{" "}
                 <Link href={`/login?next=${encodeURIComponent(returnTo)}`} className="text-accent underline-offset-2 hover:underline">
-                  Already have one? Sign in
+                  Already a member? Sign in
                 </Link>
               </p>
             </div>
-          ) : !paymentsReady ? (
-            <p className="text-sm text-muted-foreground">This community hasn&apos;t finished setting up payments yet.</p>
           ) : (
             <Button className="w-full" size="lg" onClick={handleJoin} disabled={busy}>
               {busy ? "Starting checkout…" : `Join for ${price}/mo`}
