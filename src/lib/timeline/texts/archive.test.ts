@@ -15,6 +15,7 @@ import { VIRGIN_UNITS } from "./corpus/virgin-of-the-world-text";
 import { MITHRIAC_UNITS } from "./corpus/mithras-liturgy-text";
 import { IRENAEUS_NOTES, IRENAEUS_UNITS } from "./corpus/irenaeus-text";
 import { ORIGEN_NOTES, ORIGEN_UNITS } from "./corpus/origen-contra-celsum-text";
+import { ASCENSION_UNITS } from "./corpus/ascension-of-isaiah-text";
 import { MARKER_PICTURES } from "./marker-pictures";
 import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
@@ -2383,6 +2384,174 @@ test("Origen's pictures are from Commons, the manuscripts and the mosaic are mar
   assert.equal(marker[1].url, witte.url);
   assert.equal(marker[1].shows, "reconstruction");
   assert.match(marker[1].caption ?? "", /reconstruction/);
+});
+
+test("the Ascension of Isaiah vi–xi is imported as its own work, verse by verse, from Charles 1900, with his signs", () => {
+  const file = corpusFor("gnostic.ascension-of-isaiah")!;
+  const work = INVENTORY.find((w) => w.workKey === "gnostic.ascension-of-isaiah")!;
+  assert.equal(work.passagePrefix, "gnostic.ascisa");
+  assert.equal(work.briefItem, 23);
+  assert.equal(work.corpusGroup, "gnostic");
+  assert.equal(work.traditionClass, "ancient_late_transmission");
+  assert.equal(work.unitDivisionKind, "verse");
+  assert.equal(work.expectedUnits, 197);
+  assert.equal(work.inventoryVerified, false, "Charles's verse numbering, not checked against other editions");
+  assert.match(work.attributionNote!, /^A composite book, 'partly of Jewish, partly of Christian origin'/);
+  assert.match(work.summary, /a Christian apocalypse/);
+  // Item 23 of the brief points here, and the inventory lists Charles 1900 as the full-text edition.
+  const related = INVENTORY.find((w) => w.workKey === "gnostic.related")!;
+  assert.ok(related.proposedMembers!.includes("Ascension of Isaiah 6–11 — ascent through seven heavens; imported as its own work, gnostic.ascension-of-isaiah"));
+  assert.ok(related.fullTextEditions.includes("Charles 1900 (Ascension of Isaiah)"));
+  for (const key of ["charles-1900-ascension", "laurence-1819-ascension", "ecw-ascension-transcription"]) {
+    assert.ok(INVENTORY_SOURCES.some((s) => s.key === key), key);
+  }
+  // One record for the Vision (citing the Ge'ez only), six chapters, 197 verses (ix. 12–13 as one).
+  const vision = file.passages[0];
+  assert.equal(vision.key, "gnostic.ascisa.vision");
+  assert.equal(vision.layers.filter((l) => l.content && l.key !== PLAIN_LAYER_KEY).length, 0);
+  assert.ok(vision.layers.some((l) => l.key === "gez" && l.content == null && l.language === "Ge'ez"));
+  assert.match(vision.summary!, /It is not a Gnostic text\.$/);
+  assert.match(vision.notes!, /Not imported, and listed here: chapters i–v \(the Martyrdom of Isaiah/);
+  assert.match(vision.notes!, /Richard Laurence's English \(Oxford, 1819\)/);
+  const chapters = file.passages.filter((p) => p.divisionKind === "chapter");
+  assert.deepEqual(chapters.map((c) => c.key), ["6", "7", "8", "9", "10", "11"].map((c) => `gnostic.ascisa.${c}`));
+  const verses = file.passages.filter((p) => p.divisionKind === work.unitDivisionKind);
+  assert.equal(verses.length, 197);
+  assert.equal(ASCENSION_UNITS.length, 197);
+  assert.equal(file.passages.length, 1 + 6 + 197);
+  const counts = Object.fromEntries(chapters.map((c) => [c.key, verses.filter((v) => v.parentKey === c.key).length]));
+  assert.deepEqual(counts, { "gnostic.ascisa.6": 17, "gnostic.ascisa.7": 37, "gnostic.ascisa.8": 28, "gnostic.ascisa.9": 41, "gnostic.ascisa.10": 31, "gnostic.ascisa.11": 43 });
+  assert.ok(verses.some((v) => v.key === "gnostic.ascisa.9.12-13"));
+  assert.ok(!verses.some((v) => v.key === "gnostic.ascisa.9.12" || v.key === "gnostic.ascisa.9.13"));
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 197, verifiedUnits: 0 }), "verified_against_edition");
+  const text = (key: string) => file.passages.find((p) => p.key === `gnostic.ascisa.${key}`)!.layers.find((l) => l.key === "eng-1900")!.content!;
+  for (const verse of verses) {
+    assert.equal(verse.verificationStatus, "unverified", verse.key);
+    const layer = verse.layers.find((l) => l.key === "eng-1900")!;
+    assert.equal(layer.licence, "public_domain", verse.key);
+    assert.equal(layer.layer, "translation", verse.key);
+    assert.equal(layer.sourceKey, "charles-1900-ascension", verse.key);
+    assert.match(layer.evidence, /scripts\/texts\/ascension-of-isaiah\.py/, verse.key);
+    assert.match(verse.reference, /^Ascension of Isaiah [vix]+\. [\d, ]+ \(Charles's chapter and verse\); Charles, The Ascension of Isaiah \(London, 1900\), (p\. \d+|pp\. \d+–\d+)$/, verse.key);
+    assert.ok(verse.layers.some((l) => l.key === PLAIN_LAYER_KEY), `${verse.key} has no plain words`);
+    // No OCR debris: no stray quotation-mark signs, no footnote numerals, no doubled spaces, no TM or hyphen breaks.
+    assert.doesNotMatch(layer.content!, /"|™|_|�|  |- |\b(ix|vi|vii|viii|x|xi)\. \d|\d/, verse.key);
+  }
+  // Charles's signs are kept, and every half-bracket that opens closes.
+  const all = ASCENSION_UNITS.map((u) => u.text).join(" ");
+  assert.equal((all.match(/⸢/g) ?? []).length, (all.match(/⸣/g) ?? []).length);
+  assert.equal((all.match(/†/g) ?? []).length % 2, 0);
+  assert.equal((all.match(/\*/g) ?? []).length % 2, 0);
+  assert.match(text("6.1"), /^THE VISION WHICH ISAIAH THE SON OF AMOS SAW\.\n\nIn the twentieth year of the reign of Hezekiah/);
+  assert.match(text("6.9"), /†who had thus bestowed a door in an alien world, had bestowed \(it\) on a man†/);
+  assert.match(text("7.10"), /^And as above so on the earth also; for the likeness of that which is in the firmament is here on the earth\.$/);
+  assert.match(text("7.34"), /\[from the third to the fourth\]/);
+  assert.match(text("8.14"), /and likewise other numbered garments/);
+  assert.match(text("9.12-13"), /\[will descend, I say\]/);
+  assert.match(text("9.16"), /\[and he will remain in that world five hundred and forty-five days\]/);
+  assert.match(text("10.24"), /demanded the password, and the Lord gave \(it\) to them/);
+  assert.match(text("11.8"), /she was astonied\.$/);
+  assert.match(text("11.40"), /^\. \. \. \*Such things\* ye will read\./);
+  assert.match(text("11.43"), /he was destroyed\.\n\nHere endeth the vision of Isaiah the prophet with his ascension\.$/);
+  // Verse notes explain the signs, and the composite character is stated on the chapters.
+  assert.match(file.passages.find((p) => p.key === "gnostic.ascisa.9.16")!.notes!, /'The idea is a Gnostic one\./);
+  assert.match(file.passages.find((p) => p.key === "gnostic.ascisa.11")!.notes!, /xi\. 41–43 in the margin as editorial additions/);
+});
+
+test("the Vision of Isaiah is dated only from Charles 1900: its first form to the close of the first century, its English to 1900", () => {
+  const file = corpusFor("gnostic.ascension-of-isaiah")!;
+  const vision = file.passages[0];
+  assert.deepEqual(
+    vision.dates!.map((d) => [d.role, d.startYear, d.endYear, d.datePrecision, d.isApproximate, d.sourceKey]),
+    [
+      ["composition", 80, 100, "decade", true, "charles-1900-ascension"],
+      ["composition", 150, 230, "century", true, "charles-1900-ascension"],
+      ["translation_publication", 400, 500, "century", true, "charles-1900-ascension"],
+      ["manuscript", 1400, 1500, "century", true, "charles-1900-ascension"],
+      ["earliest_evidence", 400, 600, "century", true, "charles-1900-ascension"],
+      ["translation_publication", 1900, 1900, "year", false, "charles-1900-ascension"],
+    ]
+  );
+  const [composition, editing] = vision.dates!;
+  assert.match(composition.originalDateText!, /belongs to the close of the first century/);
+  assert.match(composition.evidence, /Actus Petri Vercellenses/);
+  assert.match(composition.evidence, /one scholar's dating of 1900/);
+  assert.match(editing.originalDateText!, /early in the third century, or even to the second/);
+  const work = INVENTORY.find((w) => w.workKey === "gnostic.ascension-of-isaiah")!;
+  const event = work.anchor && "event" in work.anchor ? work.anchor.event : undefined;
+  assert.equal(event!.slug, "ascension-of-isaiah-vision");
+  assert.deepEqual(
+    event!.claims.map((c) => [dateRoleFromWhatIsDated(c.whatIsDated!), c.startYear, c.endYear]),
+    [
+      ["composition", 80, 100],
+      ["composition", 150, 230],
+      ["translation_publication", 1900, undefined],
+    ]
+  );
+});
+
+test("the Ascension's links are proposed resemblances, and none claims one text knew another", () => {
+  const file = corpusFor("gnostic.ascension-of-isaiah")!;
+  const links = file.links ?? [];
+  assert.equal(links.length, 8);
+  const keys = new Set(ALL_CORPORA.flatMap((f) => f.passages.map((p) => p.key)));
+  assert.equal(new Set(links.map((l) => l.key)).size, links.length, "duplicate link key");
+  for (const link of links) {
+    assert.ok(keys.has(link.from) && keys.has(link.to), link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^gnostic\.ascisa\.\d+\.[\d-]+$/, link.key);
+    assert.ok(["close_conceptual_parallel", "symbolic_similarity", "broad_thematic_resemblance", "speculative_connection"].includes(link.connectionClass), link.key);
+    assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+    assert.doesNotMatch(`${link.similarities} ${link.differences} ${link.transmissionEvidence}`, /\bcop(ied|y)\b/, link.key);
+  }
+  assert.deepEqual(
+    links.map((l) => [l.from, l.to]),
+    [
+      ["gnostic.ascisa.9.16", "gnostic.iren.1.30.14"],
+      ["gnostic.ascisa.10.20", "gnostic.ps.7"],
+      ["gnostic.ascisa.10.24", "gnostic.origen.6.31"],
+      ["gnostic.ascisa.7.10", "modern.kyb.1908.8"],
+      ["gnostic.ascisa.7.25", "herm.ch.1.25"],
+      ["gnostic.ascisa.9.9", "herm.ch.1.26"],
+      ["gnostic.ascisa.9.1", "greek.mithras.1907.9"],
+      ["gnostic.ascisa.10.5", "modern.hall.16.s2.p2"],
+    ]
+  );
+  // Charles's own comparison with Irenaeus is reported as an editor's, not as evidence.
+  const iren = links[0];
+  assert.match(iren.transmissionEvidence, /a modern editor's comparison, not evidence that either text knew the other/);
+});
+
+test("the Ascension's pictures are from Commons and all are marked UNVERIFIED: no manuscript of chapters vi–xi was found", () => {
+  const file = corpusFor("gnostic.ascension-of-isaiah")!;
+  const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+  const seen = new Map(images.map((i) => [i.key, i]));
+  assert.equal(seen.size, 4);
+  const elsewhere = new Set(ALL_CORPORA.filter((f) => f.workKey !== "gnostic.ascension-of-isaiah").flatMap((f) => [...(f.images ?? []), ...f.passages.flatMap((p) => p.images ?? [])].map((i) => i.url)));
+  for (const image of seen.values()) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.equal(image.licenceStatus, "open", image.key);
+    assert.ok(image.licence, image.key);
+    assert.ok(!elsewhere.has(image.url), `${image.key} repeats a picture shown elsewhere`);
+    assert.equal(image.identificationStatus, "unverified", image.key);
+    assert.match(image.caption, /^UNVERIFIED — /, image.key);
+    assert.ok(image.whatIsUnverified, image.key);
+  }
+  const papyrus = seen.get("ascisa-amherst-greek-papyrus-1-verso")!;
+  assert.equal(papyrus.shows, "manuscript");
+  assert.match(papyrus.caption, /^UNVERIFIED — Related evidence, not chapters vi–xi: /);
+  assert.match(papyrus.objectDate!, /do not agree/);
+  for (const key of ["ascisa-alcobaca-bible-martyrdom-of-isaiah", "ascisa-historienbibel-isaiah-sawn", "ascisa-lower-pool-of-siloam-1881"]) {
+    assert.equal(seen.get(key)!.shows, "later_artwork", key);
+    assert.match(seen.get(key)!.caption, /xi\. 41/, key);
+  }
+  // Its own marker: the papyrus first, then the Alcobaça miniature, both UNVERIFIED.
+  const marker = MARKER_PICTURES["ascension-of-isaiah-vision"];
+  assert.equal(marker.length, 2);
+  assert.equal(marker[0].url, papyrus.url);
+  assert.equal(marker[1].url, seen.get("ascisa-alcobaca-bible-martyrdom-of-isaiah")!.url);
+  for (const picture of marker) assert.equal(picture.identificationStatus, "unverified");
 });
 
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {

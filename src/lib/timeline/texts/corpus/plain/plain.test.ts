@@ -21,6 +21,7 @@ import { PLAIN_VIRGIN_OF_THE_WORLD } from "./virgin-of-the-world";
 import { PLAIN_MITHRAS_LITURGY } from "./mithras-liturgy";
 import { PLAIN_IRENAEUS } from "./irenaeus";
 import { PLAIN_ORIGEN_CONTRA_CELSUM } from "./origen-contra-celsum";
+import { PLAIN_ASCENSION_OF_ISAIAH } from "./ascension-of-isaiah";
 import { PLAIN_STOBAEUS } from "./stobaeus";
 import { PLAIN_HERMETICA } from "./hermetica";
 import { PLAIN_KAGEMNI } from "./kagemni";
@@ -66,6 +67,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "greek.mithras-liturgy": PLAIN_MITHRAS_LITURGY,
   "gnostic.irenaeus-against-heresies": PLAIN_IRENAEUS,
   "gnostic.origen-contra-celsum": PLAIN_ORIGEN_CONTRA_CELSUM,
+  "gnostic.ascension-of-isaiah": PLAIN_ASCENSION_OF_ISAIAH,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -196,6 +198,27 @@ test("every chapter of Origen, Against Celsus VI.22–38 has plain words, with C
     assert.match(PLAIN_ORIGEN_CONTRA_CELSUM[`gnostic.origen.6.${n}`], /\n\nOther possible readings:\n- /, String(n));
   }
   assert.match(PLAIN_ORIGEN_CONTRA_CELSUM["gnostic.origen.6.28"], /the 1872 printing reads 'or admit even that He was a wise man'/);
+});
+
+test("every verse of the Ascension of Isaiah vi–xi has plain words, with the narrator and Isaiah kept apart, and only those", () => {
+  const asc = ALL_CORPORA.find((c) => c.workKey === "gnostic.ascension-of-isaiah")!;
+  const withText = asc.passages.filter((p) => p.layers.some((l) => l.key === "eng-1900")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_ASCENSION_OF_ISAIAH).sort(), [...withText].sort());
+  assert.equal(withText.length, 197);
+  // Every entry says whose words it reports: the narrator's (vi, xi. 36–43) or Isaiah's (the vision itself).
+  for (const [key, words] of Object.entries(PLAIN_ASCENSION_OF_ISAIAH)) {
+    assert.match(words, /^(The narrator|Isaiah) (says|goes on|tells)/, key);
+  }
+  for (const v of [1, 10, 17]) assert.match(PLAIN_ASCENSION_OF_ISAIAH[`gnostic.ascisa.6.${v}`], /^The narrator/, String(v));
+  for (const key of ["7.2", "9.6", "10.24", "11.35"]) assert.match(PLAIN_ASCENSION_OF_ISAIAH[`gnostic.ascisa.${key}`], /^Isaiah/, key);
+  for (const v of [36, 39, 41, 42, 43]) assert.match(PLAIN_ASCENSION_OF_ISAIAH[`gnostic.ascisa.11.${v}`], /^The narrator/, String(v));
+  // Where Charles marks an emendation, a corruption or an interpolation and says what the manuscripts read, the other readings say so.
+  for (const key of ["6.9", "6.14", "6.17", "7.2", "7.8", "7.9", "8.2", "8.14", "8.18", "9.1", "9.12-13", "9.14", "9.16", "9.22", "10.12", "10.15", "11.24", "11.34", "11.40"]) {
+    assert.match(PLAIN_ASCENSION_OF_ISAIAH[`gnostic.ascisa.${key}`], /\n\nOther possible readings:\n- /, key);
+  }
+  assert.match(PLAIN_ASCENSION_OF_ISAIAH["gnostic.ascisa.6.9"], /'who had bestowed such an excellence of words on a man in the world'/);
+  assert.match(PLAIN_ASCENSION_OF_ISAIAH["gnostic.ascisa.9.16"], /five hundred and forty-five days[\s\S]*Irenaeus I\.3\.2 and I\.30\.14/);
+  assert.match(PLAIN_ASCENSION_OF_ISAIAH["gnostic.ascisa.11.34"], /'I preserve thee'/);
 });
 
 test("the Preface and every section of Scott-Elliot's Story of Atlantis have plain words, and only those", () => {
