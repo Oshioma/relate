@@ -239,6 +239,31 @@ export function setSubscriptionCancellation(params: {
 // Same shape as createSpaceCheckoutSession, but the subscription unlocks a set
 // of spaces (via tier_spaces) rather than one. Metadata carries tier_id so the
 // webhook records it into tier_subscriptions.
+// Who a membership or course checkout is for: a signed-in buyer (user_id), or a
+// guest with no account yet (guest "1").
+export type CheckoutMetadata = { community_id: string; user_id?: string; guest?: "1" };
+
+export type StripeCheckoutSession = {
+  id: string;
+  status?: string; // "open" | "complete" | "expired"
+  mode?: string;
+  payment_status?: string;
+  subscription?: string | null;
+  customer?: string | null;
+  created?: number;
+  customer_details?: { email?: string | null; name?: string | null } | null;
+  metadata?: Record<string, string>;
+};
+
+// Read a Checkout Session back from the connected account it was created on,
+// for the return page of a guest checkout (the browser only brings the id).
+export function retrieveCheckoutSession(sessionId: string, stripeAccount: string): Promise<StripeCheckoutSession> {
+  return stripeFetch<StripeCheckoutSession>(`/checkout/sessions/${encodeURIComponent(sessionId)}`, {
+    method: "GET",
+    stripeAccount,
+  });
+}
+
 export function createTierCheckoutSession(params: {
   stripeAccount: string;
   priceCents: number;
@@ -249,7 +274,10 @@ export function createTierCheckoutSession(params: {
   successUrl: string;
   cancelUrl: string;
   customerEmail?: string;
-  metadata: { tier_id: string; user_id: string; community_id: string };
+  // user_id is absent for a guest checkout (a signed-out buyer arriving from a
+  // shared link): guest "1" tells the webhook to find or create the account
+  // from the email Stripe collects. See src/lib/guest-checkout.ts.
+  metadata: CheckoutMetadata & { tier_id: string };
 }): Promise<{ id: string; url: string }> {
   return stripeFetch<{ id: string; url: string }>("/checkout/sessions", {
     stripeAccount: params.stripeAccount,
@@ -289,7 +317,7 @@ export function createCourseCheckoutSession(params: {
   successUrl: string;
   cancelUrl: string;
   customerEmail?: string;
-  metadata: { course_id: string; user_id: string; community_id: string };
+  metadata: CheckoutMetadata & { course_id: string };
 }): Promise<{ id: string; url: string }> {
   return stripeFetch<{ id: string; url: string }>("/checkout/sessions", {
     stripeAccount: params.stripeAccount,

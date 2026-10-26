@@ -1,15 +1,14 @@
 "use server";
 
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { arePrerequisitesMet } from "@/lib/data/courses";
 import { getCommunityCurrency, getMembership } from "@/lib/data/community";
 import { getProfile, getProfileByUsername } from "@/lib/data/profile";
-import { communityCanCharge, communityHasFeature } from "@/lib/data/plan-limits";
+import { communityHasFeature } from "@/lib/data/plan-limits";
 import { rememberLessonRoom } from "@/lib/courses/lesson-recordings";
-import { isStripeConfigured, createCourseCheckoutSession, createCourseInstalmentCheckoutSession } from "@/lib/stripe";
-import { cleanInstalmentInput, instalmentPlan } from "@/lib/courses/instalments";
+import { startCourseCheckout } from "@/lib/start-checkout";
+import { cleanInstalmentInput } from "@/lib/courses/instalments";
 import { courseLessonRoomName, getJaasAppId, isJaasConfigured, mintJaasToken } from "@/lib/jitsi";
 import { courseAccess, liveLessonState } from "@/lib/courses/lesson-kinds";
 import type { CourseLessonType, CourseStatus } from "@/types/database";
@@ -577,19 +576,6 @@ export async function setCourseTiers(courseId: string, communityId: string, tier
   return { error: null };
 }
 
-// Absolute base URL for Stripe's return links: the host the member is on
-// (communities live on subdomains and custom domains), as the space paywall
-// does.
-async function requestBaseUrl(): Promise<string> {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  if (host) {
-    const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-    return `${proto}://${host}`;
-  }
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "";
-}
-
 export type CoursePurchaseResult = { error: string } | { url: string };
 
 // Buying a paid course: a one-off Stripe Checkout on the community's connected
@@ -599,89 +585,14 @@ export type CoursePurchaseResult = { error: string } | { url: string };
 export async function purchaseCourse(
   courseId: string,
   communitySlug: string,
-  spaceSlug: string,
   plan: "one_off" | "instalments" = "one_off"
 ): Promise<CoursePurchaseResult> {
-  if (!isStripeConfigured()) {
-    return { error: "Payments aren't available on this platform yet. Ask a course admin for access." };
-  }
-
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sign in to buy this course." };
-
-  const { data: course } = await supabase
-    .from("courses")
-    .select("id, title, price_cents, currency, status, community_id, instalment_count, instalment_price_cents")
-    .eq("id", courseId)
-    .maybeSingle();
-  if (!course || course.status !== "published") return { error: "This course isn't open yet." };
-  if (course.price_cents <= 0) return { error: "This course is free — just enrol." };
-
-  const { data: already } = await supabase
-    .from("course_enrollments")
-    .select("paid")
-    .eq("course_id", course.id)
-    .eq("user_id", user.id)
-    .maybeSingle();
-  if (already?.paid) return { error: "You already have this course." };
-
-  const { data: community } = await supabase
-    .from("communities")
-    .select("id, name, stripe_account_id, stripe_charges_enabled")
-    .eq("id", course.community_id)
-    .maybeSingle();
-  if (!community?.stripe_account_id || !community.stripe_charges_enabled) {
-    return { error: "This community hasn't finished setting up payments yet. Try again later." };
-  }
-  // Same rule as the space paywall: a community whose plan lapsed stops
-  // taking new payments.
-  if (!(await communityCanCharge(supabase, community.id))) {
-    return { error: "This course isn't on sale right now. Please check back later, or contact the community's admins." };
-  }
-
-  const base = await requestBaseUrl();
-  const courseUrl = `${base}/c/${communitySlug}/spaces/${spaceSlug}/courses/${course.id}`;
-
-  const metadata = { course_id: course.id, user_id: user.id, community_id: community.id };
-  if (plan === "instalments") {
-    const instalments = instalmentPlan(course);
-    if (!instalments) return { error: "This course isn't offered in monthly payments." };
-    try {
-      const session = await createCourseInstalmentCheckoutSession({
-        stripeAccount: community.stripe_account_id,
-        priceCents: instalments.priceCents,
-        currency: course.currency,
-        instalments: instalments.count,
-        productName: `${course.title} — ${community.name}`,
-        successUrl: `${courseUrl}?purchased=1`,
-        cancelUrl: courseUrl,
-        customerEmail: user.email ?? undefined,
-        metadata: { ...metadata, instalments: String(instalments.count) },
-      });
-      return { url: session.url };
-    } catch (err) {
-      return { error: (err as Error).message || "Couldn't start checkout." };
-    }
-  }
-
-  try {
-    const session = await createCourseCheckoutSession({
-      stripeAccount: community.stripe_account_id,
-      priceCents: course.price_cents,
-      currency: course.currency,
-      productName: `${course.title} — ${community.name}`,
-      successUrl: `${courseUrl}?purchased=1`,
-      cancelUrl: courseUrl,
-      customerEmail: user.email ?? undefined,
-      metadata,
-    });
-    return { url: session.url };
-  } catch (err) {
-    return { error: (err as Error).message || "Couldn't start checkout." };
-  }
+  return startCourseCheckout(courseId, communitySlug, { id: user.id, email: user.email ?? null }, plan);
 }
 
 // -----------------------------------------------------------------------------
