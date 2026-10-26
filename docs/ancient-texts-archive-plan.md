@@ -2004,3 +2004,113 @@ There are 17 entries, one per chapter:
 - "c. 248" is given as the usual figure without a source of its own; only the range from Eusebius is sourced.
 - The 1872 page range of these chapters was not checked.
 - The Commons API and image server rate-limited the picture searches. Other candidates (further pages of Grec 945, the Mithraeum of Felicissimus, a 1481 Latin edition, the other Seven Gates photographs) were not examined.
+
+## 29. Stage 23: the Ascension of Isaiah, chapters vi–xi (the Vision of Isaiah), in R. H. Charles's English (1900)
+
+Brief item 23 ("Other ancient texts on planetary rulers, archons and ascent") listed "Ascension of Isaiah 6–11 — ascent through seven heavens" among its proposed members, and its full-text editions list "Charles 1900 (Ascension of Isaiah)". Chapters vi–xi are now imported, whole, verse by verse, in R. H. Charles's *The Ascension of Isaiah, translated from the Ethiopic version* (London: Adam and Charles Black, 1900), pp. 42–82. The proposed-member line now ends "imported as its own work, gnostic.ascension-of-isaiah".
+
+- **`gnostic.ascension-of-isaiah`** (prefix `gnostic.ascisa`), brief item 23. Tradition class `ancient_late_transmission` (an ancient text known through late copies and versions), corpus group `gnostic`, the group that holds item 23. It is not a Gnostic text, and the work's summary, notes and links say so. It has a marker of its own, `ascension-of-isaiah-vision`: no record existed for Isaiah's ascension.
+
+**What it is.** Charles calls the Ascension a composite book, "partly of Jewish, partly of Christian origin": the Martyrdom of Isaiah (Jewish), the Testament of Hezekiah (iii. 13b–iv. 18) and the Vision of Isaiah (vi.–xi. 40), both Christian, joined by an editor (xi. 41–43, which his margin marks as editorial additions). Only the Vision is imported. It survives complete only in Ethiopic (Ge'ez); chapters vi–xi also in a Latin version (L2) and in Slavonic (S); vii. 1–19 in a Latin palimpsest fragment (L1, Vat. 5750, fifth or sixth century); and ii. 4–iv. 4 in a Greek papyrus (fifth or sixth century, Grenfell and Hunt), all as Charles reports them. The Greek original is lost. Charles holds that vi–xi circulated in two Greek recensions, G1 (behind the Ethiopic and L1) and G2 (behind L2 and S). A Coptic fragment is sometimes mentioned; nothing read for this import documents one, so none is cited.
+
+The inventory gained three sources:
+- `charles-1900-ascension`, the edition imported, also the only source read for the dates, the manuscripts and the versions;
+- `laurence-1819-ascension`, Richard Laurence's *Ascensio Isaiae Vatis* (Oxford, 1819), the first edition of the Ethiopic (manuscript a), with an English translation, compared only;
+- `ecw-ascension-transcription`, the unsigned web transcription of Charles's English on earlychristianwritings.com, the third witness in the vote.
+
+The division kind `verse` was added to `TEXT_DIVISION_KINDS` (a numbered verse within a chapter, in the edition's own numbering).
+
+Files:
+- `corpus/ascension-of-isaiah.ts`;
+- the generated `corpus/ascension-of-isaiah-text.ts`, made by `scripts/texts/ascension-of-isaiah.py`, which records the method and every correction by hand with its page and kind;
+- `corpus/ascension-of-isaiah-related-images.ts`;
+- plain words in `corpus/plain/ascension-of-isaiah.ts`;
+- the marker's pictures in `marker-pictures.ts`.
+
+Copyright: public domain (published 1900; Charles died in 1931). The text layers are `public_domain`.
+
+### Source and checking
+
+| Siglum | Witness |
+|---|---|
+| C | archive.org's OCR (djvu.xml) of the Cornell University Library copy (`cu31924014590529`); printed page = leaf − 79. The base; its page images (n121–n161) were read. |
+| P | archive.org's OCR of the Princeton Theological Seminary copy (`ascensionofisaia00unse`); printed page = leaf − 77. |
+| E | The web transcription on earlychristianwritings.com: Charles's English without his signs, with modern double quotes and its own slips. |
+| L | Laurence's English (Oxford, 1819), archive.org OCR (`ascensioisaiaeva00laur`). Compared on chapter xi, not voted. |
+
+Wikisource was not reachable (HTTP 429). sacred-texts.com has no copy. Charles's revised translation (SPCK, 1917) was not found as a scan and was not used.
+
+- **The text block** of each page was cut from the OCR by type size: the footnotes are set smaller, so the text ends at the first run of three clearly smaller lines.
+- **The vote.** C, P and E were aligned word by word (by letters and digits). Where P and E agreed against C, within one word in length, their reading was taken: 20 times, nearly all OCR misreadings in C ("zpper" for "upper", "1o." for "10.") and a few of the OCR's renderings of Charles's signs. 89 places where P or E differ were left as C has them and settled on the page images.
+- **Proofreading.** Every page, 42 to 82, was read line by line against the Cornell page images (and the Princeton copy where the Cornell image was unclear: two marks around "Him and" in xi. 14, p. 77, are specks). The differences are the generator's `FIXES`, 291 entries: 204 restore Charles's signs, which the OCR reads as quotation marks, "T", "f", "+" or "™", or drops; 41 close up the printer's spaces (inside quotation marks and sign pairs, before colons) or join broken words; 40 are misread words or marks; 6 remove footnote or margin-note lines the page split took for text. One word broken over a page ("like-" / "wise", viii. 14, pp. 56–57) is joined.
+- **The check.** The result was compared word by word with E: 44 places differ, every one a slip or omission of E on the page images (for example "descent" for "descend", "forth" for "fourth", "astonished" for Charles's "astonied", and E's omission of "for these are great things" in xi. 34).
+- **Laurence (1819)** is a different, freer translation from the Bodleian manuscript alone (xi. 8, Laurence: "while Mary was attentively gazing on the ground, she suddenly perceived with astonishment a small infant"; Charles: "Mary straightway looked with her eyes and saw a small babe, and she was astonied"). It is not imported.
+
+**Charles's signs** are kept as printed, and explained in each verse's notes and in the layer evidence: his raised double half-brackets, written ⸢ ⸣ (U+2E22, U+2E23), mark words of G1 absent from G2 (a pair may open in one verse and close in a later one); `* *` his emendations; `† †` words he holds corrupt; `[ ]` words he holds interpolated, or doublets; `( )` words he supplied. The heading ("THE VISION WHICH ISAIAH THE SON OF AMOS SAW.") is kept at the head of vi. 1 and the colophon ("Here endeth the vision of Isaiah the prophet with his ascension.") at the end of xi. 43. The ellipsis Charles prints at xi. 40 is kept.
+
+**The footnotes** are listed, not imported. Where a footnote says what the manuscripts read in place of an emendation, or how Charles would read a corrupt or bracketed passage, the plain words give it under "Other possible readings"; footnotes that only refer to his Critical Notes say so. Verse notes quote his footnote on the bracketed "five hundred and forty-five days" of ix. 16 ("The idea is a Gnostic one. It was held by the Valentinians and the Ophites (see Irenaeus, adv. Haer. i. 3. 2, 30. 14)").
+
+### Units
+
+- **`gnostic.ascisa.vision`** (`part`) holds no text. It carries the Ge'ez as a cited layer (`gez`, no content), the dates, and notes on what is not imported.
+- Under it, six **`chapter`** records, `gnostic.ascisa.6` to `gnostic.ascisa.11`, with summaries, themes and notes and no text.
+- Under them, 197 **`verse`** units, `gnostic.ascisa.6.1` to `gnostic.ascisa.11.43`, each with layer `eng-1900`, kind `translation`. ix. 12 and 13 are printed together ("12, 13."), where Charles restores their order, and are one unit, `gnostic.ascisa.9.12-13`.
+
+That makes 197 units and 204 passages. Verses per chapter: vi 17, vii 37, viii 28, ix 41 (42 verses), x 31, xi 43. `expectedUnits` is 197, Charles's own numbering read on the page images; `inventoryVerified` stays false, since other editions may divide differently (Charles's numbering follows Dillmann's edition of 1877, which was not read).
+
+**Listed, not imported:** chapters i–v; Charles's footnotes, margin notes, Critical Notes and Introduction; the Ethiopic, the Greek papyrus fragment, the Greek Legend, the Latin versions and the Latin translation of the Slavonic printed in the same book.
+
+### Dates
+
+On `gnostic.ascisa.vision`, all from Charles (1900), all approximate except the publication:
+
+- **Composition of the Vision, in its first form:** 80–100 CE (`decade`), rendering "Thus the composition of the Vision in its primitive form G belongs to the close of the first century" (p. xlv). His grounds: use by Jerome, Hieracas and the Archontici; attestation in the Actus Petri Vercellenses; the Protevangelium's apparent knowledge of it; and Ignatius, *To the Ephesians* 19, which his note on xi. 16 finds it "hard to avoid concluding" depends on the Vision. The Introduction's sentence on Ignatius is printed "I do think it is reasonable to explain the agreement ... otherwise than that the former is dependent on the latter"; followed by "Thus", it reads as a misprint for "I do not think", and the record quotes it as printed and flags it as an apparent misprint.
+- **The final editing of the whole book:** 150–230 (`century`): "it is probable that the work of editing goes back to early in the third century, or even to the second" (p. xlv).
+- **The Ethiopic version:** fifth century (`century`, as `translation_publication`): "the probable date of the Ethiopic version is the fifth century".
+- **Manuscript a** (Bodleian, the base of Charles's Ethiopic): fifteenth century (`manuscript`); b and c (British Museum Nos. 501 and 503) are fifteenth and eighteenth century, named in the notes.
+- **Earliest evidence for chapters vi–xi:** the Latin palimpsest fragment of vii. 1–19 (Vat. 5750), fifth or sixth century (`earliest_evidence`).
+- **Translation and publication:** 1900 (the Preface is signed at Oxford, September 1900).
+
+The marker carries the two compositions and the 1900 publication.
+
+### Links
+
+All 8 are `proposed`, all go from the Vision's verses, and all say "None shown." for transmission. The link to Irenaeus records that the comparison is Charles's own footnote, a modern editor's comparison, not evidence that either text knew the other.
+
+| From | To | Class | What it rests on |
+|---|---|---|---|
+| ix. 16 | `gnostic.iren.1.30.14` | `close_conceptual_parallel` | a long stay of the risen Christ in the world (the bracketed 545 days; the Ophites' eighteen months), compared by Charles himself |
+| x. 20 | `gnostic.ps.7` | `close_conceptual_parallel` | the Saviour takes the form of the powers he passes so that they do not know him (the angels of each heaven; Gabriel among the rulers of the aeons) |
+| x. 24 | `gnostic.origen.6.31` | `close_conceptual_parallel` | a password or token demanded at the gates of the heavens |
+| vii. 10 | `modern.kyb.1908.8` | `symbolic_similarity` | "as above so on the earth also" and "As above, so below" |
+| vii. 25 | `herm.ch.1.25` | `broad_thematic_resemblance` | a change in the one who rises at each heaven |
+| ix. 9 | `herm.ch.1.26` | `symbolic_similarity` | stripped of the flesh (or of the Harmony), newly clothed and made like those above |
+| ix. 1 | `greek.mithras.1907.9` | `broad_thematic_resemblance` | a mortal reaching the highest heaven |
+| x. 5 | `modern.hall.16.s2.p2` | `symbolic_similarity` | the praise of the lower heavens rising to the highest |
+
+No passage of Blavatsky in the archive was found that bears on the Vision closely enough to link.
+
+### Images
+
+All are from Commons file pages and each was looked at (as a thumbnail; the image server rate-limited full-size downloads). All have `licenceStatus` "open", all are `UNVERIFIED`, and none repeats a picture shown elsewhere. No picture of an Ethiopic, Latin or Slavonic manuscript of the Ascension was found on Commons; the Commons category "Ascension of Isaiah" holds only the papyrus and two scanned books.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| Amherst Greek Papyrus 1, verso (the file page's name; source the Morgan Library), PD-Art | `gnostic.ascisa.vision`; the marker's cover | `UNVERIFIED`, "Related evidence, not chapters vi–xi": Charles reports the Greek papyrus holds ii. 4–iv. 4 and dates it (after Grenfell and Hunt) to the fifth or sixth century; the file page says 70–175 CE. Neither was checked; the Greek was not read. |
+| A historiated initial of Isaiah being sawn, beside the rubric opening the Book of Isaiah, which the file page identifies as the Alcobaça Bible, BNP ALC. 455, f. 229v, c. 1220s, PD-Art | `gnostic.ascisa.11.41`; the marker's second picture | `UNVERIFIED`, `later_artwork`: the legend of xi. 41, not the Ascension's text; shelfmark and date are the file page's. |
+| A miniature of a man sawn in two, hung by the ankles, which the file page calls Isaiah in a German Historienbibel of about 1470, PD-Art | `gnostic.ascisa.11.41` | `UNVERIFIED`, `later_artwork`: the file page's source is a newspaper website; which manuscript it is, is not given. |
+| An 1881 engraving of the Lower Pool of Siloam, whose printed caption says an old mulberry tree "is said to mark the spot where the Prophet Isaiah was sawn asunder" (NYPL scan), PD-US-expired | `gnostic.ascisa.11.41` | `UNVERIFIED`, `later_artwork`: a later local tradition, not evidence; the book and year are the file page's. |
+
+### Plain words
+
+There are 197 entries, one per verse:
+- Each begins "The narrator says" (or "goes on") for vi. 1–vii. 1 and xi. 36–43, or "Isaiah says" (or "tells") for the vision itself, so the two voices stay apart.
+- "Other possible readings" give, where Charles's footnote states them, the manuscripts' readings behind his emendations, his proposed readings for corrupt words, and his reasons for bracketing (19 verses are tested for them).
+
+### Not done
+
+- The Ethiopic was not read, nor Dillmann's edition, the Latin versions or the Slavonic; the English is checked against its own printing only.
+- The dates rest on Charles alone (1900); later scholarship was not read, and the record says so.
+- No Coptic witness is documented here.
+- Charles's footnotes are not imported, and his Critical Notes (pp. 107–139 and elsewhere), to which several footnotes refer, were not read.
+- The Commons API and image server rate-limited the searches; other candidates (Ethiopic manuscripts generally, illustrations of the seven heavens) were not examined.
