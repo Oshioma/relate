@@ -2374,3 +2374,174 @@ There are 74 entries, one per unit. Each begins with the speaker the text names,
 - No manuscript image was found; the Berlin and Cambridge manuscripts were not identified on any library site.
 - The Commons API and image server rate-limited this stage: the PDF page thumbnails were not fetched directly (the identical archive.org leaves were looked at), and Ibn Umayl's picture could not be viewed.
 - `inventoryVerified` stays false.
+
+## 32. Stage 26: the Chaldaean Oracles, in Westcott's collection (1895)
+
+Brief item 18 ("Related Greek and Hermetic texts") listed the Chaldean Oracles among its proposed members. They are now imported as their own work, unit by unit, from *The Chaldaean Oracles of Zoroaster*, edited and revised by Sapere Aude (W. Wynn Westcott), with an introduction by L. O., *Collectanea Hermetica* vol. VI (London: Theosophical Publishing Society, 1895), pp. 23–54. The proposed-member line now reads "Chaldean Oracles — imported as its own work, greek.chaldean-oracles".
+
+- **`greek.chaldean-oracles`** (prefix `greek.chald`), brief item 18. Tradition class `ancient_late_transmission`, corpus group `greek_hermetic`. It has a marker of its own, `chaldean-oracles`, since no event on the timeline is about the Oracles.
+
+**What it is.** It is a collection of short sayings, most of them a line or two long:
+- on the Father, his Mind and his Fire;
+- on the Monad, the Dyad and the Triad;
+- on the Ideas, the Iynges, the Synoches and Hecate;
+- on the soul's descent into matter, the stars and the Sun;
+- and on the "magical and philosophical precepts" for the soul's return through purification, ritual and the "Flower of Mind".
+
+Westcott arranges 199 of them under five headings, after Taylor and Cory. He adds two longer "Oracles from Porphyry", which he prints without a source. Under each oracle he gives the ancient writer it comes from, and sometimes a note.
+
+**Presented honestly.**
+- **The poem.** The Oracles were a **Greek poem** in hexameters. It is usually put in the **second century CE** and attributed to **Julian the Chaldean** or his son **Julian the Theurgist**, who served under Marcus Aurelius. These points come from Wikipedia, read for this stage; the scholars it cites (Lewy, Dillon, Majercik) were not read.
+- **Survival.** The poem is **lost**. It survives **only as quotations** and paraphrases in later writers: the Neoplatonists from Porphyry to Damascius, then Psellus (eleventh century) and Pletho (fifteenth). Every unit's notes keep the source line Westcott prints for it. The book's notes list his abbreviations and say that none of these sources was read.
+- **"Of Zoroaster".** This name is **Gemistus Pletho's framing**: he called them the oracles "of the magi from Zoroaster", and Opsopoeus printed them in 1599 as *Oracula magica Zoroastris*. Westcott's title follows Pletho. His Preface holds the oracles he marks Z to be "correctly attributed to a Chaldaean Zoroaster of very early date". The archive says, in the attribution note, the book's summary, the dates and every unit marked Z, that this is Pletho's, Taylor's and Westcott's view, not a fact.
+- **What a unit is.** Some of Westcott's units are **later writers' reports** about the Oracles ("The Chaldæans call the God Dionysos ...", "According to Zoroaster ..."), not lines of the poem. The plain words keep the two apart.
+- **Reference editions.** The modern editions of the Greek fragments are cited **only as references, second-hand**, and were not read: **Kroll** (*De oraculis Chaldaicis*, 1894), **des Places** (*Oracles chaldaïques*, 1971) and **Majercik** (Greek and English, 1989). Their fragment numbers are not given; the numbering throughout is Westcott's.
+
+The inventory gained four sources:
+- `westcott-1895-chaldaean-oracles`, the edition imported;
+- `wikipedia-chaldean-oracles`, read on 2026-10-26 and cited only for what it reports (the date, the Julians, the survival in quotations, the modern editions, the 1895 publication);
+- `opsopoeus-1599-oracula-magica`, read only for its title page and the heading and first oracles of its Latin text (p. 16);
+- `cory-1832-ancient-fragments`, read only at the opening of its "Chaldaean Oracles of Zoroaster".
+
+Files:
+- `corpus/chaldean-oracles.ts`;
+- the generated `corpus/chaldean-oracles-text.ts`, made by `scripts/texts/chaldean-oracles.py`, which records the witnesses, the method, every source line as read off the page images, and every correction by hand with its kind;
+- `corpus/chaldean-oracles-related-images.ts`;
+- plain words in `corpus/plain/chaldean-oracles.ts`;
+- the marker's pictures in `marker-pictures.ts`.
+
+Copyright: public domain. The volume was published in 1895 and Westcott died in 1925; Taylor's and Cory's English, which he revised, is older still. The text layers are `public_domain`.
+
+### Source and checking
+
+| Siglum | Witness |
+|---|---|
+| B | archive.org's OCR (djvu.xml) of a scan of the 1895 volume (`WestcottWWCollectaneaHermeticaVolume06`). It has 54 page images with no imprint or date; printed page = leaf + 1. B is the base, and its page images were read for every unit. |
+| E | archive.org's OCR of a different scan (`collectanea-hermetica`): a modern compilation reproducing the volumes of the *Collectanea Hermetica* in facsimile, with a different OCR engine. |
+| A | archive.org's OCR of Forgotten Books' reprint (2008), "First published 1895". It is a new typesetting, so an independent transcription. It ends at oracle 199 and lacks the Oracles from Porphyry. |
+
+Also read, not voted:
+- a second OCR of B's images (`westcott-w-w-collectanea-hermetica-volume-09`, not independent);
+- a printout of the hermetic.com transcription (`the-chaldean-oracles`), which stops at oracle 38.
+
+sacred-texts.com and hermetic.com answered 403. Wikisource has no transcription.
+
+- **Units** are cut at Westcott's numbers. Where B's OCR misreads a number ("i." for 1, "r6." for 16, "io8." for 108, "no." for 110), the generator's `NUMBERS` gives the printed number.
+- **The vote.** A and E are aligned with B by letters. Where A and E agree against B, their reading was taken: 58 times (pinned as `TAKEN_COUNT`). Where only one differs, B is kept and the page image decided.
+- **Source lines and notes.** Each unit is split into the oracle, Westcott's source line and his note (italic in the book, with any footnote). Every source line was read off the page images and is listed in the generator's `SOURCES`. The generator stops if one is not found.
+- **Proofreading.** Every page, 23 to 54, was read against B's page images. The differences are the generator's `FIXES`, 99 entries:
+  - 85 mend misread letters or words;
+  - 8 mend layout: 6 put back words the OCR took out of order (in 31, 32, 85, 112, 122 and 151), and 2 mark the dotted gaps in 18;
+  - 3 mend punctuation and 2 spacing;
+  - 1 restores an asterisk.
+- **Kept as printed**, each said so in the unit's notes: "668." for oracle 68, "Immortalilate" (77), "unintellible" (145), "Nicephotus" (155), "Z or. T." (110), "Z, or T." (120), and the unmatched quotation marks in 11 and 178. In 99–100, Westcott's "T." stands between the two lines. It is given to 100, where B's OCR puts it; E's OCR and A drop it.
+
+**Typography.** Italic is not marked. The ligatures æ and œ and the diaeresis (aërial, preëxistent) are kept. Westcott's rows of spaced dots in 18 are given as "…". The asterisks in the oracles point to Westcott's footnotes, which are kept with his note.
+
+### Units
+
+- **`greek.chald.book`** (`part`) holds no text. It carries the lost Greek as a cited layer (`grc`, `primary_text`, no content), the dates, the pictures of the book, and notes on what is and is not imported.
+- Six **`section`** passages, which hold no text, carry Westcott's headings and subheadings:
+  - `greek.chald.cause`: "Cause. God.", 1–38;
+  - `ideas`: 39–77;
+  - `souls`: "Particular Souls", 78–98;
+  - `matter`: 99–143;
+  - `precepts`: "Magical and Philosophical Precepts", 144–199;
+  - `porphyry`: "Oracles from Porphyry", 1–2.
+- 201 **`fragment`** units, one per number: `greek.chald.1` to `greek.chald.199` ("Oracle 1"), and `greek.chald.porphyry.1` and `.2` ("Oracle from Porphyry 1"). Each has the layer `eng-1895`, kind `translation`. Each unit's notes have:
+  - Westcott's source line, or "Westcott prints no source line under this oracle.";
+  - what his sign Z, T or "Z or T" means, in his Preface's words, with Z said to be his and Taylor's view;
+  - his note;
+  - any note on the printing.
+
+That makes 201 units with text and 208 passages. `expectedUnits` is 201, Westcott's own numbering read on the page images. `inventoryVerified` stays false: the modern editions count and number the fragments differently, and some units are reports rather than fragments.
+
+**Listed, not imported:**
+- the title page;
+- the Preface by Sapere Aude (pp. 3–6), which explains the signs and lists the printed editions from Tiletanus (1563) to the Phoenix (1835);
+- the Introduction by L. O. (pp. 7–22) and its three tables;
+- the Greek.
+
+### Dates
+
+On `greek.chald.book`, all sourced to `wikipedia-chaldean-oracles` and marked second-hand:
+
+- **Composition:** 100–200 (`century`, approximate): the second century CE and the Julians. Westcott's Preface gives the same period to the oracles he marks T. His "very early" Zoroaster is reported, not dated. Debated.
+- **Earliest evidence:** 200–300 (`century`, approximate): the poem's use by Neoplatonist writers from the third century. No copy of the poem survives, and the commentaries of Porphyry, Iamblichus and Proclus are lost.
+- **Translation and publication:** 1895 (`year`, not approximate). The scanned volume carries no date, so the year rests on Wikipedia and on Forgotten Books' "First published 1895", which agree.
+
+The marker carries the same three claims. Its description calls "of Zoroaster" "a later attribution with no ancient support".
+
+### Links
+
+All 21 are `proposed`, and none says one text copied another.
+- The four links to Hall that rest on his text (the direct textual parallel and three later readings) begin "Documented …", and say only what Hall's page shows.
+- All the others begin "None shown." for transmission.
+
+| From | To | Class | What it rests on |
+|---|---|---|---|
+| 12 | `modern.hall.13.s3.p2` | `direct_textual_parallel` | the same English words ("in the Adytum of God nourished silence"), in a passage of Hall that quotes Westcott's book *Numbers* |
+| 64 | `modern.hall.10.s1.p6` | `later_reinterpretation` | the oracle's words, given to "Zoroaster", in Kircher on the Bembine Tablet as Hall quotes him |
+| 116 | `modern.hall.10.s1.p6` | `later_reinterpretation` | the "Light hating World", in the same passage, where Kircher quotes Psellus |
+| 36 | `modern.hall.10.s1.p10` | `later_reinterpretation` | the Triad in every world; Hall says Plato's philosophy is "permeated with the Chaldean" teaching and names *The Chaldean Oracles of Zoroaster* |
+| 132 | `modern.hall.45.p1` | `speculative_connection` | the Sun set above the fixed stars, in the midst of the three worlds; both cite the emperor Julian |
+| 13 | `herm.ch.1.9` | `close_conceptual_parallel` | a first Mind hands the work of making to a second, demiurgic Mind |
+| 169 | `herm.ch.1.26` | `symbolic_similarity` | the ascent by stripping off garments |
+| 199 | `herm.ch.1.4` | `symbolic_similarity` | the formless fire and the voice of fire |
+| 39 | `greek.tim.29a` | `close_conceptual_parallel` | a pattern set before the world |
+| 23 | `greek.tim.41d` | `symbolic_similarity` | the mixing bowls |
+| 121 | `greek.tim.38c` | `broad_thematic_resemblance` | the seven wanderers |
+| 123 | `gnostic.2en.30.3` | `broad_thematic_resemblance` | the Sun among seven |
+| 132 | `herm.ch.16.17` | `symbolic_similarity` | the Sun in the midst |
+| 6 | `gnostic.iren.1.30.5` | `symbolic_similarity` | the names Iao and Sabaoth |
+| 146 | `gnostic.origen.6.22` | `symbolic_similarity` | a ladder of seven steps |
+| 128 | `greek.mithras.1907.8` | `symbolic_similarity` | a god whose hair streams out as rays |
+| 155 | `greek.mithras.1907.7` | `symbolic_similarity` | the power of "barbarous" names |
+| 187 | `gnostic.ps.140.1` | `broad_thematic_resemblance` | Hecate named |
+| 117 | `arab.turba.8` | `broad_thematic_resemblance` | the world made from the elements |
+| 22 | `modern.kyb.1908.2` | `broad_thematic_resemblance` | the world framed in Mind, not matter |
+| Porphyry 1 | `modern.hpb.cosmo.5` | `speculative_connection` | sparks from a primal fire |
+
+### Images
+
+All the pictures come from Commons file pages, and each was looked at. All have `licenceStatus` "open", and none repeats a picture shown elsewhere. Neither of the following exists on Commons:
+- a manuscript "of the Chaldaean Oracles": there is none, since the poem survives only in quotations;
+- a scan of Westcott's 1895 volume: none was found.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| The title page of Opsopoeus, *Oracula magica Zoroastris cum scholiis Plethonis et Pselli* (Paris, 1599); Johns Hopkins copy, PDF page 625; PD | `greek.chald.book`; the marker's cover | `secure`, `historical_document` |
+| Page 16 of the same, "Magorum qui a Zoroastre prodiere oracula": the Latin of Westcott's 172, 146, 95, 153, 9 and 164, matched here (PDF page 636) | `greek.chald.172` | `secure`, `historical_document` |
+| The opening of "The Chaldaean Oracles of Zoroaster" in Cory's *Ancient Fragments* (London, 1832), with oracle 1 and Cory's note on Taylor's Z and T (PDF page 176) | `greek.chald.1` | `secure`, `historical_document` |
+| Proclus, *Platonic Theology*, Bodleian MS. Laud. gr. 18, fol. 2r (1358, as the file page says) | `greek.chald.5` | `UNVERIFIED`, `manuscript`: related evidence; no oracle on the leaf was identified |
+| Proclus, *Commentary on the Timaeus*, Naples III.D.28, fol. 112r (1314, as the file page says) | `greek.chald.12` | `UNVERIFIED`, `manuscript`: the Greek was not read |
+| Psellus, *De omnifaria doctrina*, Laurentian Plut. 86,15, fol. 162r (1347, as the file page says) | `greek.chald.book` | `UNVERIFIED`, `manuscript`: a different work by Psellus |
+| A page described as Pletho's autograph (early fifteenth century, from a website) | `greek.chald.book` | `UNVERIFIED`, `manuscript`: the hand, the date and the text are not established |
+| The miniature of Psellus with Michael VII (Pantokrator 234; the file page gives two folio numbers) | `greek.chald.book` | `UNVERIFIED`, `later_artwork` |
+| Benozzo Gozzoli's head traditionally taken for Pletho (Magi Chapel, Florence, 1459–64) | `greek.chald.book`; the marker's second picture | `UNVERIFIED`, `later_artwork`: a traditional identification |
+| A Roman triple Hecate (Museo Chiaramonti, Inv. 1922; photograph by Jastrow, PD) | `greek.chald.187` | `UNVERIFIED`, `artefact`: related evidence for the goddess, not for the oracles |
+
+Left out:
+- other Commons scans of Cory's book (the same pages);
+- Hecate reliefs identified only by a title;
+- a second statue of Hecate (more of the same).
+
+### Plain words
+
+There are 201 entries, one per unit, and none for the book or the sections. Each begins with the voice of the unit, so the two kinds of unit stay apart:
+- "The oracle says ..." for the oracle's own lines. Most entries are in this voice, and the precepts are given as addressed "to the reader".
+- "The report says ..." for the later writers' reports: 2, 4–6, 51, 52, 74–77, 84, 85, 91, 93, 96–98, 104, 105, 113, 130–132, 142, 143, 154, 177–179, 181, 183 and 186.
+
+The paraphrase follows the wording:
+- Phrases quoted on their own are said to be phrases.
+- Westcott's bracketed glosses ("reincarnates", "or Astral Light", "the Planetary globes") are said to be his.
+- The technical terms (Iynges, Synoches, Teletarchs, the Strophalos of Hecate) are kept and briefly explained.
+- Nothing is offered as true of the world: the entries say what the English says.
+
+### Not done
+
+- The Greek was not read: not any ancient quotation and not any modern edition (Kroll, des Places, Majercik). Westcott's numbering is not mapped to the modern fragment numbers. The English is checked against its own printing and an independent reprint only, and nothing is marked verified.
+- The ancient sources Westcott cites (Proclus, Damascius, Psellus, Pletho, Lydus, Synesius, Olympiodorus, Simplicius and the rest) were not read. Neither were Lewy, Dillon or the other scholarship Wikipedia reports.
+- Westcott's Preface and the Introduction by L. O. are not imported.
+- No scan of the 1895 volume is on Commons, so no page of the edition imported is shown.
+- `inventoryVerified` stays false.

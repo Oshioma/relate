@@ -35,6 +35,7 @@ import { PLAIN_PYRAMID_TEXTS } from "./pyramid-texts";
 import { PLAIN_SECRETUM } from "./secretum";
 import { PLAIN_HORTULANUS } from "./hortulanus";
 import { PLAIN_TURBA } from "./turba-philosophorum";
+import { PLAIN_CHALDEAN_ORACLES } from "./chaldean-oracles";
 import { PLAIN_TIMAEUS } from "./timaeus";
 import { TURBA_UNITS } from "../turba-philosophorum-text";
 
@@ -73,6 +74,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "gnostic.ascension-of-isaiah": PLAIN_ASCENSION_OF_ISAIAH,
   "gnostic.secrets-of-enoch": PLAIN_SECRETS_OF_ENOCH,
   "arab.turba-philosophorum": PLAIN_TURBA,
+  "greek.chaldean-oracles": PLAIN_CHALDEAN_ORACLES,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -268,6 +270,25 @@ test("the Epistle, every Dictum and the Conclusion of the Turba have plain words
   assert.match(PLAIN_TURBA["arab.turba.63"], /^Philosophus \(the Philosopher; the text gives no other name\) says/);
   assert.match(PLAIN_TURBA["arab.turba.epistle"], /^Arisleus writes/);
   assert.match(PLAIN_TURBA["arab.turba.conclusion"], /^Agmon says/);
+});
+
+test("every Chaldaean Oracle in Westcott's collection has plain words, with the oracle's lines and the later reports kept apart, and only those", () => {
+  const co = ALL_CORPORA.find((c) => c.workKey === "greek.chaldean-oracles")!;
+  const withText = co.passages.filter((p) => p.layers.some((l) => l.key === "eng-1895")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_CHALDEAN_ORACLES).sort(), [...withText].sort());
+  assert.equal(withText.length, 201);
+  for (const [key, words] of Object.entries(PLAIN_CHALDEAN_ORACLES)) {
+    assert.match(words, /^The (oracle|report) says/, key);
+  }
+  // A later writer's report about the Oracles is not given as the oracle's own words.
+  for (const n of ["2", "4", "6", "51", "74", "96", "98", "130", "132", "142", "181", "186"]) {
+    assert.match(PLAIN_CHALDEAN_ORACLES[`greek.chald.${n}`], /^The report says/, n);
+  }
+  for (const n of ["1", "13", "39", "144", "199", "porphyry.1", "porphyry.2"]) {
+    assert.match(PLAIN_CHALDEAN_ORACLES[`greek.chald.${n}`], /^The oracle says/, n);
+  }
+  assert.match(PLAIN_CHALDEAN_ORACLES["greek.chald.199"], /hear the voice of fire/);
+  assert.match(PLAIN_CHALDEAN_ORACLES["greek.chald.155"], /foreign names/);
 });
 
 test("the Preface and every section of Scott-Elliot's Story of Atlantis have plain words, and only those", () => {

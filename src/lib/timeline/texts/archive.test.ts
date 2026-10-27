@@ -18,6 +18,7 @@ import { ORIGEN_NOTES, ORIGEN_UNITS } from "./corpus/origen-contra-celsum-text";
 import { ASCENSION_UNITS } from "./corpus/ascension-of-isaiah-text";
 import { SECRETS_OF_ENOCH_UNITS } from "./corpus/secrets-of-enoch-text";
 import { TURBA_UNITS } from "./corpus/turba-philosophorum-text";
+import { CHALDEAN_ORACLE_SECTIONS, CHALDEAN_ORACLE_UNITS } from "./corpus/chaldean-oracles-text";
 import { MARKER_PICTURES } from "./marker-pictures";
 import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
@@ -2954,6 +2955,237 @@ test("the Turba's pictures: the 1572 title page and pages of Waite 1896 are secu
   assert.equal(marker[0].url, seen.get("turba-auriferae-artis-1572-title-page-wellcome")!.url);
   assert.equal(marker[0].identificationStatus, "secure");
   assert.equal(marker[1].url, woodcut.url);
+  assert.equal(marker[1].identificationStatus, "unverified");
+  assert.match(marker[1].caption ?? "", /^UNVERIFIED — /);
+});
+
+test("the Chaldaean Oracles are imported as their own work from Westcott 1895: oracles 1–199 in his five sections and the two Oracles from Porphyry", () => {
+  const file = corpusFor("greek.chaldean-oracles")!;
+  const work = INVENTORY.find((w) => w.workKey === "greek.chaldean-oracles")!;
+  assert.equal(work.passagePrefix, "greek.chald");
+  assert.equal(work.briefItem, 18);
+  assert.equal(work.corpusGroup, "greek_hermetic");
+  assert.equal(work.traditionClass, "ancient_late_transmission");
+  assert.equal(work.unitDivisionKind, "fragment");
+  assert.equal(work.expectedUnits, 201);
+  assert.equal(work.inventoryVerified, false, "Westcott's numbering, not the modern editions'");
+  assert.match(work.originalLanguage, /the poem is lost and survives only in quotations/);
+  assert.match(work.attributionNote!, /usually put in the second century CE and attributed to Julian the Chaldean or his son Julian the Theurgist/);
+  assert.match(work.attributionNote!, /That attribution is Pletho's and Westcott's, not a fact/);
+  for (const edition of ["Kroll", "des Places", "Majercik"]) {
+    assert.ok(work.referenceOnlyEditions!.some((e) => e.includes(edition) && /not read/.test(e)), edition);
+  }
+  // Item 18 of the brief points here.
+  const related = INVENTORY.find((w) => w.workKey === "greek.related")!;
+  assert.ok(related.proposedMembers!.includes("Chaldean Oracles — imported as its own work, greek.chaldean-oracles"));
+  for (const key of ["westcott-1895-chaldaean-oracles", "wikipedia-chaldean-oracles", "opsopoeus-1599-oracula-magica", "cory-1832-ancient-fragments"]) {
+    assert.ok(INVENTORY_SOURCES.some((s) => s.key === key), key);
+  }
+  // One record for the book (citing the lost Greek only), six sections, then the 201 units.
+  const book = file.passages[0];
+  assert.equal(book.key, "greek.chald.book");
+  assert.equal(book.layers.filter((l) => l.content && l.key !== PLAIN_LAYER_KEY).length, 0);
+  const greek = book.layers.find((l) => l.key === "grc")!;
+  assert.equal(greek.content, undefined);
+  assert.equal(greek.language, "Greek");
+  assert.match(greek.contentAbsentReason!, /known here only from Wikipedia's account of them, and were not read/);
+  assert.match(book.summary!, /survive only as quotations in later writers/);
+  assert.match(book.summary!, /that is a later attribution, not a fact/);
+  assert.match(book.notes!, /Not imported, and listed here: the title page; the Preface by Sapere Aude \(pp\. 3–6\)/);
+  assert.match(book.notes!, /the Introduction by L\. O\. \(pp\. 7–22/);
+  assert.match(book.notes!, /None of these sources was read\.$/);
+  const sections = file.passages.filter((p) => p.divisionKind === "section");
+  assert.deepEqual(
+    sections.map((s) => [s.key, s.label]),
+    [
+      ["greek.chald.cause", "Cause. God"],
+      ["greek.chald.ideas", "Ideas"],
+      ["greek.chald.souls", "Particular Souls"],
+      ["greek.chald.matter", "Matter"],
+      ["greek.chald.precepts", "Magical and Philosophical Precepts"],
+      ["greek.chald.porphyry", "Oracles from Porphyry"],
+    ]
+  );
+  assert.deepEqual(
+    CHALDEAN_ORACLE_SECTIONS.map((s) => [s.key, s.firstNumber, s.lastNumber]),
+    [
+      ["cause", 1, 38],
+      ["ideas", 39, 77],
+      ["souls", 78, 98],
+      ["matter", 99, 143],
+      ["precepts", 144, 199],
+      ["porphyry", 1, 2],
+    ]
+  );
+  for (const section of sections) assert.equal(section.parentKey, "greek.chald.book", section.key);
+  const units = file.passages.filter((p) => p.divisionKind === "fragment");
+  assert.equal(CHALDEAN_ORACLE_UNITS.length, 201);
+  assert.deepEqual(
+    units.map((u) => u.key),
+    [...Array.from({ length: 199 }, (_, i) => `greek.chald.${i + 1}`), "greek.chald.porphyry.1", "greek.chald.porphyry.2"]
+  );
+  assert.equal(file.passages.length, 1 + 6 + 201);
+  assert.equal(file.passages.filter((p) => p.layers.some((l) => l.key === "eng-1895")).length, work.expectedUnits);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 201, verifiedUnits: 0 }), "verified_against_edition");
+  const text = (key: string) => file.passages.find((p) => p.key === `greek.chald.${key}`)!.layers.find((l) => l.key === "eng-1895")!.content!;
+  const notes = (key: string) => file.passages.find((p) => p.key === `greek.chald.${key}`)!.notes!;
+  for (const unit of units) {
+    assert.match(unit.parentKey!, /^greek\.chald\.(cause|ideas|souls|matter|precepts|porphyry)$/, unit.key);
+    assert.equal(unit.verificationStatus, "unverified", unit.key);
+    const layer = unit.layers.find((l) => l.key === "eng-1895")!;
+    assert.equal(layer.licence, "public_domain", unit.key);
+    assert.equal(layer.layer, "translation", unit.key);
+    assert.equal(layer.sourceKey, "westcott-1895-chaldaean-oracles", unit.key);
+    assert.match(layer.evidence, /scripts\/texts\/chaldean-oracles\.py/, unit.key);
+    assert.match(unit.reference, /^Chaldaean Oracles, (oracle \d+|Oracles from Porphyry [12]) \(Westcott's numbering\); Westcott, The Chaldaean Oracles of Zoroaster \(London, 1895\), (p\. \d+|pp\. \d+–\d+)$/, unit.key);
+    assert.ok(unit.layers.some((l) => l.key === PLAIN_LAYER_KEY), `${unit.key} has no plain words`);
+    // Each unit's notes give Westcott's source line, or say he prints none.
+    assert.match(unit.notes!, /^(Westcott's source line: '|Westcott prints no source line under this oracle\.)/, unit.key);
+    // No OCR debris: no stray marks, doubled spaces or hyphen breaks.
+    assert.doesNotMatch(layer.content!, /™|_|�|\{|\||  |\w- [a-z]/, unit.key);
+  }
+  assert.equal(file.passages.find((p) => p.key === "greek.chald.1")!.label, "Oracle 1");
+  assert.equal(file.passages.find((p) => p.key === "greek.chald.porphyry.2")!.label, "Oracle from Porphyry 2");
+  assert.match(text("1"), /^But God is He having the head of the Hawk\./);
+  assert.match(text("13"), /delivered them over to the Second Mind, whom all Nations of Men call the First\.$/);
+  assert.match(text("155"), /^Change not the barbarous Names of Evocation/);
+  assert.match(text("199"), /Hear thou the Voice of Fire\.$/);
+  assert.match(text("porphyry.2"), /We are but a Little Part of God\.$/);
+  // Westcott's sources and signs are kept and explained, and "Z" is his and Taylor's view, not a finding.
+  assert.match(notes("1"), /^Westcott's source line: 'Eusebius\. Præparatio Evangelica, liber\. I\., chap\. X\.'/);
+  assert.match(notes("1"), /who attributes the authorship to the Persian Zoroaster/);
+  assert.match(notes("12"), /^Westcott's source line: 'Proc\. in Tim\., 167\. T\.'\. Westcott's signs \(Preface, p\. 5\): T marks an oracle/);
+  for (const unit of units.filter((u) => /\bZ\.'\./.test(u.notes!))) assert.match(unit.notes!, /his and Taylor's view, not a finding/, unit.key);
+  assert.match(notes("68"), /misprinted '668\.'/);
+});
+
+test("the Chaldaean Oracles are dated from reported scholarship and the 1895 printing, and the Zoroaster attribution is not dated", () => {
+  const file = corpusFor("greek.chaldean-oracles")!;
+  const book = file.passages[0];
+  assert.deepEqual(
+    book.dates!.map((d) => [d.role, d.startYear, d.endYear, d.datePrecision, d.isApproximate, d.sourceKey]),
+    [
+      ["composition", 100, 200, "century", true, "wikipedia-chaldean-oracles"],
+      ["earliest_evidence", 200, 300, "century", true, "wikipedia-chaldean-oracles"],
+      ["translation_publication", 1895, 1895, "year", false, "wikipedia-chaldean-oracles"],
+    ]
+  );
+  const [composition, earliest, printed] = book.dates!;
+  assert.match(composition.evidence, /^Reported second-hand, from Wikipedia/);
+  assert.match(composition.evidence, /a view of Taylor's and his that is not followed here/);
+  assert.match(composition.evidence, /Debated, and approximate\.$/);
+  assert.match(earliest.evidence, /^No copy of the poem survives/);
+  assert.match(printed.evidence, /title page carries no imprint or date/);
+  assert.match(printed.originalDateText!, /'First published 1895' \(Forgotten Books' reprint, 2008\)/);
+  const work = INVENTORY.find((w) => w.workKey === "greek.chaldean-oracles")!;
+  const event = work.anchor && "event" in work.anchor ? work.anchor.event : undefined;
+  assert.equal(event!.slug, "chaldean-oracles");
+  assert.deepEqual(
+    event!.claims.map((c) => [dateRoleFromWhatIsDated(c.whatIsDated!), c.startYear, c.endYear, c.sourceKey]),
+    [
+      ["composition", 100, 200, "wikipedia-chaldean-oracles"],
+      ["earliest_evidence", 200, 300, "wikipedia-chaldean-oracles"],
+      ["translation_publication", 1895, undefined, "wikipedia-chaldean-oracles"],
+    ]
+  );
+  assert.match(event!.claims[0].evidence, /^Second-hand: Wikipedia/);
+  assert.match(event!.description, /a later attribution with no ancient support/);
+});
+
+test("the Chaldaean Oracles' links are proposed resemblances, and none claims one text knew another", () => {
+  const file = corpusFor("greek.chaldean-oracles")!;
+  const links = file.links ?? [];
+  assert.equal(links.length, 21);
+  const keys = new Set(ALL_CORPORA.flatMap((f) => f.passages.map((p) => p.key)));
+  assert.equal(new Set(links.map((l) => l.key)).size, links.length, "duplicate link key");
+  for (const link of links) {
+    assert.ok(keys.has(link.from) && keys.has(link.to), link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^greek\.chald\.(\d+|porphyry\.[12])$/, link.key);
+    // Only Hall's later readings quote or name the oracles; every other link shows no transmission.
+    if (link.to.startsWith("modern.hall.") && link.connectionClass !== "speculative_connection") assert.match(link.transmissionEvidence, /^Documented/, link.key);
+    else assert.match(link.transmissionEvidence, /^None shown/, link.key);
+    assert.doesNotMatch(`${link.similarities} ${link.differences} ${link.transmissionEvidence}`, /\bcop(ied|y)\b/, link.key);
+  }
+  assert.deepEqual(
+    links.map((l) => [l.from, l.to, l.connectionClass]),
+    [
+      ["greek.chald.12", "modern.hall.13.s3.p2", "direct_textual_parallel"],
+      ["greek.chald.64", "modern.hall.10.s1.p6", "later_reinterpretation"],
+      ["greek.chald.116", "modern.hall.10.s1.p6", "later_reinterpretation"],
+      ["greek.chald.36", "modern.hall.10.s1.p10", "later_reinterpretation"],
+      ["greek.chald.132", "modern.hall.45.p1", "speculative_connection"],
+      ["greek.chald.13", "herm.ch.1.9", "close_conceptual_parallel"],
+      ["greek.chald.169", "herm.ch.1.26", "symbolic_similarity"],
+      ["greek.chald.199", "herm.ch.1.4", "symbolic_similarity"],
+      ["greek.chald.39", "greek.tim.29a", "close_conceptual_parallel"],
+      ["greek.chald.23", "greek.tim.41d", "symbolic_similarity"],
+      ["greek.chald.121", "greek.tim.38c", "broad_thematic_resemblance"],
+      ["greek.chald.123", "gnostic.2en.30.3", "broad_thematic_resemblance"],
+      ["greek.chald.132", "herm.ch.16.17", "symbolic_similarity"],
+      ["greek.chald.6", "gnostic.iren.1.30.5", "symbolic_similarity"],
+      ["greek.chald.146", "gnostic.origen.6.22", "symbolic_similarity"],
+      ["greek.chald.128", "greek.mithras.1907.8", "symbolic_similarity"],
+      ["greek.chald.155", "greek.mithras.1907.7", "symbolic_similarity"],
+      ["greek.chald.187", "gnostic.ps.140.1", "broad_thematic_resemblance"],
+      ["greek.chald.117", "arab.turba.8", "broad_thematic_resemblance"],
+      ["greek.chald.22", "modern.kyb.1908.2", "broad_thematic_resemblance"],
+      ["greek.chald.porphyry.1", "modern.hpb.cosmo.5", "speculative_connection"],
+    ]
+  );
+});
+
+test("the Chaldaean Oracles' pictures: the printings of 1599 and 1832 are secure; the manuscripts, likenesses and the Hecate are UNVERIFIED", () => {
+  const file = corpusFor("greek.chaldean-oracles")!;
+  const placed = file.passages.flatMap((p) => (p.images ?? []).map((i) => [p.key, i] as const));
+  const images = [...(file.images ?? []), ...placed.map(([, i]) => i)];
+  const seen = new Map(images.map((i) => [i.key, i]));
+  assert.equal(seen.size, images.length, "duplicate image key");
+  assert.equal(seen.size, 10);
+  const elsewhere = new Set(ALL_CORPORA.filter((f) => f.workKey !== "greek.chaldean-oracles").flatMap((f) => [...(f.images ?? []), ...f.passages.flatMap((p) => p.images ?? [])].map((i) => i.url)));
+  for (const image of seen.values()) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.equal(image.licenceStatus, "open", image.key);
+    assert.ok(image.licence, image.key);
+    assert.ok(!elsewhere.has(image.url), `${image.key} repeats a picture shown elsewhere`);
+    if (image.identificationStatus === "unverified") {
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else {
+      assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+      assert.equal(image.shows, "historical_document", image.key);
+    }
+  }
+  assert.deepEqual(
+    placed.map(([key, i]) => [key, i.key, i.identificationStatus]),
+    [
+      ["greek.chald.book", "chald-opsopoeus-1599-title-page", "secure"],
+      ["greek.chald.book", "chald-psellos-de-omnifaria-doctrina-laurentian", "unverified"],
+      ["greek.chald.book", "chald-plethon-autograph", "unverified"],
+      ["greek.chald.book", "chald-psellos-and-michael-vii-pantokrator-234", "unverified"],
+      ["greek.chald.book", "chald-gozzoli-pletho-magi-chapel", "unverified"],
+      ["greek.chald.1", "chald-cory-1832-ancient-fragments-chaldaean-oracles", "secure"],
+      ["greek.chald.5", "chald-proclus-platonic-theology-laud-gr-18", "unverified"],
+      ["greek.chald.12", "chald-proclus-timaeus-naples-iii-d-28", "unverified"],
+      ["greek.chald.172", "chald-opsopoeus-1599-magorum-oracula-p16", "secure"],
+      ["greek.chald.187", "chald-hecate-chiaramonti-triple-statue", "unverified"],
+    ]
+  );
+  // The manuscripts are of Proclus and Psellus, never of the lost poem.
+  for (const key of ["chald-proclus-platonic-theology-laud-gr-18", "chald-proclus-timaeus-naples-iii-d-28", "chald-psellos-de-omnifaria-doctrina-laurentian"]) {
+    assert.equal(seen.get(key)!.shows, "manuscript", key);
+    assert.match(seen.get(key)!.caption, /^UNVERIFIED — Related evidence, not a page of the oracles/, key);
+  }
+  const hecate = seen.get("chald-hecate-chiaramonti-triple-statue")!;
+  assert.equal(hecate.shows, "artefact");
+  assert.match(hecate.caption, /nothing ties this statue to them/);
+  // Its own marker: the 1599 title page, then Gozzoli's Pletho, UNVERIFIED.
+  const marker = MARKER_PICTURES["chaldean-oracles"];
+  assert.equal(marker.length, 2);
+  assert.equal(marker[0].url, seen.get("chald-opsopoeus-1599-title-page")!.url);
+  assert.equal(marker[0].identificationStatus, "secure");
+  assert.equal(marker[1].url, seen.get("chald-gozzoli-pletho-magi-chapel")!.url);
   assert.equal(marker[1].identificationStatus, "unverified");
   assert.match(marker[1].caption ?? "", /^UNVERIFIED — /);
 });
