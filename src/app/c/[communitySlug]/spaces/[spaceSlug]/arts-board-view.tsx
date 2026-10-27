@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState, useSyncExternalStore, useTransition } from "react";
 import Link from "@/components/ui/link";
 import { useRouter } from "next/navigation";
-import { Camera, Check, Loader2, Share2, X } from "lucide-react";
+import { Camera, Check, ExternalLink, Loader2, Share2, Video, X } from "lucide-react";
 import { PhotoPicker } from "@/components/guided-journey/photo-picker";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/input";
+import { Input, Textarea } from "@/components/ui/input";
+import { UploadButton } from "@/components/ui/upload-button";
+import { VIDEO_PLATFORM_NAMES, parseVideoLink } from "@/lib/school/video-links";
 import { cn } from "@/lib/utils";
 import { clearFormDraft, readJsonDraft, writeJsonDraft } from "@/lib/use-form-draft";
 import { ART_COUNT, ART_THEMES, SIXTY_FOUR_ARTS, type Art, type ArtTheme } from "@/lib/arts/sixty-four-arts";
@@ -220,6 +222,7 @@ export function ArtsBoardView({
               <span className="relative flex items-center gap-1 text-[10px] font-semibold sm:text-[11px]" style={{ color: colour }}>
                 {art.n}
                 {(marks[art.n]?.photoUrls.length ?? 0) > 0 && <Camera className="h-3 w-3 text-muted-foreground" aria-label="has photos" />}
+                {(marks[art.n]?.videoUrls.length ?? 0) > 0 && <Video className="h-3 w-3 text-muted-foreground" aria-label="has videos" />}
               </span>
               <span className="relative">
                 <span className="block text-[11px] font-semibold leading-tight text-foreground [overflow-wrap:anywhere] sm:text-[13px]">
@@ -352,6 +355,19 @@ function ArtCard({
   });
   const done = mark?.done ?? false;
   const [photos, setPhotos] = useState<string[]>(mark?.photoUrls ?? []);
+  const [videos, setVideos] = useState<string[]>(mark?.videoUrls ?? []);
+  // A pasted video link that hasn't been added yet survives a refresh too.
+  const linkDraftKey = `${draftKey}:video-link`;
+  const [videoLink, setVideoLink] = useState(() => {
+    const draft = readJsonDraft(linkDraftKey);
+    if (!draft) return "";
+    try {
+      const parsed: unknown = JSON.parse(draft);
+      return typeof parsed === "string" ? parsed : "";
+    } catch {
+      return "";
+    }
+  });
   const sharedPostId = mark?.sharedPostId ?? null;
   const colour = THEME_COLOURS[art.theme];
   const noteChanged = note.trim() !== savedNote.trim();
@@ -367,13 +383,19 @@ function ArtCard({
   function save(nextDone: boolean) {
     setError(null);
     start(async () => {
-      const result = await setArtMark(spaceId, art.n, { done: nextDone, note, photoUrls: photos }, communitySlug, spaceSlug);
+      const result = await setArtMark(
+        spaceId,
+        art.n,
+        { done: nextDone, note, photoUrls: photos, videoUrls: videos },
+        communitySlug,
+        spaceSlug
+      );
       if (result.error) {
         setError(result.error);
         return;
       }
       clearFormDraft(draftKey);
-      onMarked({ done: nextDone, note: note.trim() || null, photoUrls: photos, sharedPostId });
+      onMarked({ done: nextDone, note: note.trim() || null, photoUrls: photos, videoUrls: videos, sharedPostId });
       router.refresh();
     });
   }
@@ -385,14 +407,56 @@ function ArtCard({
     setPhotos(next);
     setError(null);
     start(async () => {
-      const result = await setArtMark(spaceId, art.n, { done, note: savedNote, photoUrls: next }, communitySlug, spaceSlug);
+      const result = await setArtMark(
+        spaceId,
+        art.n,
+        { done, note: savedNote, photoUrls: next, videoUrls: videos },
+        communitySlug,
+        spaceSlug
+      );
       if (result.error) {
         setError(result.error);
         return;
       }
-      onMarked({ done, note: savedNote || null, photoUrls: next, sharedPostId });
+      onMarked({ done, note: savedNote || null, photoUrls: next, videoUrls: videos, sharedPostId });
       router.refresh();
     });
+  }
+
+  // Videos work like photos: an upload or an added link is saved at once.
+  function saveVideos(next: string[]) {
+    setVideos(next);
+    setError(null);
+    start(async () => {
+      const result = await setArtMark(
+        spaceId,
+        art.n,
+        { done, note: savedNote, photoUrls: photos, videoUrls: next },
+        communitySlug,
+        spaceSlug
+      );
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      onMarked({ done, note: savedNote || null, photoUrls: photos, videoUrls: next, sharedPostId });
+      router.refresh();
+    });
+  }
+
+  function addVideoLink() {
+    const link = parseVideoLink(videoLink);
+    if (!link) {
+      setError("Paste a link to a video on YouTube, Vimeo, Instagram, TikTok or Facebook.");
+      return;
+    }
+    if (videos.includes(link.url)) {
+      setError("That video is already on this card.");
+      return;
+    }
+    setVideoLink("");
+    clearFormDraft(linkDraftKey);
+    saveVideos([...videos, link.url]);
   }
 
   function share() {
@@ -404,7 +468,7 @@ function ArtCard({
         return;
       }
       const postId = result.postPath?.split("/").pop() ?? null;
-      onMarked({ done, note: savedNote || null, photoUrls: photos, sharedPostId: postId });
+      onMarked({ done, note: savedNote || null, photoUrls: photos, videoUrls: videos, sharedPostId: postId });
       router.refresh();
     });
   }
@@ -504,6 +568,67 @@ function ArtCard({
                     />
                   </div>
                 </div>
+                <div className="mt-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    Our videos (optional)
+                  </p>
+                  {videos.length > 0 && (
+                    <ul className="mt-1.5 space-y-3">
+                      {videos.map((url) => (
+                        <li key={url} className="relative">
+                          <ArtVideo url={url} />
+                          <button
+                            type="button"
+                            onClick={() => saveVideos(videos.filter((v) => v !== url))}
+                            disabled={pending}
+                            aria-label="Remove this video"
+                            className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white hover:bg-black/80 disabled:opacity-50"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {videos.length < MAX_VIDEOS ? (
+                    <div className="mt-2 space-y-2">
+                      <UploadButton kind="video" label="Upload a video" onUploaded={(url) => saveVideos([...videos, url])} />
+                      <div className="flex gap-2">
+                        <Input
+                          type="url"
+                          inputMode="url"
+                          value={videoLink}
+                          onChange={(e) => {
+                            setVideoLink(e.target.value);
+                            writeJsonDraft(linkDraftKey, e.target.value);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              addVideoLink();
+                            }
+                          }}
+                          placeholder="Or paste a YouTube, Vimeo, Instagram or TikTok link"
+                          aria-label="Video link"
+                          disabled={pending}
+                          data-no-draft
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          onClick={addVideoLink}
+                          disabled={pending || !videoLink.trim()}
+                          className="w-auto shrink-0"
+                        >
+                          Add
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="mt-1.5 text-xs text-muted-foreground">That&apos;s the most videos one card can hold ({MAX_VIDEOS}).</p>
+                  )}
+                </div>
                 {noteChanged && (
                   <div className="mt-1.5 flex items-center justify-between gap-2">
                     <span className="text-xs text-muted-foreground">Draft kept on this device</span>
@@ -553,6 +678,59 @@ function ArtCard({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+const MAX_VIDEOS = 6;
+
+// One video on a card: an embedded player for a link, or the family's own
+// uploaded file. A link whose platform can't be embedded from it (a TikTok
+// share link, say) shows as a plain link instead.
+function ArtVideo({ url }: { url: string }) {
+  const link = parseVideoLink(url);
+  if (!link) {
+    return (
+      <video
+        src={url}
+        controls
+        playsInline
+        preload="metadata"
+        className="max-h-[60vh] w-full rounded-lg border border-border bg-black"
+      />
+    );
+  }
+  const name = VIDEO_PLATFORM_NAMES[link.platform];
+  if (!link.embedUrl) {
+    return (
+      <a
+        href={link.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 rounded-lg border border-border px-3 py-3 pr-12 text-sm text-accent hover:underline"
+      >
+        <Video className="h-4 w-4 shrink-0" />
+        Watch on {name}
+        <ExternalLink className="h-3 w-3" />
+      </a>
+    );
+  }
+  return (
+    <div
+      className={cn(
+        "relative w-full overflow-hidden rounded-lg border border-border bg-black",
+        link.portrait ? "mx-auto aspect-[9/16] max-w-xs" : "aspect-video"
+      )}
+    >
+      <iframe
+        src={link.embedUrl}
+        title={`${name} video`}
+        className="absolute inset-0 h-full w-full"
+        loading="lazy"
+        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        allowFullScreen
+        referrerPolicy="strict-origin-when-cross-origin"
+      />
     </div>
   );
 }
