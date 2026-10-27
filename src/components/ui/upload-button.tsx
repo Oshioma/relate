@@ -38,6 +38,9 @@ const DOCUMENT_TYPES = [
 const KINDS = {
   image: { types: IMAGE_TYPES, maxBytes: 10 * 1024 * 1024, hint: "an image (max 10MB)" },
   media: { types: [...IMAGE_TYPES, ...VIDEO_TYPES], maxBytes: 50 * 1024 * 1024, hint: "an image or video (max 50MB)" },
+  // A phone video of a minute or two runs past 50MB, so this takes the
+  // buckets' full limit.
+  video: { types: VIDEO_TYPES, maxBytes: 200 * 1024 * 1024, hint: "a video (max 200MB)" },
   any: { types: [...IMAGE_TYPES, ...VIDEO_TYPES, ...DOCUMENT_TYPES], maxBytes: 50 * 1024 * 1024, hint: "an image, video, or document (max 50MB)" },
   // Audio/video/image/docs up to 200MB — for hosting exclusives (tracks, stems,
   // mixes, sets) in a resources space. Matches the raised 'uploads' bucket limit.

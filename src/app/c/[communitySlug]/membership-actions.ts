@@ -6,7 +6,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isStripeConfigured, setSubscriptionCancellation } from "@/lib/stripe";
 import { startTierCheckout, type CheckoutResult } from "@/lib/start-checkout";
 
-export type { CheckoutResult };
 export type CancelResult = { error: string | null };
 
 // Start a Stripe Checkout subscription for a membership tier and hand the
