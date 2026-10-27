@@ -1340,6 +1340,9 @@ export type ArtsBoardMark = {
   // Up to four photos of what the family made (see the
   // arts_board_marks_photos_and_share migration).
   photo_urls: string[];
+  // Up to six videos: the member's own uploads or embeddable links (see the
+  // arts_board_marks_videos migration).
+  video_urls: string[];
   // The community post made when the family shared this square, if any.
   shared_post_id: string | null;
   created_at: string;

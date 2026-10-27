@@ -6,7 +6,13 @@ type Client = SupabaseClient<Database>;
 // A family's marks on one 64 Arts board, keyed by art number. RLS returns only
 // the caller's own rows, so a guest (or a failed read) simply gets an empty
 // board rather than an error page.
-export type ArtMark = { done: boolean; note: string | null; photoUrls: string[]; sharedPostId: string | null };
+export type ArtMark = {
+  done: boolean;
+  note: string | null;
+  photoUrls: string[];
+  videoUrls: string[];
+  sharedPostId: string | null;
+};
 export type ArtsBoardMarks = Record<number, ArtMark>;
 
 export async function getArtsBoardMarks(supabase: Client, spaceId: string, userId: string | null): Promise<ArtsBoardMarks> {
@@ -15,7 +21,7 @@ export async function getArtsBoardMarks(supabase: Client, spaceId: string, userI
 
   const { data, error } = await supabase
     .from("arts_board_marks")
-    .select("art_number, done, note, photo_urls, shared_post_id")
+    .select("art_number, done, note, photo_urls, video_urls, shared_post_id")
     .eq("space_id", spaceId)
     .eq("user_id", userId);
 
@@ -24,7 +30,13 @@ export async function getArtsBoardMarks(supabase: Client, spaceId: string, userI
     return marks;
   }
   for (const row of data ?? []) {
-    marks[row.art_number] = { done: row.done, note: row.note, photoUrls: row.photo_urls ?? [], sharedPostId: row.shared_post_id };
+    marks[row.art_number] = {
+      done: row.done,
+      note: row.note,
+      photoUrls: row.photo_urls ?? [],
+      videoUrls: row.video_urls ?? [],
+      sharedPostId: row.shared_post_id,
+    };
   }
   return marks;
 }
