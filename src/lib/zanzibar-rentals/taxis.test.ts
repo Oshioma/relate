@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatTaxiPrice, taxiDirectoryListing, getZanzibarRentalsTaxis, parseTaxisFeed, showsZanzibarRentalsTaxis, taxisEnabled, taxisFeedUrl } from "./taxis";
+import { formatTaxiPrice, taxiDeparture, taxiDirectoryListing, getZanzibarRentalsTaxis, parseTaxisFeed, showsZanzibarRentalsTaxis, taxisEnabled, taxisFeedUrl } from "./taxis";
 
 function item(over: Record<string, unknown> = {}) {
   return {
@@ -96,7 +96,7 @@ test("a taxi as an ordinary Taxi listing in the directory grid", () => {
   const listing = taxiDirectoryListing(taxi, { spaceId: "space-1", communityId: "community-1" });
   assert.equal(listing.business.name, "Airport → Nungwi");
   assert.equal(listing.business.category, "taxi");
-  assert.equal(listing.business.location_label, "Nungwi");
+  assert.equal(listing.business.location_label, "Airport");
   assert.equal(listing.business.space_id, "space-1");
   assert.equal(listing.business.image_url, taxi.photoUrl);
   assert.equal(listing.business.description, "Juma's Taxis · $60 / trip · up to 6 people. Meets you at arrivals.");
@@ -113,4 +113,12 @@ test("a taxi with no route, photo or seats still makes a listing", () => {
   assert.equal(listing.business.description, "Juma's Taxis · $60 / trip");
   assert.equal(listing.business.location_label, null);
   assert.equal(listing.imageCount, 0);
+});
+
+test("a taxi is listed under where it leaves from", () => {
+  assert.equal(taxiDeparture({ from: "Airport", to: "Paje", area: "Nungwi" }), "Airport");
+  assert.equal(taxiDeparture({ from: "Stonetown", to: "Nungwi", area: "Nungwi" }), "Stone Town");
+  assert.equal(taxiDeparture({ from: "stone town", to: "Paje", area: null }), "Stone Town");
+  assert.equal(taxiDeparture({ from: "Island taxi", to: null, area: "Paje" }), "Paje");
+  assert.equal(taxiDeparture({ from: "Island taxi", to: null, area: null }), null);
 });
