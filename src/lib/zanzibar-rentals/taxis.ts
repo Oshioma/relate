@@ -177,13 +177,33 @@ export function formatTaxiPrice(taxi: Pick<ZanzibarRentalsTaxi, "price" | "curre
 }
 
 // Where a taxi leaves from, which is the place it's listed under in the
-// directory (Airport, Stone Town, Kendwa): the start of its route, else the
-// driver's area for a taxi not named as a route. "Stonetown" and "stone town"
-// both read "Stone Town" so they share one group.
+// directory: the start of its route, not where the driver is based, so a
+// Nungwi driver's Airport → Paje route sits under Stone Town. The airport and
+// the ferry port count as Stone Town; a start naming a known place ("Paje
+// beach hotels") goes under that place; any other start under its own name.
+// A taxi not named as a route falls back to the driver's area.
+const DEPARTURE_PLACES: [RegExp, string][] = [
+  [/\b(airport|aiport|abeid|karume|znz|ferry|port|harbou?r|bandari|mji mkongwe|stone\s*town)\b/i, "Stone Town"],
+  [/\bnungwi\b/i, "Nungwi"],
+  [/\bkendwa\b/i, "Kendwa"],
+  [/\bmatemwe\b/i, "Matemwe"],
+  [/\bkiwengwa\b/i, "Kiwengwa"],
+  [/\bpongwe\b/i, "Pongwe"],
+  [/\buroa\b/i, "Uroa"],
+  [/\bmichamvi\b/i, "Michamvi"],
+  [/\bbwejuu\b/i, "Bwejuu"],
+  [/\bpaje\b/i, "Paje"],
+  [/\bjambiani\b/i, "Jambiani"],
+  [/\bkizimkazi\b/i, "Kizimkazi"],
+  [/\bfumba\b/i, "Fumba"],
+  [/\bmbweni\b/i, "Mbweni"],
+];
+
 export function taxiDeparture(taxi: Pick<ZanzibarRentalsTaxi, "from" | "to" | "area">): string | null {
   const place = taxi.to ? taxi.from : taxi.area;
   if (!place) return null;
-  return /^stone\s*town$/i.test(place.trim()) ? "Stone Town" : place;
+  for (const [pattern, name] of DEPARTURE_PLACES) if (pattern.test(place)) return name;
+  return place;
 }
 
 // A taxi as an ordinary card in a directory's Taxi grid, so it sorts, filters
