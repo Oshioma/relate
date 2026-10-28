@@ -2545,3 +2545,169 @@ The paraphrase follows the wording:
 - Westcott's Preface and the Introduction by L. O. are not imported.
 - No scan of the 1895 volume is on Commons, so no page of the edition imported is shown.
 - `inventoryVerified` stays false.
+
+## 33. Stage 27: Iamblichus, On the Mysteries, in Taylor's English (1821)
+
+Brief item 18 ("Related Greek and Hermetic texts") listed Iamblichus's *On the Mysteries* among its proposed members. It is now imported as its own work, whole, from Thomas Taylor's *Iamblichus on the Mysteries of the Egyptians, Chaldeans, and Assyrians* (Chiswick: C. Whittingham, 1821). The proposed-member line now reads "Iamblichus, On the Mysteries — Taylor 1821 public domain; imported as its own work, greek.iamblichus-mysteries".
+
+- **`greek.iamblichus-mysteries`** (prefix `greek.iamb`), brief item 18. Tradition class `ancient_late_transmission`, corpus group `greek_hermetic`. It has a marker of its own, `iamblichus-on-the-mysteries`, since no event on the timeline is about the work.
+
+**What it is.** A Greek treatise in two voices:
+- **Porphyry's letter** to the Egyptian prophet Anebo, a long run of questions and objections about gods and daemons, invocation, divination, sacrifice, Egyptian symbols and names, the first cause and the books of Hermes, fate, the personal daemon and happiness;
+- **the reply**, in the person of **Abammon**, Anebo's teacher, an Egyptian priest, which answers Porphyry point by point and defends the rites (theurgy) as the way the gods raise the soul.
+
+**Presented honestly.**
+- **Greek, late third or early fourth century CE.** No source read for this stage dates the work. The composition date (275–325, `decade`, approximate) is **inferred** from Iamblichus's life as the Stanford Encyclopedia of Philosophy gives it (ca. 242–ca. 325) and from the work being a reply to Porphyry (c. 234–305, Wikipedia). The SEP says the break with Porphyry "seems impossible to date with precision". The evidence says it is inferred and debated.
+- **"Abammon".** The reply speaks as Abammon. That **Iamblichus** wrote it is an ascription that **goes back to Proclus**. Taylor's footnote on pp. 17–18 gives in English the Greek note prefixed to the manuscript Gale printed: Proclus, "in his Commentary on the Enneads of the great Plotinus, says that it is the divine Iamblichus who answers the prefixed Epistle of Porphyry, and who assumes the person of a certain Egyptian of the name of Abammon". The SEP names Proclus, *In Timaeum* I, 386.8–13, as the only ancient testimony. Wikipedia reports doubts about the authorship, but says the treatise "certainly originated from his school". Who wrote the Greek note (modern scholarship gives it to Psellus) was not read, and the archive says so.
+- **The title.** *De mysteriis Aegyptiorum* is **Ficino's** title, from his Latin paraphrase printed by Aldus in 1497 (SEP). The SEP gives the Greek title as "Reply of Master Abamon to Porphyry's Letter to Anebo, and Solutions to the Difficulties Contained Therein".
+- **Reference editions,** cited only as references and marked not read:
+  - Parthey (Berlin, 1857), whose pages modern scholars cite;
+  - des Places (Budé), dated 1966 in this stage's brief and 1989 in Wikipedia;
+  - Saffrey and Segonds (Budé, 2013);
+  - Clarke, Dillon and Hershbell (Atlanta, 2003), Greek and English.
+  Gale's Greek (1678) was read at its title page only, and Ficino's Latin (1497) at its first leaves only.
+- **Numbering.** The numbering is **Taylor's**: the Epistle, then ten Sections and 140 Chapters, keyed `greek.iamb.S.C`. **Taylor prints no Parthey pages**, and his chapters are not the chapters of the modern ten-book division, so no modern reference is given. Taylor's printed pages are given instead.
+
+The inventory gained six sources:
+- `taylor-1821-iamblichus-mysteries`: the copy text, the Wellcome copy (`b29338888_0002`, PDM);
+- `taylor-1895-iamblichus-mysteries-reprint`: the Dobell reprint, set page for page with 1821, read in four scans as the second witness;
+- `gale-1678-iamblichus-de-mysteriis`: the title page only;
+- `aldine-1497-iamblichus-de-mysteriis`: the index, Ficino's dedication and his *Argumentum* only (the colophon was not read);
+- `sep-iamblichus`: Chiaradonna and Lecerf, 2019, revised 2023;
+- `wikipedia-iamblichus-mysteries`: with the articles on Iamblichus and Porphyry, second-hand.
+
+Files:
+- `corpus/iamblichus-mysteries.ts`;
+- the generated `corpus/iamblichus-mysteries-text.ts`, made by `scripts/texts/iamblichus-mysteries.py`, which records the witnesses, the method and every correction by hand with its kind;
+- `corpus/iamblichus-mysteries-related-images.ts`;
+- plain words in `corpus/plain/iamblichus-mysteries.ts`;
+- the marker's pictures in `marker-pictures.ts`.
+
+Copyright: public domain. Taylor's translation was printed in 1821, and he died in 1835. The text layers are `public_domain`.
+
+### Source and checking
+
+| Siglum | Witness |
+|---|---|
+| W | archive.org's OCR (djvu.xml) of the Wellcome copy of 1821 (`b29338888_0002`, PDM); printed page = leaf − 28. The copy text, and its page images were read for every page. |
+| G | the 1895 reprint, a Harvard copy scanned by Google (`iamblichusonmys00taylgoog`) |
+| B | the 1895 reprint, a Wellcome copy (`b24884170`) |
+| I | the 1895 reprint, a Claremont School of Theology copy (`iamblichusonmyst0000iamb`) |
+| T | a scan catalogued as 1905 that is the 1895 reprint (`taylor-on-the-mysteries-en-1905`) |
+
+The 1895 reprint is set page for page with 1821 (pp. 1–336), so the five OCRs were aligned page by page.
+
+- **Footnotes** are cut from each page by their smaller type and the note mark that opens them; `OVERRIDE_NOTES` fixes the eight pages where that rule misjudges. They are not imported.
+- **The vote.** W's reading is kept unless at least three of the four 1895 scans agree on another:
+  - 299 words taken (pinned as `TAKEN_COUNT`);
+  - 3 readings of a different length taken where all four agree;
+  - 23 words only W has (specks and show-through) dropped;
+  - 73 words divided as the 1895 scans divide them.
+  The 1,209 places where some 1895 scan differs, without a majority, keep W.
+- **Proofreading.** Every page, 1 to 336, was read against W's page images. The differences are the generator's `FIXES`, 314 entries:
+  - 234 mend misread letters, words, ligatures and quotation marks;
+  - 40 mend type (the capitals and small capitals that open chapters, and the like);
+  - 12 mend spacing and 11 marks;
+  - 9 mend paragraphing, 4 hyphens and 1 a line;
+  - 3 are "sic": they keep Taylor's own misprints that the vote had put right ("essense", "acording", "fimly").
+- **Kept as printed,** each said so in the chapter's notes:
+  - "He, however, he who directs" (1.4);
+  - "essense" (1.5), "acording" (1.18), "fimly" (2.3);
+  - "rythm" and "vestigie" (3.9);
+  - "Brandchidæ" in 3.11, against "Branchidæ" in the Epistle;
+  - "administration of of our affairs" (5.17), across a line break.
+
+**Typography.** Taylor's æ in dæmon and in the other words he prints with it, curly quotes, Taylor's square brackets, and his italics are not marked. Chapter openings in capitals and small capitals are normalised to an initial capital.
+
+### Units
+
+- **`greek.iamb.book`** (`part`) holds no text. It carries:
+  - the Greek as a cited layer (`grc`, `primary_text`, no content), naming the four editions as not read;
+  - the dates and the pictures of the book;
+  - notes on what is and is not imported, on Taylor's numbering, and on the Proclus testimony, quoted from Taylor's note.
+- **`greek.iamb.epistle`** (`part`): Porphyry's letter, pp. 1–16, with its text.
+- **`greek.iamb.answer`** (`part`): the reply's heading, no text.
+- Ten **`book`** passages, `greek.iamb.s1` to `s10` ("Section I"), with summaries and themes and no text.
+- 140 **`chapter`** units, `greek.iamb.1.1` to `greek.iamb.10.8` ("Section I, Chapter I"), each with the layer `eng-1821`, kind `translation`. The Sections hold 21, 11, 31, 13, 26, 7, 5, 8, 10 and 8 chapters.
+
+That makes 141 units with text and 153 passages. `expectedUnits` is 141, Taylor's own division read on the page images. `inventoryVerified` stays false: Taylor's chapters are not matched to the modern editions.
+
+**Listed, not imported:**
+- Taylor's Introduction (pp. [v]–xxiv);
+- his footnotes;
+- his Additional Notes (pp. 337–365);
+- the list of his works;
+- the Greek.
+
+### Dates
+
+On `greek.iamb.book`:
+
+- **Composition:** 275–325 (`decade`, approximate), `sep-iamblichus`. Inferred from Iamblichus's life and the reply to Porphyry; debated.
+- **Translation and publication:**
+  - 1497 (`aldine-1497-iamblichus-de-mysteriis`): Ficino's Latin, printed by Aldus in Venice. The year and month are the Commons file page's, with Goff J-216; the colophon was not read.
+  - 1678 (`gale-1678-iamblichus-de-mysteriis`): Gale's Greek, read on his title page, "Græce nunc primum edidit ... Anno Dom. CIↃ DC LXXVIII".
+  - 1821 (`taylor-1821-iamblichus-mysteries`): Taylor's title page.
+
+The marker carries the same four claims.
+
+### Links
+
+All 15 are `proposed`, and none says one text copied another.
+- The three links to Hall, which rest on Hall's own words, begin "Documented …".
+- All the others begin "None shown." for transmission.
+
+| From | To | Class | What it rests on |
+|---|---|---|---|
+| 3.11 | `modern.hall.11.s1.p4` | `direct_textual_parallel` | Hall quotes Taylor's English of the Delphi passage, naming "his dissertation on The Mysteries" (the test checks the shared words) |
+| 5.21 | `modern.hall.10.fig2` | `later_reinterpretation` | Kircher, as Hall quotes him: "If one feature were lacking, the whole was vitiated, says Iamblichus" |
+| 8.1 | `modern.hall.5.s1` | `later_reinterpretation` | Hall gives Iamblichus the twenty thousand books of Hermes, which Abammon gives on Seleucus's word, with Manetho's 36,525 |
+| 8.1 | `modern.hpb.isis.1.3` | `speculative_connection` | a newspaper, quoted by Blavatsky, puts forty-two books of Hermes "at the time of Iamblichus"; the numbers are not this chapter's |
+| 7.5 | `herm.ch.16.2` | `close_conceptual_parallel` | sacred names lose their power in Greek translation |
+| 7.4 | `greek.chald.155` | `close_conceptual_parallel` | do not change the "barbarous" names |
+| 7.4 | `greek.mithras.1907.7` | `symbolic_similarity` | names beyond human speech |
+| 7.4 | `gnostic.origen.6.32` | `broad_thematic_resemblance` | foreign divine names in ritual, defended and attacked |
+| 8.3 | `herm.sh.ex9.3` | `broad_thematic_resemblance` | the heavens in thirty-six parts with their rulers |
+| 8.5 | `herm.sh.ex25.5` | `symbolic_similarity` | Hermes's writings hidden away and later found |
+| 6.5 | `egy.pt.520` | `symbolic_similarity` | threats spoken in a rite against divine beings |
+| 7.2 | `egy.pt.249` | `symbolic_similarity` | the sun god and the lotus |
+| 7.2 | `egy.amd.1.opening` | `symbolic_similarity` | the sun god in his boat |
+| 9.6 | `greek.tim.90a` | `close_conceptual_parallel` | a daemon given to each person from above |
+| 8.6 | `greek.tim.69c` | `broad_thematic_resemblance` | two souls from two makers |
+
+### Images
+
+All the pictures come from Commons file pages, and each was looked at. All have `licenceStatus` "open", and none repeats a picture shown elsewhere. No manuscript of the Greek was found on Commons under a name that could be checked, and no ancient likeness of Iamblichus exists.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| The title page of Taylor's *Iamblichus on the Mysteries* (Chiswick, 1821); Wellcome copy, PDF page 7; PD-old-100-expired and PDM | `greek.iamb.book`; the marker's cover | `secure`, `historical_document` |
+| The title page of Gale's first printing of the Greek, *De mysteriis liber* (Oxford, 1678); Wellcome copy, PDF page 13; PD-old-100-expired and PDM | `greek.iamb.book` | `secure`, `historical_document` |
+| The leaf with Ficino's dedication and his *Argumentum in librum Iamblichi* in the Aldine printing (Venice, 1497); Seville copy, PDF page 8; PD-old-100-expired. The Commons rendering is of low resolution; the text was read on the Internet Archive scan of the same copy | `greek.iamb.book` | `secure`, `historical_document` |
+| A manuscript of Ficino's Latin, "Prohemium in Iamblicum", with the Laurenziana stamp (Strozzi 97 and 1491, as the file page says); PD-Art | `greek.iamb.book`; the marker's second picture | `UNVERIFIED`, `manuscript`: related evidence, not the Greek; the shelfmark and date are not checked |
+| A photograph of Lawrence's portrait of Thomas Taylor (National Gallery of Canada, no. 354, as the file page says); PD-Art, PD-old-100-expired | `greek.iamb.book` | `UNVERIFIED`, `later_artwork`: the sitter and painter are the file page's |
+| Page 1 of Taylor's volume, the opening of Porphyry's Epistle (PDF page 29) | `greek.iamb.epistle` | `secure`, `historical_document` |
+| Page 17 of Taylor's volume, the opening of the Answer, with the start of Taylor's note on the authorship (PDF page 45) | `greek.iamb.answer` | `secure`, `historical_document` |
+
+Left out:
+- the Aldine index (PDF page 7) and Mussard's imagined portrait of Iamblichus (1675, PD-old-70): Commons refused the images repeatedly (HTTP 429), so they could not be looked at;
+- an "Iamblichus" likeness whose file page names no artist and no date;
+- a decorated initial from a different scan of the 1497 printing (little value).
+
+### Plain words
+
+There are 141 entries, one per unit with text, and none for the book, the Answer or the Sections. Each begins with the voice of its unit, so the two correspondents stay apart:
+- "Porphyry asks ..." for the Epistle;
+- "Abammon answers ..." for every chapter of the reply, never "Iamblichus says", since the reply speaks as Abammon.
+
+The paraphrase follows Taylor's English closely. Its technical terms (theurgy, the Demiurgus, the personal daemon, the lord of the geniture) are kept and briefly explained. Nothing is offered as true of the world: the entries say what the text says.
+
+### Not done
+
+- The Greek was not read, in no edition (Parthey, des Places, Saffrey and Segonds, Clarke, Dillon and Hershbell). Taylor's chapters are not mapped to the modern books and chapters or to Parthey's pages. The English is checked against its own printing and the 1895 reprint only, and nothing is marked verified.
+- Taylor's Introduction, footnotes and Additional Notes are not imported.
+- Who wrote the Greek note naming Proclus, and the modern scholarship on the authorship, were not read.
+- Porphyry's letter was not compared with Sodano's edition (1958), and where Gale's text of it comes from was not checked.
+- Gale's edition was read only at its title page, and the Aldine Ficino only at its first leaves; its colophon was not read.
+- Two pictures (the Aldine index and Mussard's imagined Iamblichus) were left out because Commons would not serve them to be looked at.
+- `inventoryVerified` stays false.

@@ -34,6 +34,7 @@ import { SCOTT_ELLIOT_CORPUS } from "./scott-elliot";
 import { VIRGIN_OF_THE_WORLD_CORPUS } from "./virgin-of-the-world";
 import { MITHRAS_LITURGY_CORPUS } from "./mithras-liturgy";
 import { CHALDEAN_ORACLES_CORPUS } from "./chaldean-oracles";
+import { IAMBLICHUS_MYSTERIES_CORPUS } from "./iamblichus-mysteries";
 import { IRENAEUS_CORPUS } from "./irenaeus";
 import { ORIGEN_CONTRA_CELSUM_CORPUS } from "./origen-contra-celsum";
 import { ASCENSION_OF_ISAIAH_CORPUS } from "./ascension-of-isaiah";
@@ -69,6 +70,7 @@ import { PLAIN_SCOTT_ELLIOT } from "./plain/scott-elliot";
 import { PLAIN_VIRGIN_OF_THE_WORLD } from "./plain/virgin-of-the-world";
 import { PLAIN_MITHRAS_LITURGY } from "./plain/mithras-liturgy";
 import { PLAIN_CHALDEAN_ORACLES } from "./plain/chaldean-oracles";
+import { PLAIN_IAMBLICHUS_MYSTERIES } from "./plain/iamblichus-mysteries";
 import { PLAIN_IRENAEUS } from "./plain/irenaeus";
 import { PLAIN_ORIGEN_CONTRA_CELSUM } from "./plain/origen-contra-celsum";
 import { PLAIN_ASCENSION_OF_ISAIAH } from "./plain/ascension-of-isaiah";
@@ -108,6 +110,7 @@ export const ALL_CORPORA: TextCorpusFile[] = [
   withPlainWords(VIRGIN_OF_THE_WORLD_CORPUS, PLAIN_VIRGIN_OF_THE_WORLD),
   withPlainWords(MITHRAS_LITURGY_CORPUS, PLAIN_MITHRAS_LITURGY),
   withPlainWords(CHALDEAN_ORACLES_CORPUS, PLAIN_CHALDEAN_ORACLES),
+  withPlainWords(IAMBLICHUS_MYSTERIES_CORPUS, PLAIN_IAMBLICHUS_MYSTERIES),
   withPlainWords(IRENAEUS_CORPUS, PLAIN_IRENAEUS),
   withPlainWords(ORIGEN_CONTRA_CELSUM_CORPUS, PLAIN_ORIGEN_CONTRA_CELSUM),
   withPlainWords(ASCENSION_OF_ISAIAH_CORPUS, PLAIN_ASCENSION_OF_ISAIAH),
