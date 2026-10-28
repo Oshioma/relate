@@ -176,14 +176,14 @@ export function formatTaxiPrice(taxi: Pick<ZanzibarRentalsTaxi, "price" | "curre
   return `${amount} / ${per}`;
 }
 
-// Where a route starts, as the place the directory groups it under. A route
-// belongs where the passenger is picked up, not where the driver lives: a
-// Nungwi driver's Airport → Paje route goes under Stone Town. The airport and
-// the ferry port count as Stone Town; a pick-up naming a known place
-// ("Paje beach hotels") goes under that place; anything else under its own
-// name. A taxi that isn't named as a route falls back to the host's area.
-const PICKUP_PLACES: [RegExp, string][] = [
-  [/\b(airport|aiport|abeid|karume|znz|ferry|port|harbou?r|bandari|mji mkongwe|stone ?town|stonetown)\b/i, "Stone Town"],
+// Where a taxi leaves from, which is the place it's listed under in the
+// directory: the start of its route, not where the driver is based, so a
+// Nungwi driver's Airport → Paje route sits under Stone Town. The airport and
+// the ferry port count as Stone Town; a start naming a known place ("Paje
+// beach hotels") goes under that place; any other start under its own name.
+// A taxi not named as a route falls back to the driver's area.
+const DEPARTURE_PLACES: [RegExp, string][] = [
+  [/\b(airport|aiport|abeid|karume|znz|ferry|port|harbou?r|bandari|mji mkongwe|stone\s*town)\b/i, "Stone Town"],
   [/\bnungwi\b/i, "Nungwi"],
   [/\bkendwa\b/i, "Kendwa"],
   [/\bmatemwe\b/i, "Matemwe"],
@@ -199,14 +199,15 @@ const PICKUP_PLACES: [RegExp, string][] = [
   [/\bmbweni\b/i, "Mbweni"],
 ];
 
-export function taxiPickupArea(taxi: Pick<ZanzibarRentalsTaxi, "from" | "to" | "area">): string | null {
-  if (!taxi.to) return taxi.area;
-  for (const [pattern, place] of PICKUP_PLACES) if (pattern.test(taxi.from)) return place;
-  return taxi.from;
+export function taxiDeparture(taxi: Pick<ZanzibarRentalsTaxi, "from" | "to" | "area">): string | null {
+  const place = taxi.to ? taxi.from : taxi.area;
+  if (!place) return null;
+  for (const [pattern, name] of DEPARTURE_PLACES) if (pattern.test(place)) return name;
+  return place;
 }
 
 // A taxi as an ordinary card in a directory's Taxi grid, so it sorts, filters
-// and groups by pick-up place with the directory's own listings. It has no row of its
+// and groups by area with the directory's own listings. It has no row of its
 // own: `partner` sends the card out to Zanzibar Rentals instead of to a
 // listing page, and there is nothing to save or review here.
 export function taxiDirectoryListing(
@@ -233,7 +234,7 @@ export function taxiDirectoryListing(
       opening_hours: null,
       lat: null,
       lng: null,
-      location_label: taxiPickupArea(taxi),
+      location_label: taxiDeparture(taxi),
       image_url: taxi.photoUrl,
       image_position: null,
       claimed_by: null,

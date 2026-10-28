@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatTaxiPrice, taxiDirectoryListing, taxiPickupArea, getZanzibarRentalsTaxis, parseTaxisFeed, showsZanzibarRentalsTaxis, taxisEnabled, taxisFeedUrl } from "./taxis";
+import { formatTaxiPrice, taxiDeparture, taxiDirectoryListing, getZanzibarRentalsTaxis, parseTaxisFeed, showsZanzibarRentalsTaxis, taxisEnabled, taxisFeedUrl } from "./taxis";
 
 function item(over: Record<string, unknown> = {}) {
   return {
@@ -115,16 +115,15 @@ test("a taxi with no route, photo or seats still makes a listing", () => {
   assert.equal(listing.imageCount, 0);
 });
 
-test("a route is grouped where it starts, not where the driver is based", () => {
-  const at = (from: string, area: string | null = "Nungwi") => taxiPickupArea({ from, to: "Paje", area });
-  assert.equal(at("Airport"), "Stone Town");
-  assert.equal(at("Zanzibar Airport (ZNZ)"), "Stone Town");
-  assert.equal(at("Stone Town"), "Stone Town");
-  assert.equal(at("Stonetown"), "Stone Town");
-  assert.equal(at("Ferry port"), "Stone Town");
-  assert.equal(at("Nungwi"), "Nungwi");
-  assert.equal(at("Paje beach hotels", "Stone Town"), "Paje");
-  assert.equal(at("Mwera"), "Mwera");
-  // Not a route: the host's area.
-  assert.equal(taxiPickupArea({ from: "Day hire with driver", to: null, area: "Nungwi" }), "Nungwi");
+test("a taxi is listed under where it leaves from", () => {
+  assert.equal(taxiDeparture({ from: "Airport", to: "Paje", area: "Nungwi" }), "Stone Town");
+  assert.equal(taxiDeparture({ from: "Zanzibar Airport (ZNZ)", to: "Paje", area: "Nungwi" }), "Stone Town");
+  assert.equal(taxiDeparture({ from: "Ferry port", to: "Paje", area: "Nungwi" }), "Stone Town");
+  assert.equal(taxiDeparture({ from: "Nungwi", to: "Paje", area: "Stone Town" }), "Nungwi");
+  assert.equal(taxiDeparture({ from: "Paje beach hotels", to: "Airport", area: "Stone Town" }), "Paje");
+  assert.equal(taxiDeparture({ from: "Mwera", to: "Paje", area: "Nungwi" }), "Mwera");
+  assert.equal(taxiDeparture({ from: "Stonetown", to: "Nungwi", area: "Nungwi" }), "Stone Town");
+  assert.equal(taxiDeparture({ from: "stone town", to: "Paje", area: null }), "Stone Town");
+  assert.equal(taxiDeparture({ from: "Island taxi", to: null, area: "Paje" }), "Paje");
+  assert.equal(taxiDeparture({ from: "Island taxi", to: null, area: null }), null);
 });
