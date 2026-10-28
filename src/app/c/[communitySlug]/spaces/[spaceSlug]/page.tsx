@@ -86,6 +86,8 @@ import { JobsBoardView } from "./jobs-board-view";
 import { AccommodationView } from "./accommodation-view";
 import { LongTermStays } from "./long-term-stays";
 import { showsLongTermStays } from "@/lib/zanzibar-rooms/long-term";
+import { ZanzibarRentalsTaxis } from "@/components/editorial-guide/zanzibar-rentals-taxis";
+import { showsZanzibarRentalsTaxis } from "@/lib/zanzibar-rentals/taxis";
 import { RecommendationsView } from "./recommendations-view";
 import { ClubsView } from "./clubs-view";
 import { MeetupsView } from "./meetups-view";
@@ -751,6 +753,15 @@ export default async function SpaceDetailPage({
           featuredCategories={featuredBusinessCategories}
           customCategories={businessCustomCategories}
           labelOverrides={businessLabelOverrides}
+          // Taxis drivers list on Zanzibar Rentals, under the Taxi category
+          // on Mzungu Zanzibar only. Streams in; nothing if the feed fails.
+          taxisSection={
+            showsZanzibarRentalsTaxis(community.slug) ? (
+              <Suspense fallback={null}>
+                <ZanzibarRentalsTaxis />
+              </Suspense>
+            ) : undefined
+          }
         />
       ) : isMapSpace ? (
         <ExploreMapLoader

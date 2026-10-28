@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Search, X, Building2, Pin, PinOff, Trash2, Pencil, Heart, MapPin, LayoutGrid, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -97,6 +97,7 @@ export function BusinessDirectoryView({
   featuredCategories,
   customCategories,
   labelOverrides,
+  taxisSection,
 }: {
   businesses: BusinessWithStats[];
   communityId: string;
@@ -115,6 +116,9 @@ export function BusinessDirectoryView({
   // Staff relabellings of built-in categories for this space (Activity →
   // Experiences); applied to the chips, form and headings.
   labelOverrides: BusinessCategoryLabelOverride[];
+  // Shown under the listings while the Taxi category is open: Mzungu
+  // Zanzibar's taxis from Zanzibar Rentals (rendered on the server).
+  taxisSection?: ReactNode;
 }) {
   const [category, setCategory] = useState<BusinessCategory | "all">(initialCategory ?? "all");
   const [location, setLocation] = useState<string | "all">("all");
@@ -714,6 +718,8 @@ export function BusinessDirectoryView({
           ))}
         </div>
       )}
+
+      {category === "taxi" && taxisSection}
     </div>
   );
 }
