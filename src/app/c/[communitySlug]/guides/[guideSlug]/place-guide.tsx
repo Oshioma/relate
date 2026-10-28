@@ -3,6 +3,9 @@ import type { Community, EditorialGuide, EditorialGuideUpdate } from "@/types/da
 import type { FeedItemActionsProps } from "@/app/c/[communitySlug]/feed-item-actions";
 import { FeedItemActions } from "@/app/c/[communitySlug]/feed-item-actions";
 import type { PlaceGuideDefinition } from "@/lib/guides/place-guide/types";
+import { Suspense } from "react";
+import { ZanzibarRentalsTaxis } from "@/components/editorial-guide/zanzibar-rentals-taxis";
+import { showsZanzibarRentalsTaxis, TAXI_CATEGORY } from "@/lib/zanzibar-rentals/taxis";
 import { placePhotoCount, type ResolvedPlaceGuide } from "@/lib/guides/place-guide/content";
 import { SectionNav, type NavSection } from "@/components/ui/section-nav";
 import { GuideImage } from "@/components/editorial-guide/guide-image";
@@ -119,6 +122,10 @@ export function PlaceGuide({
       ? [...directory.bySlug.values()].filter((l) => l.kind === "business" && l.category === def.directorySection!.category).sort((a, b) => a.name.localeCompare(b.name))
       : [];
   const directoryHref = directory?.directorySpaceSlug ? `/c/${community.slug}/spaces/${directory.directorySpaceSlug}` : null;
+  // Mzungu Zanzibar's taxi drivers section also lists the taxis drivers add
+  // on Zanzibar Rentals (a separate site), live from its feed.
+  const showRentalsTaxis = def.directorySection?.category === TAXI_CATEGORY && showsZanzibarRentalsTaxis(community.slug);
+  const showDirectory = Boolean(def.directorySection) && (directoryListings.length > 0 || showRentalsTaxis);
 
   const placeIndex = (
     <ol className="mt-6 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-3" aria-label="All places">
@@ -148,7 +155,7 @@ export function PlaceGuide({
     { id: "introduction", label: "Introduction", group: "Start here" },
     { id: "find-your-spot", label: "Find your spot", group: "Start here" },
     ...places.map((p, i) => ({ id: p.key, label: `${i + 1}. ${p.name}`, group: def.placesSection.navGroup })),
-    ...(def.directorySection && directoryListings.length > 0 ? [{ id: "directory", label: def.directorySection.navLabel, group: def.placesSection.navGroup }] : []),
+    ...(def.directorySection && showDirectory ? [{ id: "directory", label: def.directorySection.navLabel, group: def.placesSection.navGroup }] : []),
     { id: "before-you-go", label: "Before you go", group: "Plan your trip" },
     { id: "routes", label: def.routes.navLabel, group: "Plan your trip" },
     { id: "share", label: def.callToAction.navLabel, group: "Plan your trip" },
@@ -336,35 +343,42 @@ export function PlaceGuide({
             )}
           </section>
           {/* Everything in the community directory */}
-          {def.directorySection && directoryListings.length > 0 && (
+          {def.directorySection && showDirectory && (
             <section id="directory" aria-labelledby="directory-title" className="mt-20 scroll-mt-24 border-t border-border pt-12">
               <SectionTitle id="directory-title" icon={BookOpen}>
                 {def.directorySection.title}
               </SectionTitle>
               <p className="mt-2 max-w-3xl text-muted-foreground">{def.directorySection.blurb}</p>
-              <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {directoryListings.map((l) => (
-                  <li key={l.slug}>
-                    <Anchor href={l.href} className="group flex h-full gap-3 rounded-lg border border-border bg-card p-3 hover:shadow-md">
-                      {l.imageUrl ? (
-                        <GuideImage src={l.imageUrl} alt="" sizes="64px" className="h-16 w-16 shrink-0 rounded-md" />
-                      ) : (
-                        <div className="h-16 w-16 shrink-0 rounded-md bg-muted" aria-hidden />
-                      )}
-                      <span className="min-w-0">
-                        <span className="block truncate font-medium text-foreground group-hover:text-accent">{l.name}</span>
-                        {l.locationLabel && <span className="block truncate text-xs text-muted-foreground">{l.locationLabel}</span>}
-                        {l.avgRating !== null && l.ratingCount > 0 && (
-                          <span className="mt-0.5 inline-flex items-center gap-0.5 text-xs text-muted-foreground">
-                            <Star className="h-3 w-3" aria-hidden /> {l.avgRating.toFixed(1)} ({l.ratingCount})
-                          </span>
+              {directoryListings.length > 0 && (
+                <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {directoryListings.map((l) => (
+                    <li key={l.slug}>
+                      <Anchor href={l.href} className="group flex h-full gap-3 rounded-lg border border-border bg-card p-3 hover:shadow-md">
+                        {l.imageUrl ? (
+                          <GuideImage src={l.imageUrl} alt="" sizes="64px" className="h-16 w-16 shrink-0 rounded-md" />
+                        ) : (
+                          <div className="h-16 w-16 shrink-0 rounded-md bg-muted" aria-hidden />
                         )}
-                        {places.some((p) => p.listing?.slug === l.slug) && <span className="mt-0.5 block text-xs font-medium text-accent">In this guide</span>}
-                      </span>
-                    </Anchor>
-                  </li>
-                ))}
-              </ul>
+                        <span className="min-w-0">
+                          <span className="block truncate font-medium text-foreground group-hover:text-accent">{l.name}</span>
+                          {l.locationLabel && <span className="block truncate text-xs text-muted-foreground">{l.locationLabel}</span>}
+                          {l.avgRating !== null && l.ratingCount > 0 && (
+                            <span className="mt-0.5 inline-flex items-center gap-0.5 text-xs text-muted-foreground">
+                              <Star className="h-3 w-3" aria-hidden /> {l.avgRating.toFixed(1)} ({l.ratingCount})
+                            </span>
+                          )}
+                          {places.some((p) => p.listing?.slug === l.slug) && <span className="mt-0.5 block text-xs font-medium text-accent">In this guide</span>}
+                        </span>
+                      </Anchor>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {showRentalsTaxis && (
+                <Suspense fallback={null}>
+                  <ZanzibarRentalsTaxis headingLevel="h3" className="mt-8" />
+                </Suspense>
+              )}
               {directoryHref && (
                 <p className="mt-4 text-sm">
                   <Anchor href={directoryHref} className="font-medium text-accent hover:underline">
