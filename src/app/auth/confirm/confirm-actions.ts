@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { authEventContext, recordAuthEvent } from "@/lib/auth-events";
 import { safeReturnPath } from "@/lib/auth-return";
+import { communitySlugFromNext, fileJoinRequest } from "@/lib/join-requests";
 
 // The email OTP types that can legitimately reach /auth/confirm — signup and
 // invite confirmations, password recovery, email-change, and magic links.
@@ -75,6 +76,29 @@ export async function confirmOtp(formData: FormData): Promise<void> {
   if (type === "signup" || type === "invite" || type === "email" || type === "magiclink") {
     const host = (await headers()).get("host");
     await recordAuthEvent(supabase, "email_confirmed", authEventContext(next, host));
+
+    // Someone who signed up from a private community's page did so to get in,
+    // so their request goes to the admins now, not after they find the
+    // "Request to join" button a second time — that second step is where
+    // requests went missing. fileJoinRequest does nothing for an open or
+    // invite-only community, or when they already have a row there. Like the
+    // analytics above, it must never stand between a person and their account.
+    const slug = communitySlugFromNext(next);
+    if (slug) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        try {
+          const { error } = await fileJoinRequest(supabase, user.id, { slug });
+          if (error && error !== "This community doesn't take join requests.") {
+            console.error("[auth/confirm] join request after signup failed:", error);
+          }
+        } catch (error) {
+          console.error("[auth/confirm] join request after signup failed:", error);
+        }
+      }
+    }
   }
 
   redirect(next);

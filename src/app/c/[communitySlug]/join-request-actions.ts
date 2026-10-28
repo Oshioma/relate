@@ -3,25 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { planLimitMessage } from "@/lib/data/plan-limits";
-import { joinPolicyOf } from "@/lib/join-policy";
-
-// Postgres unique_violation, raised by the (user_id, community_id) unique
-// constraint on community_memberships.
-const UNIQUE_VIOLATION = "23505";
+import { fileJoinRequest } from "@/lib/join-requests";
 
 export type JoinRequestResult = { error: string | null };
 
-// Ask to join a private community. Writes a membership row with status
-// 'requested', which grants nothing — it isn't 'active', so it consumes no plan
-// seat, shows up in no member list and unlocks no content — and notifies the
-// community's admins (trg_notify_staff_join_request). Staff approve it into
-// 'active' or decline it, which deletes the row.
-//
-// Every refusal below is also enforced by RLS (memberships_insert only accepts
-// a self-authored 'requested' row on a community whose join policy is
-// approval — community_join_policy());
-// these checks exist to give a person a sentence they can act on instead of a
-// policy violation.
+// Ask to join a private community. The rules live in fileJoinRequest
+// (src/lib/join-requests.ts), which email confirmation also uses.
 export async function requestToJoinCommunity(communityId: string): Promise<JoinRequestResult> {
   const supabase = await createClient();
   const {
@@ -32,64 +19,9 @@ export async function requestToJoinCommunity(communityId: string): Promise<JoinR
     return { error: "You need to be signed in to ask to join a community." };
   }
 
-  const { data: community, error: communityError } = await supabase
-    .from("communities")
-    .select("id, privacy, join_policy, slug")
-    .eq("id", communityId)
-    .maybeSingle();
-
-  if (communityError) return { error: communityError.message };
-  if (!community) return { error: "Community not found." };
-  if (joinPolicyOf(community) !== "approval") {
-    // An open community is a straight join and an invite-only one doesn't
-    // take requests at all, so neither belongs on this path.
-    return { error: "This community doesn't take join requests." };
-  }
-
-  // Mirrors joinCommunity: look before inserting, so a double-click or a second
-  // tab reads as the outcome the click was asking for rather than a raw unique
-  // constraint violation.
-  const { data: existing, error: existingError } = await supabase
-    .from("community_memberships")
-    .select("id, role, status")
-    .eq("community_id", communityId)
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (existingError) return { error: existingError.message };
-
-  if (existing?.status === "banned") {
-    return { error: "You can't join this community." };
-  }
-  if (existing?.status === "active") {
-    revalidatePath(`/c/${community.slug}`);
-    return { error: null };
-  }
-  if (existing?.status === "requested") {
-    // Already asked — nothing to do, and nothing has gone wrong.
-    revalidatePath(`/c/${community.slug}`);
-    return { error: null };
-  }
-  if (existing?.status === "invited") {
-    // They don't need to ask; an admin already opened the door.
-    return { error: "You've already been invited — use the invite link you were sent to join." };
-  }
-
-  const { error } = await supabase.from("community_memberships").insert({
-    user_id: user.id,
-    community_id: communityId,
-    role: "member",
-    status: "requested",
-  });
-
-  // Another request created the row between our read and this insert. The row
-  // the caller wanted exists, so that's a success.
-  if (error && error.code !== UNIQUE_VIOLATION) {
-    return { error: planLimitMessage(error) ?? error.message };
-  }
-
-  revalidatePath(`/c/${community.slug}`);
-  return { error: null };
+  const { error, slug } = await fileJoinRequest(supabase, user.id, { id: communityId });
+  if (slug && !error) revalidatePath(`/c/${slug}`);
+  return { error };
 }
 
 // Withdraw one's own pending request. A DELETE, because RLS deliberately won't

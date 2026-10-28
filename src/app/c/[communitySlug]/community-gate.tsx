@@ -15,7 +15,8 @@ import { RequestToJoinButton } from "./request-to-join-button";
 // press. Now they can request to join — the row that creates grants nothing
 // until staff approve it, so "private" still means private. A signed-out
 // visitor gets the same button pointed at the login page, and lands back here
-// able to press the real one.
+// able to press the real one; signing up instead files the request when they
+// confirm their email (see confirmOtp).
 export function CommunityGate({
   community,
   isLoggedIn,
@@ -62,8 +63,8 @@ export function CommunityGate({
       ) : (
         <>
           <p className="mt-6 max-w-sm text-sm text-muted-foreground">
-            This community is private. Log in to ask to join and see member content, or browse its public spaces
-            from the menu.
+            This community is private. Log in to ask to join, or sign up and your request goes to the admins as
+            soon as you confirm your email. You can also browse its public spaces from the menu.
           </p>
           <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
             <LinkButton href={`/login?next=${encodeURIComponent(base)}`} size="lg">
