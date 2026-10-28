@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatTaxiPrice, getZanzibarRentalsTaxis, parseTaxisFeed, showsZanzibarRentalsTaxis, taxisEnabled, taxisFeedUrl } from "./taxis";
+import { formatTaxiPrice, taxiDirectoryListing, getZanzibarRentalsTaxis, parseTaxisFeed, showsZanzibarRentalsTaxis, taxisEnabled, taxisFeedUrl } from "./taxis";
 
 function item(over: Record<string, unknown> = {}) {
   return {
@@ -89,4 +89,28 @@ test("any fetch failure is null, never a throw", async () => {
   assert.equal(await getZanzibarRentalsTaxis({ env: {}, fetchImpl: notOk }), null);
   const good = async () => Response.json(feed([item()]));
   assert.equal((await getZanzibarRentalsTaxis({ env: {}, fetchImpl: good }))?.length, 1);
+});
+
+test("a taxi as an ordinary Taxi listing in the directory grid", () => {
+  const [taxi] = parseTaxisFeed(feed([item()]))!;
+  const listing = taxiDirectoryListing(taxi, { spaceId: "space-1", communityId: "community-1" });
+  assert.equal(listing.business.name, "Airport → Nungwi");
+  assert.equal(listing.business.category, "taxi");
+  assert.equal(listing.business.location_label, "Nungwi");
+  assert.equal(listing.business.space_id, "space-1");
+  assert.equal(listing.business.image_url, taxi.photoUrl);
+  assert.equal(listing.business.description, "Juma's Taxis · $60 / trip · up to 6 people. Meets you at arrivals.");
+  assert.equal(listing.business.id, "zanzibar-rentals-20000000-0000-4000-8000-0000000000c1");
+  assert.deepEqual(listing.partner, { url: taxi.url, label: "Book on Zanzibar Rentals" });
+  assert.equal(listing.saved, false);
+  assert.equal(listing.imageCount, 1);
+});
+
+test("a taxi with no route, photo or seats still makes a listing", () => {
+  const [taxi] = parseTaxisFeed(feed([item({ to: null, photo_url: null, seats: null, summary: null, area: null })]))!;
+  const listing = taxiDirectoryListing(taxi, { spaceId: "s", communityId: "c" });
+  assert.equal(listing.business.name, "Airport");
+  assert.equal(listing.business.description, "Juma's Taxis · $60 / trip");
+  assert.equal(listing.business.location_label, null);
+  assert.equal(listing.imageCount, 0);
 });

@@ -86,8 +86,7 @@ import { JobsBoardView } from "./jobs-board-view";
 import { AccommodationView } from "./accommodation-view";
 import { LongTermStays } from "./long-term-stays";
 import { showsLongTermStays } from "@/lib/zanzibar-rooms/long-term";
-import { ZanzibarRentalsTaxis } from "@/components/editorial-guide/zanzibar-rentals-taxis";
-import { showsZanzibarRentalsTaxis } from "@/lib/zanzibar-rentals/taxis";
+import { getZanzibarRentalsTaxis, showsZanzibarRentalsTaxis, taxiDirectoryListing } from "@/lib/zanzibar-rentals/taxis";
 import { RecommendationsView } from "./recommendations-view";
 import { ClubsView } from "./clubs-view";
 import { MeetupsView } from "./meetups-view";
@@ -309,7 +308,14 @@ export default async function SpaceDetailPage({
     // The member directory stays login-gated even inside a public space.
     isDirectorySpace && user ? getDirectoryMembers(supabase, community.id) : Promise.resolve([]),
     isChallengeSpace ? getSpaceChallenges(supabase, space.id, viewerId) : Promise.resolve([]),
-    isBusinessDirectorySpace ? getSpaceBusinessesWithStats(supabase, space.id, viewerId) : Promise.resolve([]),
+    // On Mzungu Zanzibar the taxis drivers list on Zanzibar Rentals join the
+    // directory as ordinary Taxi listings (nothing added if the feed fails).
+    isBusinessDirectorySpace
+      ? Promise.all([
+          getSpaceBusinessesWithStats(supabase, space.id, viewerId),
+          showsZanzibarRentalsTaxis(community.slug) ? getZanzibarRentalsTaxis() : Promise.resolve(null),
+        ]).then(([own, taxis]) => [...own, ...(taxis ?? []).map((t) => taxiDirectoryListing(t, { spaceId: space.id, communityId: community.id }))])
+      : Promise.resolve([]),
     isMapSpace ? getMapCategories(supabase, community.id) : Promise.resolve([]),
     isMapSpace ? getSpaceLandmarks(supabase, space.id) : Promise.resolve([]),
     isMapSpace ? getCommunityMapPinnedBusinesses(supabase, community.id) : Promise.resolve([]),
@@ -753,15 +759,6 @@ export default async function SpaceDetailPage({
           featuredCategories={featuredBusinessCategories}
           customCategories={businessCustomCategories}
           labelOverrides={businessLabelOverrides}
-          // Taxis drivers list on Zanzibar Rentals, under the Taxi category
-          // on Mzungu Zanzibar only. Streams in; nothing if the feed fails.
-          taxisSection={
-            showsZanzibarRentalsTaxis(community.slug) ? (
-              <Suspense fallback={null}>
-                <ZanzibarRentalsTaxis />
-              </Suspense>
-            ) : undefined
-          }
         />
       ) : isMapSpace ? (
         <ExploreMapLoader
