@@ -1,11 +1,13 @@
 import { z } from "zod";
+import type { BusinessWithStats } from "@/lib/data/businesses";
 
 // Taxi routes from Zanzibar Rentals (www.zanzibarrentals.com), the Zanzibar
 // Rooms app's marketplace, where hosts list their own taxis. Its public feed
 // (GET /api/public/taxis, contract in the Zanzibar Rooms repo's
 // docs/zanzibar-rentals-public-taxis.md) is read here and shown on Mzungu
 // Zanzibar under the directory's Taxi category and the Getting Around guide's
-// drivers, so a taxi a host adds there turns up here on its own: the fetch is
+// drivers (mixed into the directory as ordinary listings), so a taxi a host
+// adds there turns up here on its own: the fetch is
 // cached for FEED_REVALIDATE seconds, no sync job needed.
 //
 // The feed is someone else's server, so nothing from it is trusted: every item
@@ -172,4 +174,57 @@ export function formatTaxiPrice(taxi: Pick<ZanzibarRentalsTaxi, "price" | "curre
   }
   const per = taxi.pricePer === "vehicle" ? "car" : taxi.pricePer;
   return `${amount} / ${per}`;
+}
+
+// A taxi as an ordinary card in a directory's Taxi grid, so it sorts, filters
+// and groups by area with the directory's own listings. It has no row of its
+// own: `partner` sends the card out to Zanzibar Rentals instead of to a
+// listing page, and there is nothing to save or review here.
+export function taxiDirectoryListing(
+  taxi: ZanzibarRentalsTaxi,
+  space: { spaceId: string; communityId: string },
+  now: string = new Date(0).toISOString()
+): BusinessWithStats {
+  const name = taxi.to ? `${taxi.from} → ${taxi.to}` : taxi.from;
+  const details = [taxi.host, formatTaxiPrice(taxi), taxi.seats ? `up to ${taxi.seats} people` : null].filter(Boolean).join(" · ");
+  return {
+    business: {
+      id: `zanzibar-rentals-${taxi.id}`,
+      space_id: space.spaceId,
+      community_id: space.communityId,
+      created_by: "",
+      name,
+      slug: null,
+      category: TAXI_CATEGORY,
+      is_local: false,
+      description: taxi.summary ? `${details}. ${taxi.summary}` : details,
+      website: taxi.url,
+      phone: null,
+      address: null,
+      opening_hours: null,
+      lat: null,
+      lng: null,
+      location_label: taxi.area,
+      image_url: taxi.photoUrl,
+      image_position: null,
+      claimed_by: null,
+      opening_hours_structured: null,
+      google_place_id: null,
+      google_rating: null,
+      google_review_count: null,
+      google_reviews: null,
+      google_maps_url: null,
+      google_synced_at: null,
+      place_id: null,
+      verified: false,
+      featured: false,
+      created_at: now,
+      updated_at: now,
+    },
+    avgRating: null,
+    ratingCount: 0,
+    imageCount: taxi.photoUrl ? 1 : 0,
+    saved: false,
+    partner: { url: taxi.url, label: "Book on Zanzibar Rentals" },
+  };
 }
