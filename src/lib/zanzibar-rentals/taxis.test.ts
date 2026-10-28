@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatTaxiPrice, taxiDirectoryListing, getZanzibarRentalsTaxis, parseTaxisFeed, showsZanzibarRentalsTaxis, taxisEnabled, taxisFeedUrl } from "./taxis";
+import { formatTaxiPrice, taxiDirectoryListing, taxiPickupArea, getZanzibarRentalsTaxis, parseTaxisFeed, showsZanzibarRentalsTaxis, taxisEnabled, taxisFeedUrl } from "./taxis";
 
 function item(over: Record<string, unknown> = {}) {
   return {
@@ -96,7 +96,7 @@ test("a taxi as an ordinary Taxi listing in the directory grid", () => {
   const listing = taxiDirectoryListing(taxi, { spaceId: "space-1", communityId: "community-1" });
   assert.equal(listing.business.name, "Airport → Nungwi");
   assert.equal(listing.business.category, "taxi");
-  assert.equal(listing.business.location_label, "Nungwi");
+  assert.equal(listing.business.location_label, "Stone Town");
   assert.equal(listing.business.space_id, "space-1");
   assert.equal(listing.business.image_url, taxi.photoUrl);
   assert.equal(listing.business.description, "Juma's Taxis · $60 / trip · up to 6 people. Meets you at arrivals.");
@@ -113,4 +113,18 @@ test("a taxi with no route, photo or seats still makes a listing", () => {
   assert.equal(listing.business.description, "Juma's Taxis · $60 / trip");
   assert.equal(listing.business.location_label, null);
   assert.equal(listing.imageCount, 0);
+});
+
+test("a route is grouped where it starts, not where the driver is based", () => {
+  const at = (from: string, area: string | null = "Nungwi") => taxiPickupArea({ from, to: "Paje", area });
+  assert.equal(at("Airport"), "Stone Town");
+  assert.equal(at("Zanzibar Airport (ZNZ)"), "Stone Town");
+  assert.equal(at("Stone Town"), "Stone Town");
+  assert.equal(at("Stonetown"), "Stone Town");
+  assert.equal(at("Ferry port"), "Stone Town");
+  assert.equal(at("Nungwi"), "Nungwi");
+  assert.equal(at("Paje beach hotels", "Stone Town"), "Paje");
+  assert.equal(at("Mwera"), "Mwera");
+  // Not a route: the host's area.
+  assert.equal(taxiPickupArea({ from: "Day hire with driver", to: null, area: "Nungwi" }), "Nungwi");
 });

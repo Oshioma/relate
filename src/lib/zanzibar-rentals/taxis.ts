@@ -176,8 +176,37 @@ export function formatTaxiPrice(taxi: Pick<ZanzibarRentalsTaxi, "price" | "curre
   return `${amount} / ${per}`;
 }
 
+// Where a route starts, as the place the directory groups it under. A route
+// belongs where the passenger is picked up, not where the driver lives: a
+// Nungwi driver's Airport → Paje route goes under Stone Town. The airport and
+// the ferry port count as Stone Town; a pick-up naming a known place
+// ("Paje beach hotels") goes under that place; anything else under its own
+// name. A taxi that isn't named as a route falls back to the host's area.
+const PICKUP_PLACES: [RegExp, string][] = [
+  [/\b(airport|aiport|abeid|karume|znz|ferry|port|harbou?r|bandari|mji mkongwe|stone ?town|stonetown)\b/i, "Stone Town"],
+  [/\bnungwi\b/i, "Nungwi"],
+  [/\bkendwa\b/i, "Kendwa"],
+  [/\bmatemwe\b/i, "Matemwe"],
+  [/\bkiwengwa\b/i, "Kiwengwa"],
+  [/\bpongwe\b/i, "Pongwe"],
+  [/\buroa\b/i, "Uroa"],
+  [/\bmichamvi\b/i, "Michamvi"],
+  [/\bbwejuu\b/i, "Bwejuu"],
+  [/\bpaje\b/i, "Paje"],
+  [/\bjambiani\b/i, "Jambiani"],
+  [/\bkizimkazi\b/i, "Kizimkazi"],
+  [/\bfumba\b/i, "Fumba"],
+  [/\bmbweni\b/i, "Mbweni"],
+];
+
+export function taxiPickupArea(taxi: Pick<ZanzibarRentalsTaxi, "from" | "to" | "area">): string | null {
+  if (!taxi.to) return taxi.area;
+  for (const [pattern, place] of PICKUP_PLACES) if (pattern.test(taxi.from)) return place;
+  return taxi.from;
+}
+
 // A taxi as an ordinary card in a directory's Taxi grid, so it sorts, filters
-// and groups by area with the directory's own listings. It has no row of its
+// and groups by pick-up place with the directory's own listings. It has no row of its
 // own: `partner` sends the card out to Zanzibar Rentals instead of to a
 // listing page, and there is nothing to save or review here.
 export function taxiDirectoryListing(
@@ -204,7 +233,7 @@ export function taxiDirectoryListing(
       opening_hours: null,
       lat: null,
       lng: null,
-      location_label: taxi.area,
+      location_label: taxiPickupArea(taxi),
       image_url: taxi.photoUrl,
       image_position: null,
       claimed_by: null,
