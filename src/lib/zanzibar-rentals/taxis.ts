@@ -176,6 +176,16 @@ export function formatTaxiPrice(taxi: Pick<ZanzibarRentalsTaxi, "price" | "curre
   return `${amount} / ${per}`;
 }
 
+// Where a taxi leaves from, which is the place it's listed under in the
+// directory (Airport, Stone Town, Kendwa): the start of its route, else the
+// driver's area for a taxi not named as a route. "Stonetown" and "stone town"
+// both read "Stone Town" so they share one group.
+export function taxiDeparture(taxi: Pick<ZanzibarRentalsTaxi, "from" | "to" | "area">): string | null {
+  const place = taxi.to ? taxi.from : taxi.area;
+  if (!place) return null;
+  return /^stone\s*town$/i.test(place.trim()) ? "Stone Town" : place;
+}
+
 // A taxi as an ordinary card in a directory's Taxi grid, so it sorts, filters
 // and groups by area with the directory's own listings. It has no row of its
 // own: `partner` sends the card out to Zanzibar Rentals instead of to a
@@ -204,7 +214,7 @@ export function taxiDirectoryListing(
       opening_hours: null,
       lat: null,
       lng: null,
-      location_label: taxi.area,
+      location_label: taxiDeparture(taxi),
       image_url: taxi.photoUrl,
       image_position: null,
       claimed_by: null,
