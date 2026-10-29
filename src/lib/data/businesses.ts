@@ -21,7 +21,7 @@ export type BusinessWithStats = {
   ratingCount: number;
   imageCount: number;
   saved: boolean;
-  // A listing from a partner site (Zanzibar Rentals taxis) shown in the grid:
+  // A listing from a partner site (Zanzibar Rentals taxis and activities) shown in the grid:
   // the card links out to it in a new window and can't be saved.
   partner?: { url: string; label: string };
 };
