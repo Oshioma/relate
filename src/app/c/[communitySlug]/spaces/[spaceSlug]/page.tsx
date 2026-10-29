@@ -86,6 +86,8 @@ import { JobsBoardView } from "./jobs-board-view";
 import { AccommodationView } from "./accommodation-view";
 import { LongTermStays } from "./long-term-stays";
 import { showsLongTermStays } from "@/lib/zanzibar-rooms/long-term";
+import { getZanzibarRentalsTaxis, showsZanzibarRentalsTaxis, taxiDirectoryListing } from "@/lib/zanzibar-rentals/taxis";
+import { activityDirectoryListing, getZanzibarRentalsActivities, showsZanzibarRentalsActivities } from "@/lib/zanzibar-rentals/activities";
 import { RecommendationsView } from "./recommendations-view";
 import { ClubsView } from "./clubs-view";
 import { MeetupsView } from "./meetups-view";
@@ -307,7 +309,20 @@ export default async function SpaceDetailPage({
     // The member directory stays login-gated even inside a public space.
     isDirectorySpace && user ? getDirectoryMembers(supabase, community.id) : Promise.resolve([]),
     isChallengeSpace ? getSpaceChallenges(supabase, space.id, viewerId) : Promise.resolve([]),
-    isBusinessDirectorySpace ? getSpaceBusinessesWithStats(supabase, space.id, viewerId) : Promise.resolve([]),
+    // On Mzungu Zanzibar the taxis and the tours and activities hosts list on
+    // Zanzibar Rentals join the directory as ordinary Taxi and Activity
+    // listings (nothing added if a feed fails).
+    isBusinessDirectorySpace
+      ? Promise.all([
+          getSpaceBusinessesWithStats(supabase, space.id, viewerId),
+          showsZanzibarRentalsTaxis(community.slug) ? getZanzibarRentalsTaxis() : Promise.resolve(null),
+          showsZanzibarRentalsActivities(community.slug) ? getZanzibarRentalsActivities() : Promise.resolve(null),
+        ]).then(([own, taxis, activities]) => [
+          ...own,
+          ...(taxis ?? []).map((t) => taxiDirectoryListing(t, { spaceId: space.id, communityId: community.id })),
+          ...(activities ?? []).map((a) => activityDirectoryListing(a, { spaceId: space.id, communityId: community.id })),
+        ])
+      : Promise.resolve([]),
     isMapSpace ? getMapCategories(supabase, community.id) : Promise.resolve([]),
     isMapSpace ? getSpaceLandmarks(supabase, space.id) : Promise.resolve([]),
     isMapSpace ? getCommunityMapPinnedBusinesses(supabase, community.id) : Promise.resolve([]),

@@ -316,15 +316,17 @@ export function BusinessDirectoryView({
     // Busiest places first, so the page opens on Kendwa's ten listings rather
     // than an alphabetical run of one-listing places. Places with a single
     // listing share one closing group — each card names its own place — so
-    // they fill a grid instead of a row each.
+    // they fill a grid instead of a row each. Taxis are the exception: a
+    // route is looked up by where it leaves from, so a place with a single
+    // route still gets its own heading.
     const entries = [...byLocation.entries()].sort(([a, x], [b, y]) => y.length - x.length || a.localeCompare(b));
     const singles = entries.filter(([, items]) => items.length === 1);
-    const pooled = entries.length > 1 && singles.length > 1;
+    const pooled = category !== "taxi" && entries.length > 1 && singles.length > 1;
     const sorted: [string, BusinessWithStats[]][] = pooled ? entries.filter(([, items]) => items.length > 1) : entries;
     const elsewhere = [...(pooled ? singles.flatMap(([, items]) => items) : []), ...unlabeled];
     if (elsewhere.length > 0) sorted.push([sorted.length > 0 ? "Other places" : "Other", elsewhere]);
     return sorted.map(([label, items]) => [label, sortItems(items)] as [string, BusinessWithStats[]]);
-  }, [filtered, sortItems]);
+  }, [filtered, sortItems, category]);
 
   return (
     <div>
