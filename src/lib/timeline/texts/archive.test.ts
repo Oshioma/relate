@@ -19,6 +19,7 @@ import { ASCENSION_UNITS } from "./corpus/ascension-of-isaiah-text";
 import { SECRETS_OF_ENOCH_UNITS } from "./corpus/secrets-of-enoch-text";
 import { TURBA_UNITS } from "./corpus/turba-philosophorum-text";
 import { CHALDEAN_ORACLE_SECTIONS, CHALDEAN_ORACLE_UNITS } from "./corpus/chaldean-oracles-text";
+import { IAMBLICHUS_CHAPTERS, IAMBLICHUS_UNITS } from "./corpus/iamblichus-mysteries-text";
 import { MARKER_PICTURES } from "./marker-pictures";
 import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
@@ -3186,6 +3187,228 @@ test("the Chaldaean Oracles' pictures: the printings of 1599 and 1832 are secure
   assert.equal(marker[0].url, seen.get("chald-opsopoeus-1599-title-page")!.url);
   assert.equal(marker[0].identificationStatus, "secure");
   assert.equal(marker[1].url, seen.get("chald-gozzoli-pletho-magi-chapel")!.url);
+  assert.equal(marker[1].identificationStatus, "unverified");
+  assert.match(marker[1].caption ?? "", /^UNVERIFIED — /);
+});
+
+test("Iamblichus's On the Mysteries is imported whole from Taylor 1821: Porphyry's Epistle and the Answer in Taylor's ten Sections and 140 Chapters", () => {
+  const file = corpusFor("greek.iamblichus-mysteries")!;
+  const work = INVENTORY.find((w) => w.workKey === "greek.iamblichus-mysteries")!;
+  assert.equal(work.passagePrefix, "greek.iamb");
+  assert.equal(work.briefItem, 18);
+  assert.equal(work.corpusGroup, "greek_hermetic");
+  assert.equal(work.traditionClass, "ancient_late_transmission");
+  assert.equal(work.unitDivisionKind, "chapter");
+  assert.equal(work.expectedUnits, 141);
+  assert.equal(work.inventoryVerified, false, "Taylor's division, not matched to the modern editions");
+  assert.match(work.attribution!, /writing as 'Abammon'.*the ascription goes back to Proclus/);
+  assert.match(work.attributionNote!, /The title De mysteriis Aegyptiorum is Marsilio Ficino's/);
+  assert.match(work.attributionNote!, /'certainly originated from his school'/);
+  for (const edition of ["Parthey", "des Places", "Saffrey and A.-Ph. Segonds", "Clarke, J. M. Dillon and J. P. Hershbell"]) {
+    assert.ok(work.referenceOnlyEditions!.some((e) => e.includes(edition) && /not read/.test(e)), edition);
+  }
+  // Item 18 of the brief points here.
+  const related = INVENTORY.find((w) => w.workKey === "greek.related")!;
+  assert.ok(related.proposedMembers!.includes("Iamblichus, On the Mysteries — Taylor 1821 public domain; imported as its own work, greek.iamblichus-mysteries"));
+  for (const key of [
+    "taylor-1821-iamblichus-mysteries",
+    "taylor-1895-iamblichus-mysteries-reprint",
+    "gale-1678-iamblichus-de-mysteriis",
+    "aldine-1497-iamblichus-de-mysteriis",
+    "sep-iamblichus",
+    "wikipedia-iamblichus-mysteries",
+  ]) {
+    assert.ok(INVENTORY_SOURCES.some((s) => s.key === key), key);
+    assert.ok(file.sources.some((s) => s.key === key), key);
+  }
+  // The book (citing the Greek only), the Epistle, the Answer, ten Sections, 140 Chapters.
+  const book = file.passages[0];
+  assert.equal(book.key, "greek.iamb.book");
+  assert.equal(book.layers.filter((l) => l.content && l.key !== PLAIN_LAYER_KEY).length, 0);
+  const greek = book.layers.find((l) => l.key === "grc")!;
+  assert.equal(greek.content, undefined);
+  assert.match(greek.contentAbsentReason!, /All four are known here second-hand, from the Stanford Encyclopedia of Philosophy and Wikipedia, and none was read/);
+  assert.match(book.summary!, /that its author is Iamblichus is an ascription that goes back to Proclus/);
+  assert.match(book.summary!, /goes back to Ficino's Latin version of 1497/);
+  assert.match(book.notes!, /Taylor prints no page numbers of Parthey's Greek edition \(1857\)/);
+  assert.match(book.notes!, /Not imported, and listed here: Taylor's Introduction \(pp\. \[v\]–xxiv\); his footnotes/);
+  assert.match(book.notes!, /his Additional Notes \(pp\. 337–365\); and the list of his works/);
+  assert.match(book.notes!, /'It is requisite to know that the philosopher Proclus, in his Commentary on the Enneads of the great Plotinus, says that it is the divine Iamblichus who answers the prefixed Epistle of Porphyry, and who assumes the person of a certain Egyptian of the name of Abammon/);
+  assert.match(book.notes!, /modern scholarship on that question \(which gives it to Michael Psellus\) was not read/);
+  const parts = file.passages.filter((p) => p.divisionKind === "part").map((p) => [p.key, p.parentKey ?? null]);
+  assert.deepEqual(parts, [
+    ["greek.iamb.book", null],
+    ["greek.iamb.epistle", "greek.iamb.book"],
+    ["greek.iamb.answer", "greek.iamb.book"],
+  ]);
+  const sections = file.passages.filter((p) => p.divisionKind === "book");
+  assert.deepEqual(
+    sections.map((s) => [s.key, s.label, s.parentKey]),
+    Array.from({ length: 10 }, (_, i) => [`greek.iamb.s${i + 1}`, `Section ${["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][i]}`, "greek.iamb.answer"])
+  );
+  assert.deepEqual(IAMBLICHUS_CHAPTERS, { 1: 21, 2: 11, 3: 31, 4: 13, 5: 26, 6: 7, 7: 5, 8: 8, 9: 10, 10: 8 });
+  assert.equal(IAMBLICHUS_UNITS.length, 141);
+  const chapters = file.passages.filter((p) => p.divisionKind === "chapter");
+  assert.deepEqual(
+    chapters.map((c) => c.key),
+    Object.entries(IAMBLICHUS_CHAPTERS).flatMap(([s, n]) => Array.from({ length: n }, (_, i) => `greek.iamb.${s}.${i + 1}`))
+  );
+  assert.equal(file.passages.length, 3 + 10 + 140);
+  const withText = file.passages.filter((p) => p.layers.some((l) => l.key === "eng-1821"));
+  assert.equal(withText.length, work.expectedUnits);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 141, verifiedUnits: 0 }), "verified_against_edition");
+  for (const unit of withText) {
+    assert.equal(unit.verificationStatus, "unverified", unit.key);
+    const layer = unit.layers.find((l) => l.key === "eng-1821")!;
+    assert.equal(layer.licence, "public_domain", unit.key);
+    assert.equal(layer.layer, "translation", unit.key);
+    assert.equal(layer.sourceKey, "taylor-1821-iamblichus-mysteries", unit.key);
+    assert.match(layer.evidence, /scripts\/texts\/iamblichus-mysteries\.py/, unit.key);
+    assert.ok(unit.layers.some((l) => l.key === PLAIN_LAYER_KEY), `${unit.key} has no plain words`);
+    // No OCR debris: no stray marks, doubled spaces or hyphen breaks.
+    assert.doesNotMatch(layer.content!, /™|_|�|\{|\||  |\w- [a-z]/, unit.key);
+  }
+  for (const chapter of chapters) {
+    assert.match(chapter.parentKey!, /^greek\.iamb\.s([1-9]|10)$/, chapter.key);
+    assert.match(chapter.reference, /^Iamblichus, On the Mysteries, Taylor's Section [IVX]+, chapter [IVX]+; Taylor \(Chiswick, 1821\), (p\. \d+|pp\. \d+–\d+)$/, chapter.key);
+  }
+  const text = (key: string) => file.passages.find((p) => p.key === `greek.iamb.${key}`)!.layers.find((l) => l.key === "eng-1821")!.content!;
+  assert.match(text("epistle"), /^Porphyry to the Prophet Anebo greeting\. I commence my friendship towards you from the Gods and good dæmons/);
+  assert.match(text("1.1"), /^Hermes, the God who presides over language, was formerly very properly considered as common to all priests/);
+  assert.match(text("7.2"), /the sun having a separate subsistence, governs the helm of the whole world/);
+  assert.match(text("8.5"), /Bitys, the prophet of King Ammon, explained it, having found it in the adyta of Saïs in Egypt, written in hieroglyphics/);
+  assert.match(text("10.8"), /the confirmation of our concordant friendship with each other\.$/);
+  // The proofreading corrections, and Taylor's misprints kept as printed.
+  assert.match(text("1.10"), /viz\. the soul,/);
+  assert.match(text("1.10"), /\[and the Gods\]\.$/);
+  assert.match(text("1.12"), /implore the Gods to incline to us/);
+  assert.match(text("8.6"), /leads to an unbegotten nature/);
+  assert.match(text("1.5"), /I mean the essense which/);
+  const notes = (key: string) => file.passages.find((p) => p.key === `greek.iamb.${key}`)!.notes ?? "";
+  assert.match(notes("1.5"), /'essense' is Taylor's misprint/);
+  assert.match(notes("5.17"), /'administration of of our affairs' is so printed/);
+});
+
+test("Iamblichus's On the Mysteries is dated from Iamblichus's life (debated) and from the printings of 1497, 1678 and 1821", () => {
+  const file = corpusFor("greek.iamblichus-mysteries")!;
+  const book = file.passages[0];
+  assert.deepEqual(
+    book.dates!.map((d) => [d.role, d.startYear, d.endYear, d.datePrecision, d.isApproximate, d.sourceKey]),
+    [
+      ["composition", 275, 325, "decade", true, "sep-iamblichus"],
+      ["translation_publication", 1497, 1497, "year", false, "aldine-1497-iamblichus-de-mysteriis"],
+      ["translation_publication", 1678, 1678, "year", false, "gale-1678-iamblichus-de-mysteriis"],
+      ["translation_publication", 1821, 1821, "year", false, "taylor-1821-iamblichus-mysteries"],
+    ]
+  );
+  const [composition, aldine, gale, taylor] = book.dates!;
+  assert.match(composition.evidence, /^Inferred, not read in any source/);
+  assert.match(composition.evidence, /Debated, and approximate\.$/);
+  assert.match(aldine.evidence, /the colophon was not read/);
+  assert.match(gale.originalDateText!, /Græce nunc primum edidit/);
+  assert.match(taylor.originalDateText!, /1821\.' \(Taylor's title page\)$/);
+  const work = INVENTORY.find((w) => w.workKey === "greek.iamblichus-mysteries")!;
+  const event = work.anchor && "event" in work.anchor ? work.anchor.event : undefined;
+  assert.equal(event!.slug, "iamblichus-on-the-mysteries");
+  assert.deepEqual(
+    event!.claims.map((c) => [dateRoleFromWhatIsDated(c.whatIsDated!), c.startYear, c.endYear, c.sourceKey]),
+    [
+      ["composition", 275, 325, "sep-iamblichus"],
+      ["translation_publication", 1497, undefined, "aldine-1497-iamblichus-de-mysteriis"],
+      ["translation_publication", 1678, undefined, "gale-1678-iamblichus-de-mysteriis"],
+      ["translation_publication", 1821, undefined, "taylor-1821-iamblichus-mysteries"],
+    ]
+  );
+  assert.match(event!.claims[0].evidence, /^Inferred: no source read dates the work/);
+  assert.match(event!.description, /Proclus, in the fifth century, is the source for the view that Iamblichus wrote it/);
+});
+
+test("Iamblichus's links are proposed; only Hall and Kircher quote or name the work, and none claims a borrowing", () => {
+  const file = corpusFor("greek.iamblichus-mysteries")!;
+  const links = file.links ?? [];
+  const keys = new Set(ALL_CORPORA.flatMap((f) => f.passages.map((p) => p.key)));
+  assert.equal(new Set(links.map((l) => l.key)).size, links.length, "duplicate link key");
+  for (const link of links) {
+    assert.ok(keys.has(link.from) && keys.has(link.to), link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^greek\.iamb\.(epistle|\d+\.\d+)$/, link.key);
+    if (link.to.startsWith("modern.hall.")) assert.match(link.transmissionEvidence, /^Documented/, link.key);
+    else assert.match(link.transmissionEvidence, /^None shown/, link.key);
+    assert.doesNotMatch(`${link.similarities} ${link.differences} ${link.transmissionEvidence}`, /\bcop(ied|y)\b/, link.key);
+  }
+  assert.deepEqual(
+    links.map((l) => [l.from, l.to, l.connectionClass]),
+    [
+      ["greek.iamb.3.11", "modern.hall.11.s1.p4", "direct_textual_parallel"],
+      ["greek.iamb.5.21", "modern.hall.10.fig2", "later_reinterpretation"],
+      ["greek.iamb.8.1", "modern.hall.5.s1", "later_reinterpretation"],
+      ["greek.iamb.8.1", "modern.hpb.isis.1.3", "speculative_connection"],
+      ["greek.iamb.7.5", "herm.ch.16.2", "close_conceptual_parallel"],
+      ["greek.iamb.7.4", "greek.chald.155", "close_conceptual_parallel"],
+      ["greek.iamb.7.4", "greek.mithras.1907.7", "symbolic_similarity"],
+      ["greek.iamb.7.4", "gnostic.origen.6.32", "broad_thematic_resemblance"],
+      ["greek.iamb.8.3", "herm.sh.ex9.3", "broad_thematic_resemblance"],
+      ["greek.iamb.8.5", "herm.sh.ex25.5", "symbolic_similarity"],
+      ["greek.iamb.6.5", "egy.pt.520", "symbolic_similarity"],
+      ["greek.iamb.7.2", "egy.pt.249", "symbolic_similarity"],
+      ["greek.iamb.7.2", "egy.amd.1.opening", "symbolic_similarity"],
+      ["greek.iamb.9.6", "greek.tim.90a", "close_conceptual_parallel"],
+      ["greek.iamb.8.6", "greek.tim.69c", "broad_thematic_resemblance"],
+    ]
+  );
+  // Hall's quotation is Taylor's English of the chapter it links to.
+  const hall = ALL_CORPORA.flatMap((f) => f.passages).find((p) => p.key === "modern.hall.11.s1.p4")!;
+  const hallText = hall.layers.filter((l) => l.content && l.key !== PLAIN_LAYER_KEY).map((l) => l.content).join(" ");
+  const taylor = file.passages.find((p) => p.key === "greek.iamb.3.11")!.layers.find((l) => l.key === "eng-1821")!.content!;
+  for (const words of ["she entirely gives herself up to a divine spirit, and is illuminated with a ray of divine fire", "she becomes filled from it with a divine splendour"]) {
+    assert.ok(hallText.includes(words) && taylor.includes(words), words);
+  }
+});
+
+
+test("Iamblichus's pictures: the printings of 1497, 1678 and 1821 are secure; the Ficino manuscript and Taylor's portrait are UNVERIFIED", () => {
+  const file = corpusFor("greek.iamblichus-mysteries")!;
+  const placed = file.passages.flatMap((p) => (p.images ?? []).map((i) => [p.key, i] as const));
+  const images = [...(file.images ?? []), ...placed.map(([, i]) => i)];
+  const seen = new Map(images.map((i) => [i.key, i]));
+  assert.equal(seen.size, images.length, "duplicate image key");
+  assert.equal(seen.size, 7);
+  const elsewhere = new Set(ALL_CORPORA.filter((f) => f.workKey !== "greek.iamblichus-mysteries").flatMap((f) => [...(f.images ?? []), ...f.passages.flatMap((p) => p.images ?? [])].map((i) => i.url)));
+  for (const image of seen.values()) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.equal(image.licenceStatus, "open", image.key);
+    assert.ok(image.licence, image.key);
+    assert.ok(!elsewhere.has(image.url), `${image.key} repeats a picture shown elsewhere`);
+    if (image.identificationStatus === "unverified") {
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else {
+      assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+      assert.equal(image.shows, "historical_document", image.key);
+    }
+  }
+  assert.deepEqual(
+    placed.map(([key, i]) => [key, i.key, i.identificationStatus]),
+    [
+      ["greek.iamb.book", "iamb-taylor-1821-title-page", "secure"],
+      ["greek.iamb.book", "iamb-gale-1678-title-page", "secure"],
+      ["greek.iamb.book", "iamb-aldine-1497-ficino-argumentum", "secure"],
+      ["greek.iamb.book", "iamb-ficino-prohemium-laurenziana", "unverified"],
+      ["greek.iamb.book", "iamb-thomas-taylor-lawrence-portrait", "unverified"],
+      ["greek.iamb.epistle", "iamb-taylor-1821-epistle-p1", "secure"],
+      ["greek.iamb.answer", "iamb-taylor-1821-answer-p17", "secure"],
+    ]
+  );
+  assert.equal(seen.get("iamb-thomas-taylor-lawrence-portrait")!.shows, "later_artwork");
+  // Ficino's manuscript is related evidence, never the Greek.
+  assert.match(seen.get("iamb-ficino-prohemium-laurenziana")!.caption, /^UNVERIFIED — Related evidence, not the Greek text/);
+  // Its own marker: Taylor's title page, then the Ficino manuscript, UNVERIFIED.
+  const marker = MARKER_PICTURES["iamblichus-on-the-mysteries"];
+  assert.equal(marker.length, 2);
+  assert.equal(marker[0].url, seen.get("iamb-taylor-1821-title-page")!.url);
+  assert.equal(marker[0].identificationStatus, "secure");
+  assert.equal(marker[1].url, seen.get("iamb-ficino-prohemium-laurenziana")!.url);
   assert.equal(marker[1].identificationStatus, "unverified");
   assert.match(marker[1].caption ?? "", /^UNVERIFIED — /);
 });

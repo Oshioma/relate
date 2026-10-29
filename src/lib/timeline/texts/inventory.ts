@@ -1268,6 +1268,82 @@ export const INVENTORY_SOURCES: SeedSource[] = [
       "One of the two English versions Westcott revised. Read only at the opening of the oracles, for the heading, oracle 1 in Greek and English, and Cory's footnote on Taylor's arrangement (I. oracles Taylor 'conjectures may be ascribed to Zoroaster himself', from Psellus's collection, marked Z; II. those 'delivered by Theurgists under the reign of Marcus Antoninus', marked T; III. 'Z or T'). Not compared with Westcott's English beyond that page. Public domain.",
   },
   {
+    key: "taylor-1821-iamblichus-mysteries",
+    title: "Iamblichus on the Mysteries of the Egyptians, Chaldeans, and Assyrians. Translated from the Greek by Thomas Taylor",
+    author: "Thomas Taylor (trans.)",
+    publisher: "C. Whittingham, Chiswick, for the translator",
+    publishedYear: 1821,
+    reference:
+      "Porphyry's Epistle to Anebo, pp. 1–16; the Answer, pp. 17–336, in Taylor's ten Sections and 140 Chapters; read in the Wellcome Library copy scanned by the Internet Archive (b29338888_0002, Public Domain Mark; printed page = leaf − 28), its title page, every page of the text, and the footnote on pp. 17–18",
+    url: "https://archive.org/details/b29338888_0002",
+    sourceType: "primary",
+    notes:
+      "The English imported, and the copy text. Taylor (1758–1835) prints English only, with footnotes, an Introduction (pp. [v]–xxiv) and Additional Notes (pp. 337–365), none of which is imported; he gives no page numbers of Parthey's Greek edition. His footnote on pp. 17–18 gives, in English, the Greek note prefixed to Gale's manuscript naming Proclus for the view that Iamblichus wrote the reply as Abammon. The text was voted from this scan's OCR and four scans of the 1895 reprint, and read against this copy's page images; every correction made by hand is in scripts/texts/iamblichus-mysteries.py. Public domain.",
+  },
+  {
+    key: "taylor-1895-iamblichus-mysteries-reprint",
+    title: "Iamblichus on the Mysteries of the Egyptians, Chaldeans, and Assyrians. Translated from the Greek by Thomas Taylor. Second edition",
+    author: "Thomas Taylor (trans.)",
+    publisher: "Bertram Dobell, and Reeves and Turner, London",
+    publishedYear: 1895,
+    reference:
+      "Read as a second witness to the 1821 text in four scans on archive.org: a Harvard copy scanned by Google (iamblichusonmys00taylgoog), a Wellcome Library copy (b24884170), a Claremont School of Theology copy (iamblichusonmyst0000iamb), and a scan catalogued as 1905 that is of this edition (taylor-on-the-mysteries-en-1905)",
+    url: "https://archive.org/details/b24884170",
+    sourceType: "primary",
+    notes:
+      "A reprint set page for page with 1821 (pp. 1–336 the same, checked on the running page numbers), so its scans were aligned with the 1821 copy and used in the vote: a reading of 1821's OCR was replaced only where three of the four agreed on another, and every page was then read against the 1821 page images. Not itself the copy text. Public domain.",
+  },
+  {
+    key: "gale-1678-iamblichus-de-mysteriis",
+    title: "Iamblichi Chalcidensis ex Coele-Syria De mysteriis liber. Praemittitur Epistola Porphyrii ad Anebonem Aegyptium eodem argumento. Thomas Gale Anglus Graece nunc primum edidit, Latine vertit, & notas adjecit",
+    author: "Thomas Gale (ed. and Latin trans.)",
+    publisher: "E Theatro Sheldoniano, Oxford",
+    publishedYear: 1678,
+    reference:
+      "The title page only, read in the Wellcome Library copy scanned by the Internet Archive (b3033844x) and on Wikimedia Commons",
+    url: "https://archive.org/details/b3033844x",
+    sourceType: "primary",
+    notes:
+      "The first printing of the Greek, with Gale's Latin and notes, and with Porphyry's letter printed before the work. Read only for its title page, which says the Greek is published 'now for the first time' (Graece nunc primum edidit) and gives the imprint 'Oxonii, e Theatro Sheldoniano, Anno Dom. CIↃ DC LXXVIII' under an engraving of the Sheldonian Theatre. Taylor's footnotes refer to it. The Greek and Latin were not read. Public domain.",
+  },
+  {
+    key: "aldine-1497-iamblichus-de-mysteriis",
+    title: "Iamblichus de mysteriis Aegyptiorum, Chaldaeorum, Assyriorum; Proclus in Platonicum Alcibiadem de anima atque daemone; [and other works], in the Latin of Marsilio Ficino",
+    author: "Marsilio Ficino (Latin version)",
+    publisher: "Aldus Manutius, Venice",
+    publishedYear: 1497,
+    reference:
+      "The index of the volume and Ficino's dedication and Argumentum (the first leaves), read in the copy of the Biblioteca de la Universidad de Sevilla (A 335/081) scanned by the Internet Archive (A335081) and on Wikimedia Commons; the date and Goff number (J-216) are the Commons file page's",
+    url: "https://archive.org/details/A335081",
+    sourceType: "primary",
+    notes:
+      "Ficino's Latin paraphrase, the first printing of the work and the source of the title De mysteriis Aegyptiorum (as the SEP says). Read only at its first leaves: the index, whose first entry is 'Iamblichus de mysteriis Aegyptiorum. Chaldæorum. Assyriorum.', Ficino's dedication to Cardinal Giovanni de' Medici, and his 'Argumentum in librum Iamblichi', which says that Porphyry sent his letter to Anebo and that the author 'Introducit uero Porphyrio respondentem Abamonem aegyptium sacerdotem pro Anebone discipulo suo' (brings in Abammon, an Egyptian priest, answering Porphyry for his pupil Anebo), and in which Ficino says he rendered 'non verba, sed sensa' (not the words but the sense); the printed abbreviations are expanded here. The colophon was not read. Public domain.",
+  },
+  {
+    key: "sep-iamblichus",
+    title: "Iamblichus",
+    author: "Riccardo Chiaradonna and Adrien Lecerf",
+    publisher: "Stanford Encyclopedia of Philosophy",
+    publishedYear: 2019,
+    reference: "https://plato.stanford.edu/entries/iamblichus/, first published 27 August 2019, substantive revision 7 November 2023, read for this import in October 2026",
+    url: "https://plato.stanford.edu/entries/iamblichus/",
+    sourceType: "secondary",
+    notes:
+      "Cited for Iamblichus's dates ('ca. 242–ca. 325'); that a break with Porphyry 'seems impossible to date with precision'; the Greek title, 'Reply of Master Abamon to Porphyry's Letter to Anebo, and Solutions to the Difficulties Contained Therein', and that the work is 'traditionally known as De mysteriis Ægyptiorum since Marsilio Ficino's original Latin translation'; that the debate is framed as a fictional Egyptian scenario; that 'the only ancient testimonium' is Proclus, In Timaeum I, 386.8–13 (with Taormina's reservations); and for the editions of Clarke, Dillon and Hershbell (2003) and Saffrey and Segonds (2013), which were not read. Second-hand for everything it reports from them.",
+  },
+  {
+    key: "wikipedia-iamblichus-mysteries",
+    title: "On the Mysteries of the Egyptians, Chaldeans, and Assyrians",
+    author: "Wikipedia contributors",
+    publisher: "Wikipedia",
+    reference:
+      "https://en.wikipedia.org/wiki/On_the_Mysteries_of_the_Egyptians,_Chaldeans,_and_Assyrians, read for this import in October 2026 through the site's raw wikitext (with the articles 'Iamblichus' and 'Porphyry of Tyre')",
+    url: "https://en.wikipedia.org/wiki/On_the_Mysteries_of_the_Egyptians,_Chaldeans,_and_Assyrians",
+    sourceType: "website",
+    notes:
+      "Cited, second-hand, for: Proclus 'seems to have ascribed to him the authorship'; differences of style and doctrine 'have led some to question whether Iamblichus was the actual author. Still, the treatise certainly originated from his school'; the work's ten books; the editions of Aldus (1497), Taylor (1821), Wilder (1911) and Clarke, Dillon and Hershbell (2003); from its article on Iamblichus, his dates (c. 245 – c. 325), Parthey's Teubner edition (1857) and des Places' Budé edition; and from its article on Porphyry, his dates (c. 234 – c. 305) and the edition of the Letter to Anebo by Sodano (1958). None of the editions was read.",
+  },
+  {
     key: "waite-1896-turba",
     title:
       "The Turba Philosophorum or Assembly of the Sages, called also the Book of Truth in the Art and the Third Pythagorical Synod: an ancient alchemical treatise translated from the Latin, the chief readings of the shorter codex, parallels from the Greek alchemists, and explanations of obscure terms",
@@ -2691,7 +2767,7 @@ export const INVENTORY: InventoryWork[] = [
     proposedMembers: [
       "Mithras Liturgy (PGM IV 475–829) — ascent through the heavens; Mead 1907 public domain; imported as its own work, greek.mithras-liturgy",
       "Plutarch, On Isis and Osiris — already a timeline record (plutarch-on-isis-and-osiris)",
-      "Iamblichus, On the Mysteries — Taylor 1821 public domain",
+      "Iamblichus, On the Mysteries — Taylor 1821 public domain; imported as its own work, greek.iamblichus-mysteries",
       "Chaldean Oracles — imported as its own work, greek.chaldean-oracles",
       "Ptolemy, Tetrabiblos — planetary rulers",
       "Macrobius, Commentary on the Dream of Scipio I.12 — descent of the soul through the seven spheres",
@@ -2858,6 +2934,113 @@ export const INVENTORY: InventoryWork[] = [
             originalDateText: "'... which in 1895 published Taylor's translation in William Wynn Westcott's edition under the title 'The Chaldaean Oracles of Zoroaster'' (Wikipedia)",
             datingMethod: "historical_record",
             evidence: "The scanned volume carries no date; the year is Wikipedia's and Forgotten Books' reprint's ('First published 1895').",
+          }),
+        ],
+      },
+    },
+    prominence: 2,
+  },
+  {
+    // Brief item 18 ("Related Greek cosmological, philosophical and mystery
+    // texts") listed Iamblichus's On the Mysteries among its proposed members;
+    // it is imported here as its own work, in Taylor's English of 1821. No
+    // existing event is about it, so a new event anchors it.
+    workKey: "greek.iamblichus-mysteries",
+    passagePrefix: "greek.iamb",
+    briefItem: 18,
+    title: "Iamblichus, On the Mysteries of the Egyptians, Chaldeans, and Assyrians, in Taylor's English (1821)",
+    alternativeTitles: [
+      "De mysteriis Aegyptiorum (Ficino's title)",
+      "Reply of Master Abamon to Porphyry's Letter to Anebo, and Solutions to the Difficulties Contained Therein",
+      "The Answer of Abammon to Porphyry",
+      "On the Mysteries",
+    ],
+    corpusGroup: "greek_hermetic",
+    traditionClass: "ancient_late_transmission",
+    civilisation: "Roman Empire",
+    originalLanguage: "Greek",
+    attribution: "Iamblichus of Chalcis (ca. 242–ca. 325), writing as 'Abammon', an Egyptian priest; the ascription goes back to Proclus",
+    attributionNote:
+      "The reply speaks as Abammon, teacher of the Egyptian prophet Anebo, to whom Porphyry had written. That Iamblichus wrote it goes back to Proclus: a Greek note prefixed to the manuscript Gale printed says that Proclus, in his commentary on Plotinus, named 'the divine Iamblichus' as the one who 'assumes the person of a certain Egyptian of the name of Abammon' (Taylor's English, p. 17 note), and the Stanford Encyclopedia of Philosophy gives Proclus, In Timaeum I, 386.8–13, as the only ancient testimony. Wikipedia reports that differences of style and doctrine have led some to question his authorship, though the treatise 'certainly originated from his school'. The title De mysteriis Aegyptiorum is Marsilio Ficino's, from his Latin version printed in 1497.",
+    summary:
+      "A Greek defence of ritual, divination and theurgy against the doubts Porphyry raised in a letter to the Egyptian prophet Anebo, answered in the person of Anebo's teacher Abammon: the kinds of higher beings and their appearances, divination, sacrifice and prayer, Egyptian symbols and sacred names, the Egyptian first principles and the books of Hermes, fate, the personal daemon and happiness. In Thomas Taylor's English (1821): Porphyry's Epistle and the Answer in ten Sections and 140 Chapters.",
+    referenceEdition:
+      "Taylor, Iamblichus on the Mysteries (Chiswick, 1821), by his Sections and Chapters, with his printed pages; Taylor gives no page numbers of Parthey's edition (1857), by which modern scholars cite the work, so none are given",
+    expectedUnits: 141,
+    unitLabel: "units (Porphyry's Epistle, and the Answer's 140 chapters in ten Sections)",
+    unitDivisionKind: "chapter",
+    inventoryBasis:
+      "Taylor's own division, read on the page images of the 1821 copy: Porphyry's Epistle (pp. 1–16) and the Answer (pp. 17–336) in ten Sections of 21, 11, 31, 13, 26, 7, 5, 8, 10 and 8 chapters, 140 in all; all 141 units imported and every page proofread against the page images. The count is Taylor's division, not that of the modern editions, which divide the work into ten books with chapters numbered differently and cite Parthey's pages; Taylor's chapters were not matched to them, so the count is not marked verified. Listed, not imported: Taylor's Introduction (pp. [v]–xxiv), his footnotes, his Additional Notes (pp. 337–365) and the list of his works.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Public domain: Taylor's translation was printed in 1821 (Taylor died in 1835), and its 1895 reprint is also out of copyright. The pictures carry the licences their Commons file pages state.",
+    fullTextEditions: ["Taylor, Iamblichus on the Mysteries of the Egyptians, Chaldeans, and Assyrians (Chiswick, 1821): the Epistle of Porphyry and the whole Answer"],
+    referenceOnlyEditions: [
+      "G. Parthey, Iamblichi De mysteriis liber (Berlin, 1857), the Greek, whose pages modern scholars cite; known from Wikipedia, not read",
+      "É. des Places, Jamblique, Les mystères d'Égypte (Paris, Budé), Greek and French, dated 1966 in this stage's brief and 1989 in Wikipedia's article on Iamblichus (perhaps a reprint); known second-hand, not read",
+      "H. D. Saffrey and A.-Ph. Segonds, Jamblique, Réponse à Porphyre (De mysteriis) (Paris, 2013); known from the SEP, not read",
+      "E. C. Clarke, J. M. Dillon and J. P. Hershbell, Iamblichus: De mysteriis (Atlanta, 2003), Greek and English; known from the SEP and Wikipedia, not read",
+      "T. Gale, Iamblichi Chalcidensis De mysteriis liber (Oxford, 1678), the first printed Greek; read at its title page only",
+      "M. Ficino's Latin version (Venice: Aldus, 1497); read at its first leaves only",
+      "A. Wilder, Theurgia, or the Egyptian Mysteries (1911), an English version; known from Wikipedia, not read",
+    ],
+    imageCollections: [
+      "Wikimedia Commons: scans of Taylor 1821, of Gale 1678 and of the Aldine Ficino of 1497; a manuscript of Ficino's version; later imagined likenesses of Iamblichus; a portrait of Taylor",
+    ],
+    anchor: {
+      event: {
+        slug: "iamblichus-on-the-mysteries",
+        title: "Iamblichus, On the Mysteries: a Neoplatonist's reply to Porphyry, in the person of the Egyptian priest Abammon",
+        summary:
+          "In the late third or early fourth century CE a Greek reply to Porphyry's letter to the Egyptian prophet Anebo defended ritual, divination and theurgy in the person of an Egyptian priest, Abammon; Proclus is the source for its ascription to Iamblichus.",
+        description:
+          "Porphyry wrote to an Egyptian prophet, Anebo, with questions and objections about gods and daemons, divination, sacrifice, Egyptian symbols and names, fate and the personal daemon. The reply, in the person of Anebo's teacher Abammon, defends the rites as the means by which the gods lift the soul, and ranks theurgy above philosophical reasoning. Proclus, in the fifth century, is the source for the view that Iamblichus wrote it; some modern scholars have doubted it, but it is held to come at least from his school. Marsilio Ficino's Latin paraphrase, printed by Aldus in 1497, gave it the title On the Mysteries of the Egyptians; Thomas Gale first printed the Greek in 1678, and Thomas Taylor translated it into English in 1821. The date of writing is not known; it falls within Iamblichus's working life.",
+        category: "religion",
+        eventType: "historical",
+        tags: ["ancient texts", "iamblichus", "neoplatonism", "theurgy", "porphyry", "egyptian religion"],
+        civilisations: ["Roman Empire"],
+        people: ["Iamblichus", "Porphyry", "Proclus", "Marsilio Ficino", "Thomas Gale", "Thomas Taylor"],
+        claims: [
+          dated("composition", {
+            qualifier: "the reply to Porphyry, inferred from Iamblichus's life (debated)",
+            sourceKey: "sep-iamblichus",
+            startYear: 275,
+            endYear: 325,
+            datePrecision: "decade",
+            originalDateText: "'Iamblichus (ca. 242–ca. 325) ... disciple of Porphyry of Tyre'; 'a break with Porphyry that seems impossible to date with precision' (SEP)",
+            evidence:
+              "Inferred: no source read dates the work. The range rests on the SEP's dates for Iamblichus and on the work being a reply to Porphyry (c. 234–305, Wikipedia); the authorship itself rests on Proclus and is doubted by some. Debated, and approximate.",
+          }),
+          dated("translation_publication", {
+            qualifier: "Ficino's Latin version, printed by Aldus in Venice",
+            sourceKey: "aldine-1497-iamblichus-de-mysteriis",
+            startYear: 1497,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "'Venetiis : Aldus [Manutius], Septiembre, 1497' (the Commons file page of the Sevilla copy)",
+            datingMethod: "historical_record",
+            evidence: "The year is the file page's, after the Sevilla catalogue (Goff J-216); the volume's first leaves were read, its colophon was not.",
+          }),
+          dated("translation_publication", {
+            qualifier: "the first printed Greek, Gale's edition",
+            sourceKey: "gale-1678-iamblichus-de-mysteriis",
+            startYear: 1678,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "'Graece nunc primum edidit ... Oxonii, e Theatro Sheldoniano, Anno Dom. CIↃ DC LXXVIII' (Gale's title page)",
+            datingMethod: "historical_record",
+            evidence: "Read on the title page of the Wellcome copy (b3033844x).",
+          }),
+          dated("translation_publication", {
+            qualifier: "Taylor's English translation",
+            sourceKey: "taylor-1821-iamblichus-mysteries",
+            startYear: 1821,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "'Chiswick: printed by C. Whittingham ... for the translator ... 1821.' (Taylor's title page)",
+            datingMethod: "historical_record",
+            evidence: "Read on the title page of the Wellcome copy (b29338888_0002); the English imported here.",
           }),
         ],
       },
