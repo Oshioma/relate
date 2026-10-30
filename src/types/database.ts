@@ -417,6 +417,11 @@ export type CommunityTier = {
   // Archived tiers stop accepting new subscribers but keep granting access to
   // existing subscribers. Null = active.
   archived_at: string | null;
+  // The tier's own Stripe Checkout look (Admin -> Payments -> Checkout page):
+  // a line under the Pay button and a picture beside the product. Null = the
+  // community's line / cover photo. Absent until migration 20261030195412.
+  checkout_message?: string | null;
+  checkout_image_url?: string | null;
   created_at: string;
 };
 

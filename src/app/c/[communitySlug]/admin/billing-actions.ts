@@ -331,6 +331,42 @@ export async function setCheckoutMessage(
   return { error: null };
 }
 
+// One membership tier's own Checkout look: the line under the Pay button and
+// the picture beside the product. Blank = the community's line / cover photo.
+// The picture must be one uploaded to our own storage.
+export async function setTierCheckoutLook(
+  communityId: string,
+  communitySlug: string,
+  tierId: string,
+  rawMessage: string,
+  rawImageUrl: string
+): Promise<{ error: string | null }> {
+  const message = rawMessage.replace(/\s+/g, " ").trim();
+  if (message.length > CHECKOUT_MESSAGE_MAX) return { error: `Keep it under ${CHECKOUT_MESSAGE_MAX} characters.` };
+  const imageUrl = rawImageUrl.trim();
+  if (imageUrl && !isOwnStorageUrl(imageUrl)) return { error: "Upload the picture here rather than pasting an address." };
+
+  const ctx = await requireAdminCommunity(communityId);
+  if (!ctx.ok) return { error: ctx.error };
+
+  const { data, error } = await ctx.supabase
+    .from("community_tiers")
+    .update({ checkout_message: message || null, checkout_image_url: imageUrl || null })
+    .eq("id", tierId)
+    .eq("community_id", communityId)
+    .select("id");
+  if (error) {
+    // The columns arrive with migration 20261030195412.
+    if (/checkout_(message|image_url)/.test(error.message)) {
+      return { error: "This needs a quick database update first. Ask the platform team to apply the latest migration." };
+    }
+    return { error: error.message };
+  }
+  if (!data?.length) return { error: "That tier wasn't found." };
+  revalidatePath(`/c/${communitySlug}/admin`);
+  return { error: null };
+}
+
 // Put the community's logo (and accent colour) on its Stripe account, so every
 // Checkout page shows it at the top. Only an image in our own storage is
 // fetched: the URL is fetched server-side, so a pasted address elsewhere is
