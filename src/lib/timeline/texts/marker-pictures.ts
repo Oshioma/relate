@@ -1099,6 +1099,38 @@ export const MARKER_PICTURES: Record<string, SeedPicture[]> = {
       depictsActualRemains: false,
     },
   ],
+  "iamblichus-on-the-mysteries": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Iamblichus_on_the_mysteries_of_the_Egyptians%2C_Chaldeans%2C_and_Assyrians_%28IA_b29338888_0002%29.pdf/page7-960px-Iamblichus_on_the_mysteries_of_the_Egyptians%2C_Chaldeans%2C_and_Assyrians_%28IA_b29338888_0002%29.pdf.jpg",
+      kind: "image",
+      shows: "historical_document",
+      caption:
+        "The title page of Thomas Taylor's English, the edition the archive imports: 'Iamblichus on the Mysteries of the Egyptians, Chaldeans, and Assyrians. Translated from the Greek by Thomas Taylor', with the imprint 'Chiswick: printed by C. Whittingham, College House; for the translator, Manor Place, Walworth. 1821.' The Wellcome Library copy. The Greek original is of the late third or early fourth century CE; no manuscript of it is shown.",
+      credit: "Wellcome Collection, scanned by the Internet Archive (b29338888_0002), via Wikimedia Commons",
+      licence: "Public domain (PD-old-100-expired) and Public Domain Mark, as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Iamblichus_on_the_mysteries_of_the_Egyptians,_Chaldeans,_and_Assyrians_(IA_b29338888_0002).pdf?page=7",
+      institution: "Wellcome Collection, London (the scanned copy, via the Internet Archive)",
+      accessionNumber: "Internet Archive b29338888_0002",
+      identificationStatus: "secure",
+      verifiedIdentity: true,
+      depictsActualRemains: false,
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/c/ca/Ficino%2C_De_mysteriis_Aegyptiorum.jpg",
+      kind: "image",
+      shows: "manuscript",
+      caption:
+        "UNVERIFIED — Related evidence, not the Greek text: an illuminated manuscript leaf headed 'Prohemium in Iamblicum', opening Marsilio Ficino's dedication of his Latin version to Cardinal Giovanni de' Medici, with the Medici arms and the stamp of the Biblioteca Medicea Laurenziana. Ficino's Latin gave the work its title, De mysteriis Aegyptiorum. The shelfmark (Strozzi 97) and the date 1491 are the file page's and were not checked.",
+      credit: "Biblioteca Medicea Laurenziana, via Wikimedia Commons",
+      licence: "Public domain (PD-Art; PD-old-auto-expired), as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Ficino,_De_mysteriis_Aegyptiorum.jpg",
+      institution: "Biblioteca Medicea Laurenziana, Florence (as its stamp and the file page say)",
+      accessionNumber: "Strozzi 97 (as the file page says; not checked)",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+  ],
   "story-of-atlantis-published": [
     {
       url: "https://upload.wikimedia.org/wikipedia/commons/d/d3/ELLIOT%281896%29_Atlantis%2C_Map4.jpg",

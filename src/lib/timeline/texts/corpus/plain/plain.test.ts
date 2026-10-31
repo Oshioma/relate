@@ -36,6 +36,7 @@ import { PLAIN_SECRETUM } from "./secretum";
 import { PLAIN_HORTULANUS } from "./hortulanus";
 import { PLAIN_TURBA } from "./turba-philosophorum";
 import { PLAIN_CHALDEAN_ORACLES } from "./chaldean-oracles";
+import { PLAIN_IAMBLICHUS_MYSTERIES } from "./iamblichus-mysteries";
 import { PLAIN_TIMAEUS } from "./timaeus";
 import { TURBA_UNITS } from "../turba-philosophorum-text";
 
@@ -75,6 +76,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "gnostic.secrets-of-enoch": PLAIN_SECRETS_OF_ENOCH,
   "arab.turba-philosophorum": PLAIN_TURBA,
   "greek.chaldean-oracles": PLAIN_CHALDEAN_ORACLES,
+  "greek.iamblichus-mysteries": PLAIN_IAMBLICHUS_MYSTERIES,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -289,6 +291,22 @@ test("every Chaldaean Oracle in Westcott's collection has plain words, with the 
   }
   assert.match(PLAIN_CHALDEAN_ORACLES["greek.chald.199"], /hear the voice of fire/);
   assert.match(PLAIN_CHALDEAN_ORACLES["greek.chald.155"], /foreign names/);
+});
+
+test("Porphyry's Epistle and every chapter of the Answer in Taylor's Iamblichus have plain words, with the two voices kept apart, and only those", () => {
+  const im = ALL_CORPORA.find((c) => c.workKey === "greek.iamblichus-mysteries")!;
+  const withText = im.passages.filter((p) => p.layers.some((l) => l.key === "eng-1821")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_IAMBLICHUS_MYSTERIES).sort(), [...withText].sort());
+  assert.equal(withText.length, 141);
+  // Porphyry asks; the reply answers in the person of Abammon, never as Iamblichus.
+  assert.match(PLAIN_IAMBLICHUS_MYSTERIES["greek.iamb.epistle"], /^Porphyry asks/);
+  for (const [key, words] of Object.entries(PLAIN_IAMBLICHUS_MYSTERIES)) {
+    if (key !== "greek.iamb.epistle") assert.match(words, /^Abammon answers/, key);
+    assert.doesNotMatch(words, /^Iamblichus/, key);
+  }
+  assert.match(PLAIN_IAMBLICHUS_MYSTERIES["greek.iamb.7.2"], /lotus/);
+  assert.match(PLAIN_IAMBLICHUS_MYSTERIES["greek.iamb.8.5"], /Bitys/);
+  assert.match(PLAIN_IAMBLICHUS_MYSTERIES["greek.iamb.10.8"], /friendship/);
 });
 
 test("the Preface and every section of Scott-Elliot's Story of Atlantis have plain words, and only those", () => {

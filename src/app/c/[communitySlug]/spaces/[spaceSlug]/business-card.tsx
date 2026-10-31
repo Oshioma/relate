@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "@/components/ui/link";
-import { BadgeCheck, Images, Heart } from "lucide-react";
+import { BadgeCheck, ExternalLink, Images, Heart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ShareMenu } from "@/components/ui/share-menu";
@@ -17,7 +17,9 @@ import type { BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/ty
 // A directory card is now a link into the listing's own page (like guide-card).
 // It shows the cover photo with a photo count, the name/category, review score,
 // verified/featured badges and a save toggle. All management (edit, delete,
-// verify, feature) lives on the detail page.
+// verify, feature) lives on the detail page. A partner listing (a Zanzibar
+// Rentals taxi) has no page here: its card opens the partner's page in a new
+// window, shares that address and can't be saved.
 export function BusinessCard({
   data,
   communitySlug,
@@ -40,8 +42,10 @@ export function BusinessCard({
   // already clean (the proxy strips /c/<slug>), so share the clean form there;
   // on the platform host keep the /c/<slug> prefix the route needs.
   const listingPath = `/spaces/${spaceSlug}/businesses/${business.id}`;
-  const shareUrl =
-    typeof window !== "undefined"
+  const partner = data.partner;
+  const shareUrl = partner
+    ? partner.url
+    : typeof window !== "undefined"
       ? window.location.origin +
         (window.location.pathname.startsWith("/c/") ? `/c/${communitySlug}${listingPath}` : listingPath)
       : "";
@@ -70,79 +74,94 @@ export function BusinessCard({
     });
   }
 
-  return (
-    <Link href={`/c/${communitySlug}/spaces/${spaceSlug}/businesses/${business.slug ?? business.id}`} className="block">
-      <Card className="h-full overflow-hidden transition-shadow hover:shadow-sm">
-        <div className="relative h-44 w-full bg-muted">
-          {showImage ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={business.image_url!}
-              alt={business.name}
-              className="h-full w-full object-cover"
-              style={{ objectPosition: photoObjectPosition(business.image_position) }}
-              onError={() => setImageBroken(true)}
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-muted-foreground">
-              <CategoryIcon className="h-8 w-8" />
-            </div>
-          )}
-          {/* The category chip leads the card so listings read as distinct
-              *kinds* at a glance — a frosted pill stays legible over any photo. */}
-          {showCategory && (
-            <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-background/90 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm ring-1 ring-border backdrop-blur">
-              <CategoryIcon className="h-3.5 w-3.5 text-accent" />
-              {categoryLabel}
-            </span>
-          )}
-          {imageCount > 1 && (
-            <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-0.5 text-xs font-medium text-white">
-              <Images className="h-3 w-3" />
-              {imageCount}
-            </span>
-          )}
-          <div className="absolute right-2 top-2 flex items-center gap-1.5">
-            <ShareMenu
-              url={shareUrl}
-              title={business.name}
-              text={business.description ?? undefined}
-              menuAlign="right"
-              triggerClassName="rounded-full bg-black/45 p-1.5 text-white transition hover:bg-black/65"
-            />
-            {canSave && (
-              <button
-                type="button"
-                onClick={handleSaveToggle}
-                disabled={isPending}
-                title={saved ? "Remove from saved" : "Save"}
-                aria-pressed={saved}
-                className="rounded-full bg-black/45 p-1.5 text-white transition hover:bg-black/65 disabled:opacity-60"
-              >
-                <Heart className={`h-4 w-4 ${saved ? "fill-white" : ""}`} />
-              </button>
-            )}
+  const card = (
+    <Card className="h-full overflow-hidden transition-shadow hover:shadow-sm">
+      <div className="relative h-44 w-full bg-muted">
+        {showImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={business.image_url!}
+            alt={business.name}
+            className="h-full w-full object-cover"
+            style={{ objectPosition: photoObjectPosition(business.image_position) }}
+            onError={() => setImageBroken(true)}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-muted-foreground">
+            <CategoryIcon className="h-8 w-8" />
           </div>
+        )}
+        {/* The category chip leads the card so listings read as distinct
+            *kinds* at a glance — a frosted pill stays legible over any photo. */}
+        {showCategory && (
+          <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-background/90 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm ring-1 ring-border backdrop-blur">
+            <CategoryIcon className="h-3.5 w-3.5 text-accent" />
+            {categoryLabel}
+          </span>
+        )}
+        {imageCount > 1 && (
+          <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-0.5 text-xs font-medium text-white">
+            <Images className="h-3 w-3" />
+            {imageCount}
+          </span>
+        )}
+        <div className="absolute right-2 top-2 flex items-center gap-1.5">
+          <ShareMenu
+            url={shareUrl}
+            title={business.name}
+            text={business.description ?? undefined}
+            menuAlign="right"
+            triggerClassName="rounded-full bg-black/45 p-1.5 text-white transition hover:bg-black/65"
+          />
+          {canSave && !partner && (
+            <button
+              type="button"
+              onClick={handleSaveToggle}
+              disabled={isPending}
+              title={saved ? "Remove from saved" : "Save"}
+              aria-pressed={saved}
+              className="rounded-full bg-black/45 p-1.5 text-white transition hover:bg-black/65 disabled:opacity-60"
+            >
+              <Heart className={`h-4 w-4 ${saved ? "fill-white" : ""}`} />
+            </button>
+          )}
         </div>
-        <CardContent className="pt-4">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <h3 className="text-sm font-semibold text-foreground">{business.name}</h3>
-            {business.verified && (
-              <span title="Verified" className="text-accent">
-                <BadgeCheck className="h-4 w-4" />
-              </span>
-            )}
-            {business.featured && <Badge tone="accent">Featured</Badge>}
-          </div>
+      </div>
+      <CardContent className="pt-4">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <h3 className="text-sm font-semibold text-foreground">{business.name}</h3>
+          {business.verified && (
+            <span title="Verified" className="text-accent">
+              <BadgeCheck className="h-4 w-4" />
+            </span>
+          )}
+          {business.featured && <Badge tone="accent">Featured</Badge>}
+        </div>
 
-          {business.description && <p className="mt-2 line-clamp-2 text-sm text-foreground">{business.description}</p>}
+        {business.description && <p className="mt-2 line-clamp-2 text-sm text-foreground">{business.description}</p>}
 
-          <div className="mt-3 flex items-center justify-between gap-2">
+        <div className="mt-3 flex items-center justify-between gap-2">
+          {partner ? (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-accent">
+              {partner.label} <ExternalLink className="h-3 w-3" aria-hidden />
+              <span className="sr-only">(opens in a new tab)</span>
+            </span>
+          ) : (
             <StarRatingDisplay value={avgRating} count={ratingCount} />
-            {business.location_label && <span className="truncate text-xs text-muted-foreground">{business.location_label}</span>}
-          </div>
-        </CardContent>
-      </Card>
+          )}
+          {business.location_label && <span className="truncate text-xs text-muted-foreground">{business.location_label}</span>}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  return partner ? (
+    <a href={partner.url} target="_blank" rel="noopener noreferrer" className="block">
+      {card}
+    </a>
+  ) : (
+    <Link href={`/c/${communitySlug}/spaces/${spaceSlug}/businesses/${business.slug ?? business.id}`} className="block">
+      {card}
     </Link>
   );
 }
