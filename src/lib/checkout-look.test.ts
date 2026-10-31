@@ -19,3 +19,18 @@ test("picture prefers the cover, then the logo, and only https", () => {
   assert.equal(checkoutLookFor({ name: "X", logo_url: "http://a/l.png" }).imageUrl, null);
   assert.equal(checkoutLookFor({ name: "X", logo_url: "not a url" }).imageUrl, null);
 });
+
+test("a tier's own line and picture win over the community's", () => {
+  const community = { name: "Escape Space", checkout_message: "Community line", cover_image_url: "https://a/c.jpg" };
+  const look = checkoutLookFor(community, { tier: { checkout_message: " Tier line ", checkout_image_url: "https://a/t.jpg" } });
+  assert.equal(look.submitMessage, "Tier line");
+  assert.equal(look.imageUrl, "https://a/t.jpg");
+});
+
+test("a tier with nothing of its own uses the community's look", () => {
+  const community = { name: "Escape Space", checkout_message: "Community line", cover_image_url: "https://a/c.jpg" };
+  const look = checkoutLookFor(community, { tier: { checkout_message: "  ", checkout_image_url: "http://a/t.jpg" } });
+  assert.equal(look.submitMessage, "Community line");
+  assert.equal(look.imageUrl, "https://a/c.jpg");
+  assert.equal(checkoutLookFor({ name: "X" }, { tier: null }).submitMessage, defaultCheckoutMessage("X"));
+});

@@ -695,7 +695,17 @@ export default async function AdminPage({
                     communitySlug={community.slug}
                     communityName={community.name}
                     checkoutMessage={community.checkout_message ?? null}
+                    coverUrl={community.cover_image_url ?? community.logo_url}
                     hasLogo={Boolean(community.logo_url)}
+                    // One checkout window per membership still on sale.
+                    tiers={tiers
+                      .filter((t) => !t.archived_at)
+                      .map((t) => ({
+                        id: t.id,
+                        name: t.name,
+                        checkout_message: t.checkout_message ?? null,
+                        checkout_image_url: t.checkout_image_url ?? null,
+                      }))}
                   />
                 </div>
               )}

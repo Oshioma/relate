@@ -42,11 +42,13 @@ type Look = { recurring: CheckoutLook; oneOff: CheckoutLook };
 
 // The community selling an item, when it can take payments. notFoundMessage is
 // the item's own "not found" line, used when the link names another community.
+// A tier's own checkout line and picture, when given, win over the community's.
 async function chargeableCommunity(
   admin: Admin,
   communityId: string,
   communitySlug: string,
-  notFoundMessage: string
+  notFoundMessage: string,
+  tier?: { checkout_message?: string | null; checkout_image_url?: string | null }
 ): Promise<{ error: string } | { community: { id: string; name: string; stripe_account_id: string; look: Look } }> {
   const { data: community } = await admin
     .from("communities")
@@ -64,7 +66,7 @@ async function chargeableCommunity(
       id: community.id,
       name: community.name,
       stripe_account_id: community.stripe_account_id,
-      look: { recurring: checkoutLookFor(community), oneOff: checkoutLookFor(community, { oneOff: true }) },
+      look: { recurring: checkoutLookFor(community, { tier }), oneOff: checkoutLookFor(community, { oneOff: true }) },
     },
   };
 }
@@ -89,14 +91,16 @@ export async function startTierCheckout(tierId: string, communitySlug: string, b
   const admin = createAdminClient();
   const { data: tier } = await admin
     .from("community_tiers")
-    .select("id, name, price_cents, currency, community_id, archived_at")
+    // "*" so the tier's own checkout look is read once its migration
+    // (20261030195412) is applied, and still works before.
+    .select("*")
     .eq("id", tierId)
     .maybeSingle();
   if (!tier) return { error: CHECKOUT_MESSAGES.tierNotFound };
   if (tier.archived_at) return { error: CHECKOUT_MESSAGES.tierArchived };
   if (tier.price_cents <= 0) return { error: CHECKOUT_MESSAGES.tierFree };
 
-  const found = await chargeableCommunity(admin, tier.community_id, communitySlug, CHECKOUT_MESSAGES.tierNotFound);
+  const found = await chargeableCommunity(admin, tier.community_id, communitySlug, CHECKOUT_MESSAGES.tierNotFound, tier);
   if ("error" in found) return found;
   const { community } = found;
 

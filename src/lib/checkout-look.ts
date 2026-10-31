@@ -12,6 +12,13 @@ type LookSource = {
   checkout_message?: string | null;
 };
 
+// A membership tier's own look, edited in its own window. Either part left
+// empty falls back to the community's.
+type TierLook = {
+  checkout_message?: string | null;
+  checkout_image_url?: string | null;
+};
+
 export const CHECKOUT_MESSAGE_MAX = 500;
 
 export function defaultCheckoutMessage(communityName: string): string {
@@ -28,13 +35,16 @@ function httpsUrl(value: string | null | undefined): string | null {
   }
 }
 
-export function checkoutLookFor(community: LookSource, opts: { oneOff?: boolean } = {}): { imageUrl: string | null; submitMessage: string } {
-  const own = community.checkout_message?.trim();
+export function checkoutLookFor(
+  community: LookSource,
+  opts: { oneOff?: boolean; tier?: TierLook | null } = {}
+): { imageUrl: string | null; submitMessage: string } {
+  const own = opts.tier?.checkout_message?.trim() || community.checkout_message?.trim();
   const fallback = opts.oneOff
     ? `You'll have access to ${community.name} as soon as you've paid.`
     : defaultCheckoutMessage(community.name);
   return {
-    imageUrl: httpsUrl(community.cover_image_url) ?? httpsUrl(community.logo_url),
+    imageUrl: httpsUrl(opts.tier?.checkout_image_url) ?? httpsUrl(community.cover_image_url) ?? httpsUrl(community.logo_url),
     submitMessage: (own || fallback).slice(0, CHECKOUT_MESSAGE_MAX),
   };
 }
