@@ -542,3 +542,53 @@ body {
     transform: none;
   }
 }
+
+/* The True Calendar (src/components/true-calendar). Two moods on the site's
+   own light/dark switch: warm ivory by day, midnight by night. Scoped to the
+   calendar so nothing else on the site changes. */
+.true-calendar {
+  --tc-bg: #f7f2e7;
+  --tc-panel: #fffcf5;
+  --tc-ink: #1d2233;
+  --tc-muted: #6e6a5f;
+  --tc-line: #e4dccb;
+  --tc-hover: #f1eadb;
+  --tc-gold: #9a7536;
+  --tc-selected: #1f2a44;
+  --tc-selected-ink: #f7f0de;
+  --tc-moon-lit: #f4e9c8;
+  --tc-moon-dark: #3a4058;
+  --tc-moon-edge: #2b3046;
+}
+
+:root[data-theme="dark"] .true-calendar {
+  --tc-bg: #0c1222;
+  --tc-panel: #121a2e;
+  --tc-ink: #ebe4d2;
+  --tc-muted: #98a0b6;
+  --tc-line: #222c46;
+  --tc-hover: #19233b;
+  --tc-gold: #d6b46c;
+  --tc-selected: #d6b46c;
+  --tc-selected-ink: #0c1222;
+  --tc-moon-lit: #f1e6c6;
+  --tc-moon-dark: #262f4a;
+  --tc-moon-edge: #3a4566;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .true-calendar {
+    --tc-bg: #0c1222;
+    --tc-panel: #121a2e;
+    --tc-ink: #ebe4d2;
+    --tc-muted: #98a0b6;
+    --tc-line: #222c46;
+    --tc-hover: #19233b;
+    --tc-gold: #d6b46c;
+    --tc-selected: #d6b46c;
+    --tc-selected-ink: #0c1222;
+    --tc-moon-lit: #f1e6c6;
+    --tc-moon-dark: #262f4a;
+    --tc-moon-edge: #3a4566;
+  }
+}

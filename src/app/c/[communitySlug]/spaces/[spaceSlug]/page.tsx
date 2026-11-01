@@ -99,6 +99,7 @@ import { CropGuidesView } from "./crop-guides-view";
 import { LessonsView } from "./lessons-view";
 import { BooksMediaView } from "./books-media-view";
 import { ArtsBoardView } from "./arts-board-view";
+import { TrueCalendarView } from "@/components/true-calendar/true-calendar-view";
 import { getArtsBoardMarks, getArtsShareTarget } from "@/lib/data/arts-board";
 import { getSpaceMediaItems, getMediaMarks } from "@/lib/data/media-items";
 import { isMediaReviewConfigured } from "@/lib/ai/analyse-media";
@@ -258,6 +259,8 @@ export default async function SpaceDetailPage({
   const isBooksMediaSpace = space.space_type === "books_media";
   // The 64 Arts board: a family's own progress across the 64 classical arts.
   const isArtsBoardSpace = space.space_type === "arts_board";
+  // The True Calendar: everything it shows is calculated in the browser.
+  const isTrueCalendarSpace = space.space_type === "true_calendar";
   // Adopt a Beginner and its siblings: a landing page with its own hero, and
   // sub-pages under ./join, ./mentors, ./requests, ./journeys, ./stories, ./manage.
   const isGuidedJourneySpace = space.space_type === "guided_journey";
@@ -507,14 +510,14 @@ export default async function SpaceDetailPage({
         // A Lessons space widens again past 1700px, where the shell has
         // 400px+ of empty margin doing nothing, so the side rail can appear
         // without taking a column off the library. See lessons-view.
-        isLessonsSpace ? "max-w-6xl rail:max-w-[103rem]" : isGuidedJourneySpace || isBooksMediaSpace || isArtsBoardSpace ? "max-w-6xl" : isBusinessDirectorySpace ? "max-w-5xl" : "max-w-3xl",
+        isLessonsSpace ? "max-w-6xl rail:max-w-[103rem]" : isGuidedJourneySpace || isBooksMediaSpace || isArtsBoardSpace || isTrueCalendarSpace ? "max-w-6xl" : isBusinessDirectorySpace ? "max-w-5xl" : "max-w-3xl",
         isBusinessDirectorySpace ? "pt-4 sm:pt-5" : isGuidedJourneySpace ? "pt-4 sm:pt-6" : "pt-8 sm:pt-10"
       )}
     >
       {isDiscussionLike ? (
         // Discussion spaces get a richer masthead with live activity stats.
         <DiscussionSpaceHeader name={space.name} description={space.description} Icon={TypeIcon} summary={discussionSummary} />
-      ) : isBusinessDirectorySpace || isLessonsSpace || isGuidedJourneySpace || isArtsBoardSpace ? null : (
+      ) : isBusinessDirectorySpace || isLessonsSpace || isGuidedJourneySpace || isArtsBoardSpace || isTrueCalendarSpace ? null : (
         <div className="mb-6">
           {/* A custom page is a blank canvas: no default title or icon, its
               description *is* the whole page. Every other space keeps the title
@@ -882,6 +885,8 @@ export default async function SpaceDetailPage({
         />
       ) : isGuidedJourneySpace ? (
         <GuidedJourneySpaceView communitySlug={community.slug} spaceSlug={space.slug} justEnded={ended === "1"} />
+      ) : isTrueCalendarSpace ? (
+        <TrueCalendarView title={space.name} description={space.description} />
       ) : isArtsBoardSpace ? (
         <ArtsBoardView
           marks={artsBoardMarks}

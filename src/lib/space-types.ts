@@ -28,6 +28,7 @@ import {
   NotebookText,
   HeartHandshake,
   Library,
+  MoonStar,
   type LucideIcon,
 } from "lucide-react";
 import type { SpaceType } from "@/types/database";
@@ -96,6 +97,7 @@ export const SPACE_TYPES: Record<SpaceType, SpaceTypeMeta> = {
   lessons: { type: "lessons", label: "Lessons", icon: NotebookText, description: "A teaching library — staff paste source material, Claude writes an age-appropriate lesson from it, and members read, print and re-use it.", category: "programs" },
   guided_journey: { type: "guided_journey", label: "Guided Journey", icon: HeartHandshake, description: "Adopt a Beginner: experienced members take a beginner under their wing for one shared journey — matching, milestones, photo updates and a public gallery of finished stories.", category: "programs" },
   arts_board: { type: "arts_board", label: "64 Arts Board", icon: Grid3x3, description: "The 64 classical arts of ancient India on an 8×8 board — each square flips to say what the art was and offers a family activity, with an Under 15s switch for child-friendly versions. Families circle the ones they've done.", category: "programs" },
+  true_calendar: { type: "true_calendar", label: "True Calendar", icon: MoonStar, description: "Two synchronised calendars for one day: the Gregorian month beside the 13-month International Fixed Calendar or a true astronomical lunar calendar, with the Moon's real phase, eclipses, equinoxes and rise and set times calculated for any date.", category: "programs" },
   books_media: { type: "books_media", label: "Books & Media", icon: Library, description: "A reviewed shelf of books, videos and other media for children — paste a link, Claude fills in the title, description, age range and anything a parent should know, and members file it as good for kids or not suitable (and why). Shareable across communities.", category: "programs" },
 };
 
@@ -133,6 +135,7 @@ export const SPACE_TYPE_FEATURES: Record<SpaceType, string[]> = {
   lessons: ["Staff paste source material", "Claude writes an age-appropriate lesson from it", "Members read, print and re-use lessons"],
   guided_journey: ["Experienced members adopt a beginner", "Matching, milestones and photo updates", "A gallery of finished stories"],
   arts_board: ["The 64 classical arts on an 8×8 board", "Each square explains the art and offers a family activity", "An Under 15s switch; families mark what they've done"],
+  true_calendar: ["Gregorian beside the International Fixed or a true lunar calendar", "Real Moon phases, eclipses, equinoxes, rise and set", "Opens on today; share a link to any date"],
   books_media: ["Paste a link; Claude fills in title, age range and notes", "Members file it as good for kids or not, and why", "Shareable across communities"],
   map: ["An interactive map of the community's places"],
   marketplace: ["Members list things to buy, sell or trade", "Photos, prices and location on each listing"],
