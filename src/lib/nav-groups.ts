@@ -76,6 +76,7 @@ const DEFAULTS: Record<string, NavGroup> = {
   lessons: "learn",
   books_media: "learn",
   arts_board: "learn",
+  true_calendar: "learn",
   course: "learn",
   guides: "learn",
   resources: "learn",

@@ -48,7 +48,8 @@ export type SpaceType =
   | "lessons"
   | "guided_journey"
   | "books_media"
-  | "arts_board";
+  | "arts_board"
+  | "true_calendar";
 export type PostType = "discussion" | "announcement" | "resource";
 // The activity kinds the community feed can carry a smile or a comment on.
 // Discussion posts are absent on purpose: they keep using post_reactions and

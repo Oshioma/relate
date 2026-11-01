@@ -34,6 +34,7 @@ const TYPES_WITHOUT_POST_FEED = new Set([
   "lessons",
   "books_media",
   "arts_board",
+  "true_calendar",
   "guided_journey",
 ]);
 
