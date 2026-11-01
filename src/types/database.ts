@@ -1,3 +1,4 @@
+import type * as TC from "@/lib/true-calendar/research/model";
 // Hand-written types mirroring supabase/schema.sql.
 // If the schema changes, update these alongside it.
 //
@@ -3332,6 +3333,15 @@ export type JourneyReport = {
   created_at: string;
 };
 
+// The True Calendar's research tables (true_calendar_research migration). Row
+// shapes come from the import schemas in src/lib/true-calendar/research/model.ts.
+type CalendarResearchTable<R> = {
+  Row: TC.Stored<R>;
+  Insert: Partial<TC.Stored<R>> & { key: string };
+  Update: Partial<TC.Stored<R>>;
+  Relationships: [];
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -3777,6 +3787,47 @@ export type Database = {
         };
         Update: Partial<UnsavedLesson>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      calendar_sources: CalendarResearchTable<TC.SourceRecord>;
+      calendar_cultures: CalendarResearchTable<TC.CultureRecord>;
+      calendar_systems: CalendarResearchTable<TC.SystemRecord>;
+      calendar_cycles: CalendarResearchTable<TC.CycleRecord>;
+      calendar_cycle_positions: CalendarResearchTable<TC.CyclePositionRecord>;
+      calendar_months: CalendarResearchTable<TC.MonthRecord>;
+      calendar_lunar_days: CalendarResearchTable<TC.LunarDayRecord>;
+      calendar_observances: CalendarResearchTable<TC.ObservanceRecord>;
+      calendar_meanings: CalendarResearchTable<TC.MeaningRecord>;
+      calendar_recommendations: CalendarResearchTable<TC.RecommendationRecord>;
+      calendar_date_correspondences: CalendarResearchTable<TC.CorrespondenceRecord>;
+      calendar_claim_sources: {
+        Row: TC.CalendarClaimSource;
+        Insert: Partial<TC.CalendarClaimSource> & { claim_table: string; claim_key: string; source_key: string };
+        Update: Partial<TC.CalendarClaimSource>;
+        Relationships: [];
+      };
+      calendar_import_runs: {
+        Row: TC.CalendarImportRun;
+        Insert: Partial<TC.CalendarImportRun> & { format_version: string; dry_run: boolean };
+        Update: Partial<TC.CalendarImportRun>;
+        Relationships: [];
+      };
+      calendar_research_reviews: {
+        Row: TC.CalendarResearchReview;
+        Insert: Partial<TC.CalendarResearchReview> & { claim_table: string; claim_key: string; status: string };
+        Update: Partial<TC.CalendarResearchReview>;
+        Relationships: [];
+      };
+      calendar_researchers: {
+        Row: TC.CalendarResearcher;
+        Insert: Partial<TC.CalendarResearcher> & { user_id: string };
+        Update: Partial<TC.CalendarResearcher>;
+        Relationships: [];
+      };
+      calendar_user_bookmarks: {
+        Row: TC.CalendarBookmark;
+        Insert: Partial<TC.CalendarBookmark> & { user_id: string; space_id: string; kind: "date" | "culture" };
+        Update: Partial<TC.CalendarBookmark>;
+        Relationships: [];
       };
       lesson_batch_jobs: {
         Row: LessonBatchJob;

@@ -1,0 +1,1778 @@
+{
+ "format": "true-calendar/v1",
+ "sources": [
+  {
+   "key": "src.kapiolani-oahu-days",
+   "title": "Oʻahu lunar days (library research guide)",
+   "publisher": "Kapiʻolani Community College Library",
+   "url": "https://guides.library.kapiolani.hawaii.edu/apdl/oahu/days",
+   "source_type": "reference",
+   "notes": "Secondary compilation citing Malo, Kepelino and Handy; records disagreements among earlier writers. From Oshi's research batch 01; check the page title on review.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.tepapa-maramataka",
+   "title": "Nights of the maramataka, the Māori lunar calendar",
+   "publisher": "Museum of New Zealand Te Papa Tongarewa",
+   "url": "https://www.tepapa.govt.nz/digital-museum/explore-digital-museum/maori/matariki-maori-new-year/nights-maramataka-maori-lunar",
+   "source_type": "reference",
+   "notes": "Museum synthesis drawing on several iwi; iwi variations must be preserved. From Oshi's research batch 01.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.akandictionary-akwasidae-2026",
+   "title": "Akwasidae dates 2026",
+   "publisher": "Akan Dictionary (akandictionary.com)",
+   "published": "2025-08-29",
+   "url": "https://www.akandictionary.com/2025/08/29/akwasidae-dates-2026/",
+   "source_type": "web",
+   "notes": "Community calendar; dates should be confirmed with the relevant community authorities. From Oshi's research batch 01.",
+   "review_status": "draft"
+  }
+ ],
+ "cultures": [
+  {
+   "key": "oceania.hawaiian",
+   "name": "Hawaiian",
+   "alt_names": [
+    "Kanaka Maoli"
+   ],
+   "continent": "Oceania",
+   "region": "Hawaiian Islands",
+   "countries": [
+    "United States (Hawaiʻi)"
+   ],
+   "research_status": "in_progress",
+   "review_status": "published"
+  },
+  {
+   "key": "oceania.maori",
+   "name": "Māori",
+   "continent": "Oceania",
+   "region": "Aotearoa New Zealand",
+   "countries": [
+    "New Zealand"
+   ],
+   "research_status": "in_progress",
+   "review_status": "published"
+  },
+  {
+   "key": "africa.west.akan",
+   "name": "Akan / Asante",
+   "alt_names": [
+    "Akan",
+    "Asante",
+    "Ashanti"
+   ],
+   "continent": "Africa",
+   "region": "West Africa",
+   "countries": [
+    "Ghana",
+    "Côte d'Ivoire"
+   ],
+   "research_status": "in_progress",
+   "review_status": "published"
+  }
+ ],
+ "systems": [
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights",
+   "culture_key": "oceania.hawaiian",
+   "name": "Oʻahu lunar nights",
+   "kind": "lunar",
+   "description": "A named night for each of the Moon's roughly 30 nights, as recorded for Oʻahu.",
+   "uncertainty": "Night order and names differ between islands and between the earlier writers; how a given night lines up with a modern date (which night the count starts on) has not been verified.",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "oceania.maori.maramataka",
+   "culture_key": "oceania.maori",
+   "name": "Maramataka",
+   "original_name": "Maramataka",
+   "translation": "the turning of the Moon",
+   "kind": "lunar",
+   "description": "The Māori lunar calendar of named nights.",
+   "uncertainty": "Night names, their number and order differ among iwi; the numbered examples here are approximate reference positions from a composite account and are not authoritative for every iwi.",
+   "sources": [
+    {
+     "source": "src.tepapa-maramataka"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.adaduanan",
+   "culture_key": "africa.west.akan",
+   "name": "Adaduanan",
+   "original_name": "Adaduanan",
+   "kind": "day_cycle",
+   "description": "A repeating 42-day ritual cycle on which Akwasidae recurs every six weeks, always on a Sunday.",
+   "sources": [
+    {
+     "source": "src.akandictionary-akwasidae-2026"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "cycles": [
+  {
+   "key": "africa.west.akan.adaduanan.cycle",
+   "system_key": "africa.west.akan.adaduanan",
+   "name": "Adaduanan",
+   "original_name": "Adaduanan",
+   "length_days": 42,
+   "description": "The 42-day cycle, counted here from Akwasidae (position 0) because that is the day the source dates.",
+   "anchor_date": "2026-02-01",
+   "anchor_position": 0,
+   "anchor_source_key": "src.akandictionary-akwasidae-2026",
+   "anchor_note": "All 8 published 2026 Akwasidae dates (2026-02-01 to 2026-11-22) fall exactly 42 days apart on Sundays, so one anchor reproduces them. Dates outside 2026 are extended by the same cycle and need confirming.",
+   "evidence": [
+    "unverified_lead"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.akandictionary-akwasidae-2026"
+    }
+   ]
+  }
+ ],
+ "cycle_positions": [
+  {
+   "key": "africa.west.akan.adaduanan.akwasidae",
+   "cycle_key": "africa.west.akan.adaduanan.cycle",
+   "position": 0,
+   "name": "Akwasidae",
+   "original_name": "Akwasidae",
+   "meaning": "Recurring Sunday ancestral and royal stool observance.",
+   "favourability": "neutral",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.akandictionary-akwasidae-2026"
+    }
+   ]
+  }
+ ],
+ "lunar_days": [
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-01",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 1,
+   "name": "Hilo",
+   "original_name": "Hilo",
+   "meaning": "Planting; shoreline fishing",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-01"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-02",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 2,
+   "name": "Hoaka",
+   "original_name": "Hoaka",
+   "meaning": "Planting; shoreline fishing",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-02"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-03",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 3,
+   "name": "Kukahi",
+   "original_name": "Kukahi",
+   "meaning": "Upright crops including banana and taro",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-03"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-04",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 4,
+   "name": "Kulua",
+   "original_name": "Kulua",
+   "meaning": "Shoreline fishing; end of Kū kapu",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-04"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-05",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 5,
+   "name": "Kukolu",
+   "original_name": "Kukolu",
+   "meaning": "Fishing; avoid planting some crops",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-05"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-06",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 6,
+   "name": "Kupau",
+   "original_name": "Kupau",
+   "meaning": "End of Kū days",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-06"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-07",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 7,
+   "name": "ʻOlekūkahi",
+   "original_name": "ʻOlekūkahi",
+   "meaning": "Avoid planting; fishing uncertain",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-07"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-08",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 8,
+   "name": "ʻOlekūlua",
+   "original_name": "ʻOlekūlua",
+   "meaning": "Planting disfavoured; torch fishing possible",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-08"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-09",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 9,
+   "name": "ʻOlekūkolu",
+   "original_name": "ʻOlekūkolu",
+   "meaning": "Planting disfavoured; torch fishing possible",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-09"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-10",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 10,
+   "name": "ʻOlepau",
+   "original_name": "ʻOlepau",
+   "meaning": "Productive cultivation",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-10"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-11",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 11,
+   "name": "Huna",
+   "original_name": "Huna",
+   "meaning": "Cultivation and fishing",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-11"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-12",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 12,
+   "name": "Mōhalu",
+   "original_name": "Mōhalu",
+   "meaning": "Planting; temple prayers; fishing",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-12"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-13",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 13,
+   "name": "Hua",
+   "original_name": "Hua",
+   "meaning": "Fruit-bearing crops; prayers; fishing",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-13"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-14",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 14,
+   "name": "Akua",
+   "original_name": "Akua",
+   "meaning": "Offerings for plant and fish abundance",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-14"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-15",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 15,
+   "name": "Hoku",
+   "original_name": "Hoku",
+   "meaning": "Planting and fishing near full moon",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-15"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-16",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 16,
+   "name": "Māhealani",
+   "original_name": "Māhealani",
+   "meaning": "Farming and fishing",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-16"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-17",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 17,
+   "name": "Kulu",
+   "original_name": "Kulu",
+   "meaning": "Crops and fishing",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-17"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-18",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 18,
+   "name": "Lāʻaukūkahi",
+   "original_name": "Lāʻaukūkahi",
+   "meaning": "Gather herbs and fish; avoid some planting",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-18"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-19",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 19,
+   "name": "Lāʻaukūlua",
+   "original_name": "Lāʻaukūlua",
+   "meaning": "Farming",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-19"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-20",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 20,
+   "name": "Lāʻaupau",
+   "original_name": "Lāʻaupau",
+   "meaning": "Planting",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-20"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-21",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 21,
+   "name": "ʻOlekūkahi",
+   "original_name": "ʻOlekūkahi",
+   "meaning": "Planting slips in one account; rough seas",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented",
+    "contested"
+   ],
+   "uncertainty": "Accounts disagree on this night.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-21"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-22",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 22,
+   "name": "ʻOlekūlua",
+   "original_name": "ʻOlekūlua",
+   "meaning": "Planting good in one account, discouraged in another",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented",
+    "contested"
+   ],
+   "uncertainty": "Accounts disagree on this night.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-22"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-23",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 23,
+   "name": "ʻOlepau",
+   "original_name": "ʻOlepau",
+   "meaning": "Beginning of Kanaloa kapu",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-23"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-24",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 24,
+   "name": "Kāloakūkahi",
+   "original_name": "Kāloakūkahi",
+   "meaning": "Planting with reservations; prayers",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-24"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-25",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 25,
+   "name": "Kāloakūlua",
+   "original_name": "Kāloakūlua",
+   "meaning": "Long-stemmed and vine crops; kapu ends",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-25"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-26",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 26,
+   "name": "Kāloapau",
+   "original_name": "Kāloapau",
+   "meaning": "End of Kāloa days",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-26"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-27",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 27,
+   "name": "Kāne",
+   "original_name": "Kāne",
+   "meaning": "Prayers; planting and fishing in later accounts",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-27"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-28",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 28,
+   "name": "Lono",
+   "original_name": "Lono",
+   "meaning": "Thanks and prayers for rain; planting in later accounts",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-28"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-29",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 29,
+   "name": "Mauli",
+   "original_name": "Mauli",
+   "meaning": "Planting and fishing",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-29"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-30",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "day_number": 30,
+   "name": "Muku",
+   "original_name": "Muku",
+   "meaning": "Planting; gathering and shoreline fishing",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": null,
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-30"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.maramataka.night-01",
+   "system_key": "oceania.maori.maramataka",
+   "day_number": 1,
+   "name": "Whiro",
+   "original_name": "Whiro",
+   "meaning": "Planting and fishing discouraged; eeling noted as favourable",
+   "favourability": "mixed",
+   "evidence": [
+    "oral_tradition"
+   ],
+   "uncertainty": "Position is approximate; iwi differ in names and order.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.tepapa-maramataka",
+     "locator": "maori-reference-01"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.maramataka.night-02",
+   "system_key": "oceania.maori.maramataka",
+   "day_number": 2,
+   "name": "Tirea",
+   "original_name": "Tirea",
+   "meaning": "Crayfishing, eeling, planting and shellfish gathering",
+   "favourability": "favourable",
+   "evidence": [
+    "oral_tradition"
+   ],
+   "uncertainty": "Position is approximate; iwi differ in names and order.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.tepapa-maramataka",
+     "locator": "maori-reference-02"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.maramataka.night-03",
+   "system_key": "oceania.maori.maramataka",
+   "day_number": 3,
+   "name": "Hoata",
+   "original_name": "Hoata",
+   "meaning": "Eeling, crayfishing, kūmara planting and sowing",
+   "favourability": "favourable",
+   "evidence": [
+    "oral_tradition"
+   ],
+   "uncertainty": "Position is approximate; iwi differ in names and order.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.tepapa-maramataka",
+     "locator": "maori-reference-03"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.maramataka.night-14",
+   "system_key": "oceania.maori.maramataka",
+   "day_number": 14,
+   "name": "Rākaunui",
+   "original_name": "Rākaunui",
+   "meaning": "Good for crops and fishing; not eeling",
+   "favourability": "favourable",
+   "evidence": [
+    "oral_tradition"
+   ],
+   "uncertainty": "Position is approximate; iwi differ in names and order.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.tepapa-maramataka",
+     "locator": "maori-reference-14"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.maramataka.night-29",
+   "system_key": "oceania.maori.maramataka",
+   "day_number": 29,
+   "name": "Mutuwhenua",
+   "original_name": "Mutuwhenua",
+   "meaning": "Unproductive for food gathering near cycle end",
+   "favourability": "unfavourable",
+   "evidence": [
+    "oral_tradition"
+   ],
+   "uncertainty": "Position is approximate; iwi differ in names and order.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.tepapa-maramataka",
+     "locator": "maori-reference-29"
+    }
+   ]
+  }
+ ],
+ "observances": [
+  {
+   "key": "africa.west.akan.akwasidae",
+   "culture_key": "africa.west.akan",
+   "system_key": "africa.west.akan.adaduanan",
+   "name": "Akwasidae",
+   "original_name": "Akwasidae",
+   "kind": "royal",
+   "timing": "Every 42 days, on a Sunday",
+   "cycle_position_key": "africa.west.akan.adaduanan.akwasidae",
+   "description": "Recurring Sunday ancestral and royal stool observance.",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.akandictionary-akwasidae-2026"
+    }
+   ]
+  }
+ ],
+ "recommendations": [
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-01.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-01",
+   "activity": "planting",
+   "historical_practice": "Planting; shoreline fishing",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-01"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-02.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-02",
+   "activity": "planting",
+   "historical_practice": "Planting; shoreline fishing",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-02"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-03.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-03",
+   "activity": "planting",
+   "historical_practice": "Upright crops including banana and taro",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-03"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-04.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-04",
+   "activity": "fishing",
+   "historical_practice": "Shoreline fishing; end of Kū kapu",
+   "modern_interpretation": "Consider fishing as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-04"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-05.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-05",
+   "activity": "fishing",
+   "historical_practice": "Fishing; avoid planting some crops",
+   "modern_interpretation": "Consider fishing as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-05"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-06.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-06",
+   "activity": "ceremony",
+   "historical_practice": "End of Kū days",
+   "modern_interpretation": "Consider ceremony as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-06"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-07.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-07",
+   "activity": "planting",
+   "historical_practice": "Avoid planting; fishing uncertain",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-07"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-08.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-08",
+   "activity": "planting",
+   "historical_practice": "Planting disfavoured; torch fishing possible",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-08"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-09.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-09",
+   "activity": "planting",
+   "historical_practice": "Planting disfavoured; torch fishing possible",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-09"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-10.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-10",
+   "activity": "planting",
+   "historical_practice": "Productive cultivation",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-10"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-11.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-11",
+   "activity": "planting",
+   "historical_practice": "Cultivation and fishing",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-11"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-12.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-12",
+   "activity": "ceremony",
+   "historical_practice": "Planting; temple prayers; fishing",
+   "modern_interpretation": "Consider ceremony as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-12"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-13.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-13",
+   "activity": "planting",
+   "historical_practice": "Fruit-bearing crops; prayers; fishing",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-13"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-14.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-14",
+   "activity": "ceremony",
+   "historical_practice": "Offerings for plant and fish abundance",
+   "modern_interpretation": "Consider ceremony as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-14"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-15.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-15",
+   "activity": "fishing",
+   "historical_practice": "Planting and fishing near full moon",
+   "modern_interpretation": "Consider fishing as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-15"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-16.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-16",
+   "activity": "planting",
+   "historical_practice": "Farming and fishing",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-16"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-17.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-17",
+   "activity": "planting",
+   "historical_practice": "Crops and fishing",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-17"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-18.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-18",
+   "activity": "harvesting",
+   "historical_practice": "Gather herbs and fish; avoid some planting",
+   "modern_interpretation": "Consider gathering as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-18"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-19.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-19",
+   "activity": "planting",
+   "historical_practice": "Farming",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-19"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-20.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-20",
+   "activity": "planting",
+   "historical_practice": "Planting",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-20"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-21.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-21",
+   "activity": "planting",
+   "historical_practice": "Planting slips in one account; rough seas",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "contested",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-21"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-22.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-22",
+   "activity": "planting",
+   "historical_practice": "Planting good in one account, discouraged in another",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "contested",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-22"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-23.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-23",
+   "activity": "ceremony",
+   "historical_practice": "Beginning of Kanaloa kapu",
+   "modern_interpretation": "Consider ceremony as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-23"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-24.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-24",
+   "activity": "planting",
+   "historical_practice": "Planting with reservations; prayers",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-24"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-25.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-25",
+   "activity": "planting",
+   "historical_practice": "Long-stemmed and vine crops; kapu ends",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-25"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-26.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-26",
+   "activity": "ceremony",
+   "historical_practice": "End of Kāloa days",
+   "modern_interpretation": "Consider ceremony as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-26"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-27.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-27",
+   "activity": "ceremony",
+   "historical_practice": "Prayers; planting and fishing in later accounts",
+   "modern_interpretation": "Consider ceremony as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-27"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-28.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-28",
+   "activity": "ceremony",
+   "historical_practice": "Thanks and prayers for rain; planting in later accounts",
+   "modern_interpretation": "Consider ceremony as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-28"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-29.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-29",
+   "activity": "planting",
+   "historical_practice": "Planting and fishing",
+   "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-29"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.oahu-lunar-nights.night-30.practice",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.oahu-lunar-nights",
+   "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-30",
+   "activity": "harvesting",
+   "historical_practice": "Planting; gathering and shoreline fishing",
+   "modern_interpretation": "Consider gathering as a reflection or planning prompt; check local conditions.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.kapiolani-oahu-days",
+     "locator": "hawaiian-oahu-30"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.maramataka.night-01.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.maramataka",
+   "lunar_day_key": "oceania.maori.maramataka.night-01",
+   "activity": "other",
+   "historical_practice": "Planting and fishing discouraged; eeling noted as favourable",
+   "modern_interpretation": "Consider as a traditional ecological planning prompt; adapt to local environment.",
+   "evidence": [
+    "oral_tradition",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.tepapa-maramataka",
+     "locator": "maori-reference-01"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.maramataka.night-02.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.maramataka",
+   "lunar_day_key": "oceania.maori.maramataka.night-02",
+   "activity": "other",
+   "historical_practice": "Crayfishing, eeling, planting and shellfish gathering",
+   "modern_interpretation": "Consider as a traditional ecological planning prompt; adapt to local environment.",
+   "evidence": [
+    "oral_tradition",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.tepapa-maramataka",
+     "locator": "maori-reference-02"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.maramataka.night-03.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.maramataka",
+   "lunar_day_key": "oceania.maori.maramataka.night-03",
+   "activity": "other",
+   "historical_practice": "Eeling, crayfishing, kūmara planting and sowing",
+   "modern_interpretation": "Consider as a traditional ecological planning prompt; adapt to local environment.",
+   "evidence": [
+    "oral_tradition",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.tepapa-maramataka",
+     "locator": "maori-reference-03"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.maramataka.night-14.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.maramataka",
+   "lunar_day_key": "oceania.maori.maramataka.night-14",
+   "activity": "other",
+   "historical_practice": "Good for crops and fishing; not eeling",
+   "modern_interpretation": "Consider as a traditional ecological planning prompt; adapt to local environment.",
+   "evidence": [
+    "oral_tradition",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.tepapa-maramataka",
+     "locator": "maori-reference-14"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.maramataka.night-29.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.maramataka",
+   "lunar_day_key": "oceania.maori.maramataka.night-29",
+   "activity": "other",
+   "historical_practice": "Unproductive for food gathering near cycle end",
+   "modern_interpretation": "Consider as a traditional ecological planning prompt; adapt to local environment.",
+   "evidence": [
+    "oral_tradition",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.tepapa-maramataka",
+     "locator": "maori-reference-29"
+    }
+   ]
+  },
+  {
+   "key": "africa.west.akan.akwasidae.practice",
+   "culture_key": "africa.west.akan",
+   "system_key": "africa.west.akan.adaduanan",
+   "cycle_position_key": "africa.west.akan.adaduanan.akwasidae",
+   "observance_key": "africa.west.akan.akwasidae",
+   "activity": "remembrance",
+   "historical_practice": "Recurring Sunday ancestral and royal stool observance.",
+   "modern_interpretation": "Reflect on lineage or record family history (modern suggestion, not prescribed ritual).",
+   "evidence": [
+    "ethnographically_documented",
+    "modern_interpretation"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.akandictionary-akwasidae-2026"
+    }
+   ]
+  }
+ ],
+ "date_correspondences": [
+  {
+   "key": "africa.west.akan.akwasidae.2026-02-01",
+   "culture_key": "africa.west.akan",
+   "system_key": "africa.west.akan.adaduanan",
+   "label": "Akwasidae",
+   "original_date": "Akwasidae",
+   "gregorian_from": "2026-02-01",
+   "gregorian_to": "2026-02-01",
+   "certainty": "exact",
+   "notes": "Published community date; confirmation with community authorities recommended.",
+   "evidence": [
+    "unverified_lead"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.akandictionary-akwasidae-2026"
+    }
+   ]
+  },
+  {
+   "key": "africa.west.akan.akwasidae.2026-03-15",
+   "culture_key": "africa.west.akan",
+   "system_key": "africa.west.akan.adaduanan",
+   "label": "Akwasidae",
+   "original_date": "Akwasidae",
+   "gregorian_from": "2026-03-15",
+   "gregorian_to": "2026-03-15",
+   "certainty": "exact",
+   "notes": "Published community date; confirmation with community authorities recommended.",
+   "evidence": [
+    "unverified_lead"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.akandictionary-akwasidae-2026"
+    }
+   ]
+  },
+  {
+   "key": "africa.west.akan.akwasidae.2026-04-26",
+   "culture_key": "africa.west.akan",
+   "system_key": "africa.west.akan.adaduanan",
+   "label": "Akwasidae",
+   "original_date": "Akwasidae",
+   "gregorian_from": "2026-04-26",
+   "gregorian_to": "2026-04-26",
+   "certainty": "exact",
+   "notes": "Published community date; confirmation with community authorities recommended.",
+   "evidence": [
+    "unverified_lead"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.akandictionary-akwasidae-2026"
+    }
+   ]
+  },
+  {
+   "key": "africa.west.akan.akwasidae.2026-06-07",
+   "culture_key": "africa.west.akan",
+   "system_key": "africa.west.akan.adaduanan",
+   "label": "Akwasidae",
+   "original_date": "Akwasidae",
+   "gregorian_from": "2026-06-07",
+   "gregorian_to": "2026-06-07",
+   "certainty": "exact",
+   "notes": "Published community date; confirmation with community authorities recommended.",
+   "evidence": [
+    "unverified_lead"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.akandictionary-akwasidae-2026"
+    }
+   ]
+  },
+  {
+   "key": "africa.west.akan.akwasidae.2026-07-19",
+   "culture_key": "africa.west.akan",
+   "system_key": "africa.west.akan.adaduanan",
+   "label": "Akwasidae",
+   "original_date": "Akwasidae",
+   "gregorian_from": "2026-07-19",
+   "gregorian_to": "2026-07-19",
+   "certainty": "exact",
+   "notes": "Published community date; confirmation with community authorities recommended.",
+   "evidence": [
+    "unverified_lead"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.akandictionary-akwasidae-2026"
+    }
+   ]
+  },
+  {
+   "key": "africa.west.akan.akwasidae.2026-08-30",
+   "culture_key": "africa.west.akan",
+   "system_key": "africa.west.akan.adaduanan",
+   "label": "Akwasidae",
+   "original_date": "Akwasidae",
+   "gregorian_from": "2026-08-30",
+   "gregorian_to": "2026-08-30",
+   "certainty": "exact",
+   "notes": "Published community date; confirmation with community authorities recommended.",
+   "evidence": [
+    "unverified_lead"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.akandictionary-akwasidae-2026"
+    }
+   ]
+  },
+  {
+   "key": "africa.west.akan.akwasidae.2026-10-11",
+   "culture_key": "africa.west.akan",
+   "system_key": "africa.west.akan.adaduanan",
+   "label": "Akwasidae",
+   "original_date": "Akwasidae",
+   "gregorian_from": "2026-10-11",
+   "gregorian_to": "2026-10-11",
+   "certainty": "exact",
+   "notes": "Published community date; confirmation with community authorities recommended.",
+   "evidence": [
+    "unverified_lead"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.akandictionary-akwasidae-2026"
+    }
+   ]
+  },
+  {
+   "key": "africa.west.akan.akwasidae.2026-11-22",
+   "culture_key": "africa.west.akan",
+   "system_key": "africa.west.akan.adaduanan",
+   "label": "Akwasidae",
+   "original_date": "Akwasidae",
+   "gregorian_from": "2026-11-22",
+   "gregorian_to": "2026-11-22",
+   "certainty": "exact",
+   "notes": "Published community date; confirmation with community authorities recommended.",
+   "evidence": [
+    "unverified_lead"
+   ],
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.akandictionary-akwasidae-2026"
+    }
+   ]
+  }
+ ]
+}

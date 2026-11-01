@@ -25,6 +25,8 @@ import { lunarMonthContaining } from "@/lib/true-calendar/astronomy";
 import { parseYearInput } from "@/lib/true-calendar/url-state";
 import { FixedGrid, GregorianGrid, LunarGrid } from "./calendar-grids";
 import { MoonPanel } from "./moon-panel";
+import { DayWisdom } from "./day-wisdom";
+import type { ResearchBundle } from "@/lib/true-calendar/research/daily";
 import { useCalendarPrefs, useCalendarState } from "./use-calendar-state";
 
 // The True Calendar: two synchronised calendars for one selected day.
@@ -32,26 +34,16 @@ import { useCalendarPrefs, useCalendarState } from "./use-calendar-state";
 // astronomical lunar calendar. Every control just changes the selected date
 // (kept in the URL), and both sides and the Moon panel follow it.
 
-export function TrueCalendarView({ title, description }: { title: string; description: string | null }) {
+export function TrueCalendarView({ bundle, historyPath }: { bundle: ResearchBundle; historyPath: string }) {
   const state = useCalendarState();
   const [prefs, setPrefs] = useCalendarPrefs();
   // On a phone the two calendars share one slot; this picks which shows.
   const [mobileSide, setMobileSide] = useState<"left" | "right">("left");
 
-  return (
-    <div className="true-calendar -mx-4 rounded-none bg-[var(--tc-bg)] px-4 py-6 text-[var(--tc-ink)] sm:mx-0 sm:rounded-xl sm:px-6 sm:py-7">
-      <header className="flex flex-col gap-1 pb-5">
-        <p className="text-[13px] font-semibold uppercase tracking-[0.2em] text-[var(--tc-gold)]">Two calendars. One day. Many civilisations.</p>
-        <h1 className="font-serif text-4xl leading-tight tracking-tight sm:text-5xl">{title}</h1>
-        {description ? <p className="max-w-3xl text-base text-[var(--tc-muted)]">{description}</p> : null}
-      </header>
-
-      {!state.ready ? (
-        <LoadingFrame />
-      ) : (
-        <Calendar state={state} prefs={prefs} setPrefs={setPrefs} mobileSide={mobileSide} setMobileSide={setMobileSide} />
-      )}
-    </div>
+  return !state.ready ? (
+    <LoadingFrame />
+  ) : (
+    <Calendar state={state} prefs={prefs} setPrefs={setPrefs} mobileSide={mobileSide} setMobileSide={setMobileSide} bundle={bundle} historyPath={historyPath} />
   );
 }
 
@@ -72,7 +64,11 @@ function Calendar({
   setPrefs,
   mobileSide,
   setMobileSide,
+  bundle,
+  historyPath,
 }: {
+  bundle: ResearchBundle;
+  historyPath: string;
   state: ReturnType<typeof useCalendarState>;
   prefs: ReturnType<typeof useCalendarPrefs>[0];
   setPrefs: ReturnType<typeof useCalendarPrefs>[1];
@@ -168,12 +164,7 @@ function Calendar({
 
       <MoonPanel date={date} tz={tz} prefs={prefs} onPrefs={setPrefs} />
 
-      <section aria-labelledby="tc-cultures-heading" className="rounded-lg border border-dashed border-[var(--tc-line)] px-4 py-4">
-        <h2 id="tc-cultures-heading" className="font-serif text-xl">Across civilisations</h2>
-        <p className="mt-1 text-base text-[var(--tc-muted)]">
-          What this day meant in other calendars and traditions will appear here as each tradition&apos;s research is checked against its sources. Nothing is shown until it is sourced.
-        </p>
-      </section>
+      <DayWisdom bundle={bundle} date={date} tz={tz} historyPath={historyPath} isToday={isToday} />
     </div>
   );
 }
