@@ -1,0 +1,1719 @@
+{
+  "format": "true-calendar/v1",
+  "sources": [
+    {
+      "key": "src.tepapa-maramataka",
+      "title": "Nights of the maramataka, the Māori lunar calendar",
+      "url": "https://www.tepapa.govt.nz/digital-museum/explore-digital-museum/maori/matariki-maori-new-year/nights-maramataka-maori-lunar",
+      "source_type": "reference",
+      "review_status": "draft",
+      "publisher": "Museum of New Zealand Te Papa Tongarewa",
+      "notes": "Museum synthesis drawing on several iwi; iwi variations must be preserved. From Oshi's research batch 01."
+    },
+    {
+      "key": "src.stern-2012",
+      "title": "Stern 2012 (PDF)",
+      "url": "https://deadseaquake.info/pdfs/Stern2012.pdf",
+      "source_type": "academic",
+      "review_status": "draft",
+      "author": "Sacha Stern",
+      "published": "2012",
+      "notes": "Discusses Egyptian lunar reckonings, citing a Karnak inscription; temple service months could begin differently. Title taken from the link; confirm it on review. From Oshi's research batch 02."
+    },
+    {
+      "key": "src.met-telling-time-egypt",
+      "title": "Telling Time in Ancient Egypt",
+      "url": "https://www.metmuseum.org/fr/essays/telling-time-in-ancient-egypt",
+      "source_type": "reference",
+      "review_status": "draft",
+      "publisher": "The Metropolitan Museum of Art",
+      "notes": "Museum essay (Heilbrunn Timeline of Art History). Title taken from the link; confirm it on review. From Oshi's research batch 02."
+    },
+    {
+      "key": "src.htr-noumenia-epimenia",
+      "title": "Noumenia and Epimenia in Athens",
+      "url": "https://www.cambridge.org/core/journals/harvard-theological-review/article/abs/noumenia-and-epimenia-in-athens/9D3CA2A08D8281AC04176256F38E4334",
+      "source_type": "academic",
+      "review_status": "draft",
+      "publisher": "Harvard Theological Review (Cambridge University Press)",
+      "notes": "Journal article; the link is to its abstract. Title taken from the link; confirm it on review. From Oshi's research batch 02."
+    },
+    {
+      "key": "src.hellenion-noumenia",
+      "title": "Noumenia",
+      "url": "https://www.hellenion.org/festivals/noumenia/",
+      "source_type": "official",
+      "review_status": "draft",
+      "publisher": "Hellenion",
+      "notes": "A modern Hellenic religious organisation describing its own practice; not an ancient source. Title taken from the link; confirm it on review. From Oshi's research batch 02."
+    },
+    {
+      "key": "src.hellenion-agathos-daimon",
+      "title": "Agathos Daimon",
+      "url": "https://www.hellenion.org/festivals/agathos-daimon/",
+      "source_type": "official",
+      "review_status": "draft",
+      "publisher": "Hellenion",
+      "notes": "A modern Hellenic religious organisation describing its own practice; not an ancient source. Title taken from the link; confirm it on review. From Oshi's research batch 02."
+    },
+    {
+      "key": "src.elias-igbo-days",
+      "title": "Days, weeks and months of the year (Igbo, beginning level, lesson 11)",
+      "url": "https://elias.unix.fas.harvard.edu/languages/igbo/beginning/11/days-weeks-and-months-year",
+      "source_type": "reference",
+      "review_status": "draft",
+      "publisher": "Harvard University (ELIAS language materials)",
+      "notes": "Language-course page. Title taken from the link; confirm it on review. From Oshi's research batch 02."
+    },
+    {
+      "key": "src.ellis-yoruba-time",
+      "title": "The Yoruba-Speaking Peoples of the Slave Coast of West Africa, chapter VIII: Measurements of time",
+      "url": "https://sacred-texts.com/book/yoruba-speaking-peoples-of-the-slave-coast-of-west-africa/chapter-viii-measurements-of-time",
+      "source_type": "ethnographic",
+      "review_status": "draft",
+      "author": "A. B. Ellis",
+      "publisher": "sacred-texts.com (online transcription)",
+      "notes": "A colonial-era outsider's account. Its five-day week differs from contemporary four-day descriptions; keep the two apart. Title taken from the link; confirm it on review. From Oshi's research batch 02."
+    }
+  ],
+  "cultures": [
+    {
+      "key": "oceania.maori",
+      "name": "Māori",
+      "continent": "Oceania",
+      "region": "Oceania",
+      "research_status": "in_progress",
+      "sort_order": 72,
+      "review_status": "published"
+    },
+    {
+      "key": "africa.north.ancient-egyptian",
+      "name": "Ancient Egyptian",
+      "continent": "Africa",
+      "region": "North Africa and the Nile",
+      "research_status": "in_progress",
+      "sort_order": 20,
+      "review_status": "published"
+    },
+    {
+      "key": "europe.athenian-greek",
+      "name": "Athenian Greek",
+      "continent": "Europe",
+      "region": "Mediterranean and Europe",
+      "research_status": "in_progress",
+      "sort_order": 28,
+      "review_status": "published"
+    },
+    {
+      "key": "africa.west.igbo",
+      "name": "Igbo",
+      "continent": "Africa",
+      "region": "West Africa",
+      "research_status": "in_progress",
+      "sort_order": 25,
+      "review_status": "published"
+    },
+    {
+      "key": "africa.west.yoruba",
+      "name": "Yoruba",
+      "continent": "Africa",
+      "region": "West Africa",
+      "research_status": "in_progress",
+      "sort_order": 24,
+      "review_status": "published"
+    }
+  ],
+  "systems": [
+    {
+      "key": "oceania.maori.tepapa-sequence",
+      "culture_key": "oceania.maori",
+      "name": "Te Papa's maramataka activity sequence",
+      "kind": "lunar",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka"
+        }
+      ],
+      "description": "The planting, fishing and gathering guidance Te Papa gives night by night through the maramataka, numbered here in the order the page lists it.",
+      "uncertainty": "The numbers are the order of Te Papa's page, not established night numbers: several of the page's positions are fractional or repeated (2.5, 7.8, a second 12). Night names are given only where the page's text names them. Iwi differ in names, number and order. Do not use this as a conversion table.",
+      "original_name": "Maramataka",
+      "evidence": []
+    },
+    {
+      "key": "africa.north.ancient-egyptian.lunar",
+      "culture_key": "africa.north.ancient-egyptian",
+      "name": "Religious lunar calendar",
+      "kind": "lunar",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.stern-2012"
+        }
+      ],
+      "description": "A lunar reckoning used for temple festivals alongside the civil calendar.",
+      "month_rule": "One Egyptian reckoning began the month on the day the old Moon could no longer be seen.",
+      "uncertainty": "Egyptian lunar months could begin by different conventions (temple service months among them), so these days are not placed on modern dates.",
+      "evidence": []
+    },
+    {
+      "key": "africa.north.ancient-egyptian.civil",
+      "culture_key": "africa.north.ancient-egyptian",
+      "name": "Civil calendar",
+      "kind": "solar",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.met-telling-time-egypt"
+        }
+      ],
+      "year_rule": "12 months of 30 days, plus 5 extra days: 365 days.",
+      "sky_and_seasons": "Three seasons: Akhet (inundation), Peret (emergence) and Shemu (harvest).",
+      "uncertainty": "Not placed on modern dates: a 365-day year drifts against the seasons, and where it stood in a given year needs a specified historical convention.",
+      "evidence": []
+    },
+    {
+      "key": "europe.athenian-greek.lunar-month",
+      "culture_key": "europe.athenian-greek",
+      "name": "Athenian lunar month",
+      "kind": "lunar",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.htr-noumenia-epimenia"
+        }
+      ],
+      "description": "The civic and religious month of Athens, with named days at its start and end.",
+      "month_rule": "The month began with the Noumenia; Athens fixed the start by civic convention.",
+      "uncertainty": "Month starts followed civic convention, and modern reconstructed calendars vary, so these days are not placed on modern dates.",
+      "evidence": []
+    },
+    {
+      "key": "africa.west.igbo.market-week",
+      "culture_key": "africa.west.igbo",
+      "name": "Four-day market week",
+      "kind": "day_cycle",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.elias-igbo-days"
+        }
+      ],
+      "description": "Four named market days, Eke, Orie, Afọ and Nkwọ, repeating in order. The day names also appear in personal names.",
+      "uncertainty": "No universal Gregorian anchor: which day is Eke today differs between communities, so the cycle is not placed on the calendar.",
+      "evidence": []
+    },
+    {
+      "key": "africa.west.yoruba.ellis-five-day",
+      "culture_key": "africa.west.yoruba",
+      "name": "Five-day week recorded by A. B. Ellis",
+      "kind": "day_cycle",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.ellis-yoruba-time"
+        }
+      ],
+      "description": "A five-day week recorded in a nineteenth-century account, each day after the first sacred to an orisha.",
+      "uncertainty": "This historical account conflicts with contemporary descriptions of a four-day Yoruba week. It is kept as its own variant, not as the Yoruba calendar, and is not placed on dates until a local lineage and starting point are established.",
+      "evidence": [
+        "ethnographically_documented",
+        "contested"
+      ]
+    }
+  ],
+  "cycles": [
+    {
+      "key": "africa.west.igbo.market-week.cycle",
+      "system_key": "africa.west.igbo.market-week",
+      "name": "Market week",
+      "length_days": 4,
+      "regional_note": "The order Eke, Orie, Afọ, Nkwọ is documented; the day on which a given community's Eke falls varies.",
+      "evidence": [
+        "ethnographically_documented"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.elias-igbo-days"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.yoruba.ellis-five-day.cycle",
+      "system_key": "africa.west.yoruba.ellis-five-day",
+      "name": "Five-day week (Ellis)",
+      "length_days": 5,
+      "regional_note": "Contemporary accounts describe a four-day week instead; this five-day account is a separate historical variant.",
+      "evidence": [
+        "ethnographically_documented",
+        "contested"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.ellis-yoruba-time"
+        }
+      ]
+    }
+  ],
+  "cycle_positions": [
+    {
+      "key": "africa.west.igbo.market-week.cycle.eke",
+      "cycle_key": "africa.west.igbo.market-week.cycle",
+      "position": 0,
+      "name": "Eke",
+      "original_name": "Eke",
+      "meaning": "Named market day; also appears in personal naming traditions.",
+      "evidence": [
+        "ethnographically_documented"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.elias-igbo-days",
+          "locator": "b02-039"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.igbo.market-week.cycle.orie",
+      "cycle_key": "africa.west.igbo.market-week.cycle",
+      "position": 1,
+      "name": "Orie",
+      "original_name": "Orie",
+      "meaning": "Named market day; also appears in personal naming traditions.",
+      "evidence": [
+        "ethnographically_documented"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.elias-igbo-days",
+          "locator": "b02-040"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.igbo.market-week.cycle.afo",
+      "cycle_key": "africa.west.igbo.market-week.cycle",
+      "position": 2,
+      "name": "Afọ",
+      "original_name": "Afọ",
+      "meaning": "Named market day; also appears in personal naming traditions.",
+      "evidence": [
+        "ethnographically_documented"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.elias-igbo-days",
+          "locator": "b02-041"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.igbo.market-week.cycle.nkwo",
+      "cycle_key": "africa.west.igbo.market-week.cycle",
+      "position": 3,
+      "name": "Nkwọ",
+      "original_name": "Nkwọ",
+      "meaning": "Named market day; also appears in personal naming traditions.",
+      "evidence": [
+        "ethnographically_documented"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.elias-igbo-days",
+          "locator": "b02-042"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.yoruba.ellis-five-day.cycle.ako-ojo",
+      "cycle_key": "africa.west.yoruba.ellis-five-day.cycle",
+      "position": 0,
+      "name": "Ako-ojo",
+      "original_name": "Ako-ojo",
+      "meaning": "General rest day; historical account says important business avoided.",
+      "evidence": [
+        "ethnographically_documented",
+        "contested"
+      ],
+      "uncertainty": "From one historical account that conflicts with contemporary four-day descriptions.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.ellis-yoruba-time",
+          "locator": "b02-043"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.yoruba.ellis-five-day.cycle.ojo-awo",
+      "cycle_key": "africa.west.yoruba.ellis-five-day.cycle",
+      "position": 1,
+      "name": "Ojo-awo",
+      "original_name": "Ojo-awo",
+      "meaning": "Sacred to Ifa.",
+      "evidence": [
+        "ethnographically_documented",
+        "contested"
+      ],
+      "uncertainty": "From one historical account that conflicts with contemporary four-day descriptions.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.ellis-yoruba-time",
+          "locator": "b02-044"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.yoruba.ellis-five-day.cycle.ojo-ogun",
+      "cycle_key": "africa.west.yoruba.ellis-five-day.cycle",
+      "position": 2,
+      "name": "Ojo-Ogun",
+      "original_name": "Ojo-Ogun",
+      "meaning": "Sacred to Ogun.",
+      "evidence": [
+        "ethnographically_documented",
+        "contested"
+      ],
+      "uncertainty": "From one historical account that conflicts with contemporary four-day descriptions.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.ellis-yoruba-time",
+          "locator": "b02-045"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.yoruba.ellis-five-day.cycle.ojo-shango",
+      "cycle_key": "africa.west.yoruba.ellis-five-day.cycle",
+      "position": 3,
+      "name": "Ojo-Shango",
+      "original_name": "Ojo-Shango",
+      "meaning": "Sacred to Shango.",
+      "evidence": [
+        "ethnographically_documented",
+        "contested"
+      ],
+      "uncertainty": "From one historical account that conflicts with contemporary four-day descriptions.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.ellis-yoruba-time",
+          "locator": "b02-046"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.yoruba.ellis-five-day.cycle.ojo-obatala",
+      "cycle_key": "africa.west.yoruba.ellis-five-day.cycle",
+      "position": 4,
+      "name": "Ojo-Obatala",
+      "original_name": "Ojo-Obatala",
+      "meaning": "Sacred to Obatala.",
+      "evidence": [
+        "ethnographically_documented",
+        "contested"
+      ],
+      "uncertainty": "From one historical account that conflicts with contemporary four-day descriptions.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.ellis-yoruba-time",
+          "locator": "b02-047"
+        }
+      ]
+    }
+  ],
+  "lunar_days": [
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-01",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 1,
+      "name": "Whiro",
+      "original_name": "Whiro",
+      "meaning": "Unfavourable for planting and fishing; good for eeling",
+      "favourability": "mixed",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 1 in the order of Te Papa's page, not a night number.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-001"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-02",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 2,
+      "name": "Tirea",
+      "original_name": "Tirea",
+      "meaning": "Reasonably good for crayfishing, eeling, planting and shellfish",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 2 in the order of Te Papa's page, not a night number.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-002"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-03",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 3,
+      "meaning": "Very good for eeling, crayfish, kūmara and seed crops",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 3 in the order of Te Papa's page, not a night number (the page places it at 2.5). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-003"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-04",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 4,
+      "meaning": "Good for tuber beds, planting and fishing",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 4 in the order of Te Papa's page, not a night number (the page places it at 4). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-004"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-05",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 5,
+      "meaning": "Good planting; fish restless",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 5 in the order of Te Papa's page, not a night number (the page places it at 5). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-005"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-06",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 6,
+      "meaning": "Planting day; west winds noted",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 6 in the order of Te Papa's page, not a night number (the page places it at 6). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-006"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-07",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 7,
+      "meaning": "Eels feed; good planting/fishing; caution fog and rough sea",
+      "favourability": "mixed",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 7 in the order of Te Papa's page, not a night number (the page places it at 7). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-007"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-08",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 8,
+      "meaning": "Shellfish productive; caution fishermen",
+      "favourability": "mixed",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 8 in the order of Te Papa's page, not a night number (the page places it at 7.8). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-008"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-09",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 9,
+      "meaning": "Plant in morning; poor fishing",
+      "favourability": "mixed",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 9 in the order of Te Papa's page, not a night number (the page places it at 8). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-009"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-10",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 10,
+      "meaning": "Unpleasant; marking time",
+      "favourability": "unfavourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 10 in the order of Te Papa's page, not a night number (the page places it at 9). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-010"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-11",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 11,
+      "meaning": "Avoid planting/fishing; eels and crayfish wary",
+      "favourability": "unfavourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 11 in the order of Te Papa's page, not a night number (the page places it at 10). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-011"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-12",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 12,
+      "meaning": "Excellent planting, fishing, eeling and crayfish; kūmara may rot quickly",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 12 in the order of Te Papa's page, not a night number (the page places it at 11). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-012"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-13",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 13,
+      "meaning": "Very good planting",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 13 in the order of Te Papa's page, not a night number (the page places it at 12). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-013"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-14",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 14,
+      "meaning": "Not good planting or fishing",
+      "favourability": "unfavourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 14 in the order of Te Papa's page, not a night number (the page places it at 12 variant). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-014"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-15",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 15,
+      "meaning": "Good eeling/fishing and afternoon planting",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 15 in the order of Te Papa's page, not a night number (the page places it at 13). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-015"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-16",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 16,
+      "name": "Rākaunui",
+      "original_name": "Rākaunui",
+      "meaning": "Bountiful crops and good fishing, not eeling",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 16 in the order of Te Papa's page, not a night number; the page notes it as the full-moon position.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-016"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-17",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 17,
+      "meaning": "Good fishing, not eeling; seed plants vigorous",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 17 in the order of Te Papa's page, not a night number (the page places it at 15). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-017"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-18",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 18,
+      "meaning": "Unfavourable; let resources recover",
+      "favourability": "unfavourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 18 in the order of Te Papa's page, not a night number (the page places it at 16). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-018"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-19",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 19,
+      "meaning": "Poor fishing and planting",
+      "favourability": "unfavourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 19 in the order of Te Papa's page, not a night number (the page places it at 17). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-019"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-20",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 20,
+      "meaning": "Unproductive shore; windy sea",
+      "favourability": "unfavourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 20 in the order of Te Papa's page, not a night number (the page places it at 18). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-020"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-21",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 21,
+      "meaning": "Food scarce; wait for tide",
+      "favourability": "unfavourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 21 in the order of Te Papa's page, not a night number (the page places it at 19). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-021"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-22",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 22,
+      "meaning": "Good midday to sunset; eels and food plentiful",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 22 in the order of Te Papa's page, not a night number (the page places it at 20). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-022"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-23",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 23,
+      "meaning": "Good planting, fishing and eeling",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 23 in the order of Te Papa's page, not a night number (the page places it at 21). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-023"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-24",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 24,
+      "meaning": "Productive fishing and planting",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 24 in the order of Te Papa's page, not a night number (the page places it at 22). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-024"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-25",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 25,
+      "meaning": "Good fishing and seed-bed cultivation",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 25 in the order of Te Papa's page, not a night number (the page places it at 23). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-025"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-26",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 26,
+      "meaning": "Very good eeling, fishing and traps",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 26 in the order of Te Papa's page, not a night number (the page places it at 24). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-026"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-27",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 27,
+      "meaning": "Good fishing/eeling/crayfish; reasonable planting",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 27 in the order of Te Papa's page, not a night number (the page places it at 25). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-027"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-28",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 28,
+      "meaning": "Very productive planting, fishing and eeling",
+      "favourability": "favourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 28 in the order of Te Papa's page, not a night number (the page places it at 26). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-028"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-29",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 29,
+      "meaning": "Unproductive; scarce food and restless fish",
+      "favourability": "unfavourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 29 in the order of Te Papa's page, not a night number (the page places it at 27). The night's name is not in the page's text and has not been filled in.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-029"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-30",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "day_number": 30,
+      "name": "Mutuwhenua",
+      "original_name": "Mutuwhenua",
+      "meaning": "Unproductive, dark end of cycle",
+      "favourability": "unfavourable",
+      "evidence": [
+        "oral_tradition"
+      ],
+      "uncertainty": "Entry 30 in the order of Te Papa's page, not a night number; the page notes it as the cycle end.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-030"
+        }
+      ]
+    },
+    {
+      "key": "africa.north.ancient-egyptian.lunar.day-01",
+      "system_key": "africa.north.ancient-egyptian.lunar",
+      "day_number": 1,
+      "name": "psḏntyw",
+      "original_name": "psḏntyw",
+      "meaning": "Moon invisible; beginning of one Egyptian lunar reckoning",
+      "evidence": [
+        "historically_documented"
+      ],
+      "uncertainty": "Month starts varied between Egyptian conventions.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.stern-2012",
+          "locator": "b02-031"
+        }
+      ]
+    },
+    {
+      "key": "africa.north.ancient-egyptian.lunar.day-02",
+      "system_key": "africa.north.ancient-egyptian.lunar",
+      "day_number": 2,
+      "name": "ꜣbd (Abd)",
+      "original_name": "ꜣbd (Abd)",
+      "meaning": "Appearance/birth of lunar crescent in cited Karnak inscription",
+      "evidence": [
+        "historically_documented"
+      ],
+      "uncertainty": "Month starts varied between Egyptian conventions.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.stern-2012",
+          "locator": "b02-032"
+        }
+      ]
+    },
+    {
+      "key": "africa.north.ancient-egyptian.lunar.day-15",
+      "system_key": "africa.north.ancient-egyptian.lunar",
+      "day_number": 15,
+      "name": "smdt",
+      "original_name": "smdt",
+      "meaning": "Half-month feast; mature/full Moon in cited Karnak inscription",
+      "evidence": [
+        "historically_documented"
+      ],
+      "uncertainty": "Month starts varied between Egyptian conventions.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.stern-2012",
+          "locator": "b02-033"
+        }
+      ]
+    },
+    {
+      "key": "europe.athenian-greek.lunar-month.day-01",
+      "system_key": "europe.athenian-greek.lunar-month",
+      "day_number": 1,
+      "name": "Noumenia",
+      "meaning": "First visible crescent / start of month, household gods",
+      "evidence": [
+        "modern_interpretation"
+      ],
+      "uncertainty": "Source is a modern Hellenic religious organisation; check against ancient evidence or scholarship.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.hellenion-noumenia",
+          "locator": "b02-036"
+        }
+      ]
+    },
+    {
+      "key": "europe.athenian-greek.lunar-month.day-02",
+      "system_key": "europe.athenian-greek.lunar-month",
+      "day_number": 2,
+      "name": "Agathos Daimon",
+      "meaning": "Household protective spirit observance",
+      "evidence": [
+        "modern_interpretation"
+      ],
+      "uncertainty": "Source is a modern Hellenic religious organisation; check against ancient evidence or scholarship.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.hellenion-agathos-daimon",
+          "locator": "b02-037"
+        }
+      ]
+    },
+    {
+      "key": "europe.athenian-greek.lunar-month.day-07",
+      "system_key": "europe.athenian-greek.lunar-month",
+      "day_number": 7,
+      "name": "Apollo’s day",
+      "meaning": "Seventh day associated with Apollo in Athenian sources",
+      "evidence": [
+        "historically_documented"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.htr-noumenia-epimenia",
+          "locator": "b02-038"
+        }
+      ]
+    }
+  ],
+  "observances": [
+    {
+      "key": "europe.athenian-greek.hekates-deipnon",
+      "culture_key": "europe.athenian-greek",
+      "system_key": "europe.athenian-greek.lunar-month",
+      "name": "Hekate’s Deipnon",
+      "kind": "ritual",
+      "timing": "The last day of the lunar month",
+      "description": "End-of-month household observance in modern Hellenic reconstruction.",
+      "deities": "Hekate",
+      "evidence": [
+        "modern_interpretation"
+      ],
+      "uncertainty": "Described here from a modern Hellenic organisation's practice; its ancient form needs an ancient or scholarly source.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.hellenion-noumenia",
+          "locator": "b02-035"
+        }
+      ]
+    }
+  ],
+  "recommendations": [
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-01.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-01",
+      "activity": "fishing",
+      "historical_practice": "Unfavourable for planting and fishing; good for eeling",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-001"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-02.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-02",
+      "activity": "planting",
+      "historical_practice": "Reasonably good for crayfishing, eeling, planting and shellfish",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-002"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-03.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-03",
+      "activity": "planting",
+      "historical_practice": "Very good for eeling, crayfish, kūmara and seed crops",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-003"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-04.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-04",
+      "activity": "planting",
+      "historical_practice": "Good for tuber beds, planting and fishing",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-004"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-05.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-05",
+      "activity": "planting",
+      "historical_practice": "Good planting; fish restless",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-005"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-06.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-06",
+      "activity": "planting",
+      "historical_practice": "Planting day; west winds noted",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-006"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-07.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-07",
+      "activity": "planting",
+      "historical_practice": "Eels feed; good planting/fishing; caution fog and rough sea",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-007"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-08.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-08",
+      "activity": "harvesting",
+      "historical_practice": "Shellfish productive; caution fishermen",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-008"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-09.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-09",
+      "activity": "planting",
+      "historical_practice": "Plant in morning; poor fishing",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-009"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-10.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-10",
+      "activity": "rest",
+      "historical_practice": "Unpleasant; marking time",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-010"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-11.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-11",
+      "activity": "rest",
+      "historical_practice": "Avoid planting/fishing; eels and crayfish wary",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-011"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-12.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-12",
+      "activity": "planting",
+      "historical_practice": "Excellent planting, fishing, eeling and crayfish; kūmara may rot quickly",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-012"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-13.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-13",
+      "activity": "planting",
+      "historical_practice": "Very good planting",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-013"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-14.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-14",
+      "activity": "rest",
+      "historical_practice": "Not good planting or fishing",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-014"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-15.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-15",
+      "activity": "planting",
+      "historical_practice": "Good eeling/fishing and afternoon planting",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-015"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-16.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-16",
+      "activity": "harvesting",
+      "historical_practice": "Bountiful crops and good fishing, not eeling",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-016"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-17.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-17",
+      "activity": "fishing",
+      "historical_practice": "Good fishing, not eeling; seed plants vigorous",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-017"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-18.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-18",
+      "activity": "rest",
+      "historical_practice": "Unfavourable; let resources recover",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-018"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-19.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-19",
+      "activity": "rest",
+      "historical_practice": "Poor fishing and planting",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-019"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-20.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-20",
+      "activity": "fishing",
+      "historical_practice": "Unproductive shore; windy sea",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-020"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-21.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-21",
+      "activity": "fishing",
+      "historical_practice": "Food scarce; wait for tide",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-021"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-22.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-22",
+      "activity": "harvesting",
+      "historical_practice": "Good midday to sunset; eels and food plentiful",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-022"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-23.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-23",
+      "activity": "planting",
+      "historical_practice": "Good planting, fishing and eeling",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-023"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-24.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-24",
+      "activity": "planting",
+      "historical_practice": "Productive fishing and planting",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-024"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-25.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-25",
+      "activity": "planting",
+      "historical_practice": "Good fishing and seed-bed cultivation",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-025"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-26.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-26",
+      "activity": "fishing",
+      "historical_practice": "Very good eeling, fishing and traps",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-026"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-27.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-27",
+      "activity": "planting",
+      "historical_practice": "Good fishing/eeling/crayfish; reasonable planting",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-027"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-28.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-28",
+      "activity": "planting",
+      "historical_practice": "Very productive planting, fishing and eeling",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-028"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-29.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-29",
+      "activity": "rest",
+      "historical_practice": "Unproductive; scarce food and restless fish",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-029"
+        }
+      ]
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-30.practice",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-30",
+      "activity": "rest",
+      "historical_practice": "Unproductive, dark end of cycle",
+      "modern_interpretation": "Use as a traditional reflection; confirm iwi variant, local ecology and weather.",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "b02-030"
+        }
+      ]
+    }
+  ]
+}
