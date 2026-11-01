@@ -209,16 +209,16 @@ export default async function CultureHistoryPage({ params }: { params: Promise<{
               </div>
             ) : null}
 
-            {lunarDays.length > 0 ? (
-              <div>
-                <p className="font-serif text-xl">Nights and days of the lunar month</p>
-                <p className="text-base text-[var(--tc-muted)]">Not placed on modern dates: the month began by local observation of the Moon, which we don&apos;t guess.</p>
+            {systems.filter((sys) => lunarDays.some((d) => d.system_key === sys.key)).map((sys) => (
+              <div key={sys.key}>
+                <p className="font-serif text-xl">{sys.name}: nights and days of the month</p>
+                <p className="text-base text-[var(--tc-muted)]">Not placed on modern dates: the month began by local observation or convention, which we don&apos;t guess.</p>
                 <ol className="mt-2 grid gap-2 sm:grid-cols-2">
-                  {lunarDays.map((d) => (
+                  {lunarDays.filter((d) => d.system_key === sys.key).map((d) => (
                     <li key={d.key} className="rounded-md bg-[var(--tc-hover)] px-3 py-2">
                       <Claim table="calendar_lunar_days" claimKey={d.key} record={d} cite={cite}>
                         <p>
-                          <span className="font-medium">{d.day_number}. {d.name ?? d.original_name ?? "Unnamed"}</span>
+                          <span className="font-medium">{d.day_number}. {d.name ?? d.original_name ?? "Name not given in the source"}</span>
                           {d.favourability ? <span className="text-[var(--tc-muted)]"> · {d.favourability}</span> : null}
                         </p>
                         {d.meaning ? <p>{d.meaning}</p> : null}
@@ -227,7 +227,7 @@ export default async function CultureHistoryPage({ params }: { params: Promise<{
                   ))}
                 </ol>
               </div>
-            ) : null}
+            ))}
           </div>
         </section>
 
