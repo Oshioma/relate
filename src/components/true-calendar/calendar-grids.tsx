@@ -80,8 +80,8 @@ export function PanelHeader({
   return (
     <div className="flex items-start justify-between gap-2 pb-3">
       <div className="min-w-0">
-        <h3 className="font-serif text-xl leading-tight tracking-tight text-[var(--tc-ink)]">{title}</h3>
-        {subtitle ? <p className="mt-0.5 text-xs text-[var(--tc-muted)]">{subtitle}</p> : null}
+        <h3 className="font-serif text-2xl leading-tight tracking-tight text-[var(--tc-ink)]">{title}</h3>
+        {subtitle ? <p className="mt-0.5 text-sm text-[var(--tc-muted)]">{subtitle}</p> : null}
         {children}
       </div>
       <div className="flex shrink-0 items-center gap-1">
@@ -103,7 +103,7 @@ export function IconButton({ label, onClick, children }: { label: string; onClic
       onClick={onClick}
       aria-label={label}
       title={label}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--tc-line)] text-[var(--tc-ink)] transition-colors hover:bg-[var(--tc-hover)] focus-visible:outline-2 focus-visible:outline-[var(--tc-gold)]"
+      className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-[var(--tc-line)] text-[var(--tc-ink)] transition-colors hover:bg-[var(--tc-hover)] focus-visible:outline-2 focus-visible:outline-[var(--tc-gold)]"
     >
       {children}
     </button>
@@ -114,7 +114,7 @@ function WeekdayHeader() {
   return (
     <div className="grid grid-cols-7 pb-1" aria-hidden>
       {WEEKDAYS_SHORT.map((d) => (
-        <div key={d} className="text-center text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--tc-muted)]">
+        <div key={d} className="text-center text-xs font-medium uppercase tracking-[0.12em] text-[var(--tc-muted)]">
           {d.slice(0, 2)}
         </div>
       ))}
@@ -151,7 +151,7 @@ function DayCell({
       tabIndex={selected ? 0 : -1}
       onClick={onClick}
       className={cn(
-        "relative flex min-h-[3.25rem] flex-col items-center justify-start gap-0.5 rounded-md px-0.5 pt-1 pb-1 text-[var(--tc-ink)] transition-colors",
+        "relative flex min-h-[4rem] flex-col items-center justify-start gap-0.5 rounded-md px-0.5 pt-1 pb-1 text-[var(--tc-ink)] transition-colors",
         "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--tc-gold)]",
         selected ? "bg-[var(--tc-selected)] text-[var(--tc-selected-ink)]" : "hover:bg-[var(--tc-hover)]",
         isToday && !selected && "ring-1 ring-inset ring-[var(--tc-gold)]",
@@ -172,7 +172,7 @@ function moonLabel(m: DayMoon | undefined): string {
 function QuarterTag({ moon, selected }: { moon: DayMoon | undefined; selected: boolean }) {
   if (!moon?.quarter) return null;
   return (
-    <span className={cn("text-[9px] leading-none font-medium tracking-wide", selected ? "text-[var(--tc-selected-ink)]" : "text-[var(--tc-gold)]")}>
+    <span className={cn("text-[11px] leading-none font-medium tracking-wide", selected ? "text-[var(--tc-selected-ink)]" : "text-[var(--tc-gold)]")}>
       {QUARTER_SHORT[moon.quarter.kind]}
     </span>
   );
@@ -214,8 +214,8 @@ export function GregorianGrid({ date, today, tz, southern, onSelect }: GridProps
               label={`${formatLongDate(d)}${moonLabel(moon)}`}
               onClick={() => onSelect(d)}
             >
-              <span className="text-sm tabular-nums leading-none">{d.day}</span>
-              <MoonGlyph illumination={moon.state.illumination} waxing={moon.state.waxing} size={13} southern={southern} />
+              <span className="text-base tabular-nums leading-none">{d.day}</span>
+              <MoonGlyph illumination={moon.state.illumination} waxing={moon.state.waxing} size={17} southern={southern} />
               <QuarterTag moon={moon} selected={selected} />
             </DayCell>
           );
@@ -269,9 +269,9 @@ export function FixedGrid({ date, today, tz, southern, onSelect }: GridProps) {
               label={`${WEEKDAYS[i % 7]} ${i + 1} ${FIXED_MONTHS[month - 1]} (fixed), ${formatLongDate(g)}${moonLabel(moon)}`}
               onClick={() => onSelect(g)}
             >
-              <span className="text-sm tabular-nums leading-none">{i + 1}</span>
-              <span className={cn("text-[9px] leading-none tabular-nums", selected ? "text-[var(--tc-selected-ink)]" : "text-[var(--tc-muted)]")}>{shortGregorian(g)}</span>
-              <MoonGlyph illumination={moon.state.illumination} waxing={moon.state.waxing} size={11} southern={southern} />
+              <span className="text-base tabular-nums leading-none">{i + 1}</span>
+              <span className={cn("text-[11px] leading-none tabular-nums", selected ? "text-[var(--tc-selected-ink)]" : "text-[var(--tc-muted)]")}>{shortGregorian(g)}</span>
+              <MoonGlyph illumination={moon.state.illumination} waxing={moon.state.waxing} size={14} southern={southern} />
             </DayCell>
           );
         })}
@@ -288,11 +288,11 @@ export function FixedGrid({ date, today, tz, southern, onSelect }: GridProps) {
                 onClick={() => onSelect(g)}
                 className="col-span-7 min-h-0 flex-row justify-center gap-2 py-2"
               >
-                <span className="text-sm font-medium">{extra.kind === "leap-day" ? "Leap Day" : "Year Day"}</span>
-                <span className={cn("text-xs", selected ? "text-[var(--tc-selected-ink)]" : "text-[var(--tc-muted)]")}>
+                <span className="text-base font-medium">{extra.kind === "leap-day" ? "Leap Day" : "Year Day"}</span>
+                <span className={cn("text-sm", selected ? "text-[var(--tc-selected-ink)]" : "text-[var(--tc-muted)]")}>
                   {shortGregorian(g)} · outside the week{extra.kind === "leap-day" ? " · before Sol 1" : ""}
                 </span>
-                <MoonGlyph illumination={moon.state.illumination} waxing={moon.state.waxing} size={12} southern={southern} />
+                <MoonGlyph illumination={moon.state.illumination} waxing={moon.state.waxing} size={15} southern={southern} />
               </DayCell>
             );
           })()
@@ -321,7 +321,7 @@ export function LunarGrid({ date, today, tz, southern, onSelect, lunar }: GridPr
       />
       <div className="grid grid-cols-7 pb-1" aria-hidden>
         {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-          <div key={n} className="text-center text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--tc-muted)]">
+          <div key={n} className="text-center text-xs font-medium uppercase tracking-[0.12em] text-[var(--tc-muted)]">
             {n === 1 ? "Day" : ""}
           </div>
         ))}
@@ -338,12 +338,12 @@ export function LunarGrid({ date, today, tz, southern, onSelect, lunar }: GridPr
               label={`Lunar day ${i + 1}, ${formatLongDate(g)}${moonLabel(moon)}`}
               onClick={() => onSelect(g)}
             >
-              <span className="text-sm tabular-nums leading-none">{i + 1}</span>
-              <MoonGlyph illumination={moon.state.illumination} waxing={moon.state.waxing} size={15} southern={southern} />
+              <span className="text-base tabular-nums leading-none">{i + 1}</span>
+              <MoonGlyph illumination={moon.state.illumination} waxing={moon.state.waxing} size={19} southern={southern} />
               {moon.quarter ? (
                 <QuarterTag moon={moon} selected={selected} />
               ) : (
-                <span className={cn("text-[9px] leading-none tabular-nums", selected ? "text-[var(--tc-selected-ink)]" : "text-[var(--tc-muted)]")}>{shortGregorian(g)}</span>
+                <span className={cn("text-[11px] leading-none tabular-nums", selected ? "text-[var(--tc-selected-ink)]" : "text-[var(--tc-muted)]")}>{shortGregorian(g)}</span>
               )}
             </DayCell>
           );

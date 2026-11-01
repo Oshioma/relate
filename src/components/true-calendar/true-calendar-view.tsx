@@ -41,9 +41,9 @@ export function TrueCalendarView({ title, description }: { title: string; descri
   return (
     <div className="true-calendar -mx-4 rounded-none bg-[var(--tc-bg)] px-4 py-6 text-[var(--tc-ink)] sm:mx-0 sm:rounded-xl sm:px-6 sm:py-7">
       <header className="flex flex-col gap-1 pb-5">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--tc-gold)]">Two calendars. One day. Many civilisations.</p>
-        <h1 className="font-serif text-3xl leading-tight tracking-tight sm:text-4xl">{title}</h1>
-        {description ? <p className="max-w-3xl text-sm text-[var(--tc-muted)]">{description}</p> : null}
+        <p className="text-[13px] font-semibold uppercase tracking-[0.2em] text-[var(--tc-gold)]">Two calendars. One day. Many civilisations.</p>
+        <h1 className="font-serif text-4xl leading-tight tracking-tight sm:text-5xl">{title}</h1>
+        {description ? <p className="max-w-3xl text-base text-[var(--tc-muted)]">{description}</p> : null}
       </header>
 
       {!state.ready ? (
@@ -94,10 +94,10 @@ function Calendar({
       {/* The selected day in all three reckonings. */}
       <div className="rounded-lg border border-[var(--tc-line)] bg-[var(--tc-panel)] px-4 py-3" aria-live="polite">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <p className="font-serif text-xl">{formatLongDate(date)}</p>
-          {isToday ? <span className="rounded-full bg-[var(--tc-gold)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--tc-bg)]">Today</span> : null}
+          <p className="font-serif text-2xl">{formatLongDate(date)}</p>
+          {isToday ? <span className="rounded-full bg-[var(--tc-gold)] px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-[var(--tc-bg)]">Today</span> : null}
         </div>
-        <dl className="mt-1.5 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
+        <dl className="mt-1.5 grid gap-x-6 gap-y-1 text-base sm:grid-cols-2">
           <div className="flex gap-2">
             <dt className="text-[var(--tc-muted)]">Fixed calendar</dt>
             <dd>
@@ -112,7 +112,7 @@ function Calendar({
           </div>
         </dl>
         {isProlepticGregorian(date) ? (
-          <p className="mt-2 text-xs text-[var(--tc-muted)]">
+          <p className="mt-2 text-sm text-[var(--tc-muted)]">
             Before 15 October 1582 no one used the Gregorian calendar. This date is shown in it projected backwards (the proleptic Gregorian calendar), which is how astronomers line up ancient dates; it is not the date people used at the time.
           </p>
         ) : null}
@@ -127,7 +127,7 @@ function Calendar({
             role="tab"
             aria-selected={mobileSide === side}
             onClick={() => setMobileSide(side)}
-            className={cn("rounded-md py-1.5 text-sm", mobileSide === side ? "bg-[var(--tc-selected)] text-[var(--tc-selected-ink)]" : "text-[var(--tc-ink)]")}
+            className={cn("rounded-md py-1.5 text-base", mobileSide === side ? "bg-[var(--tc-selected)] text-[var(--tc-selected-ink)]" : "text-[var(--tc-ink)]")}
           >
             {side === "left" ? "Gregorian" : view === "lunar" ? "Lunar" : "Fixed"}
           </button>
@@ -139,7 +139,7 @@ function Calendar({
           <GregorianGrid {...gridProps} />
         </section>
         <section aria-label={view === "lunar" ? "Astronomical lunar calendar" : "International Fixed Calendar"} className={cn("rounded-lg border border-[var(--tc-line)] bg-[var(--tc-panel)] p-3 sm:p-4", mobileSide !== "right" && "hidden md:block")}>
-          <div role="radiogroup" aria-label="Calendar on the right" className="mb-3 inline-flex rounded-md border border-[var(--tc-line)] p-0.5 text-xs">
+          <div role="radiogroup" aria-label="Calendar on the right" className="mb-3 inline-flex rounded-md border border-[var(--tc-line)] p-0.5 text-sm">
             {(["fixed", "lunar"] as const).map((v) => (
               <button
                 key={v}
@@ -154,12 +154,12 @@ function Calendar({
             ))}
           </div>
           {view === "fixed" ? <FixedGrid {...gridProps} /> : <LunarGrid {...gridProps} lunar={lunar} />}
-          <p className="mt-3 text-xs leading-relaxed text-[var(--tc-muted)]">
+          <p className="mt-3 text-sm leading-relaxed text-[var(--tc-muted)]">
             {view === "fixed"
               ? "A mathematical civil calendar, not a lunar one: 13 months of 28 days, so every month starts on a Sunday. Year Day (31 December) and, in leap years, Leap Day (17 June, before Sol 1) sit outside the week. Its 28-day months run about a day and a half shorter than the Moon's cycle, so they drift against the phases."
               : "A generic astronomical lunar calendar, not any one culture's: each month begins on the local day of the astronomical new Moon (conjunction) in your timezone and runs to the next, so it has 29 or 30 days. Months are numbered in the Gregorian year they begin, 12 or 13 a year. Calendars that start the month at the first visible crescent, or insert a 13th month, follow their own rules."}
           </p>
-          <label className="mt-2 flex items-center gap-2 text-xs text-[var(--tc-muted)]">
+          <label className="mt-2 flex items-center gap-2 text-sm text-[var(--tc-muted)]">
             <input type="checkbox" checked={prefs.southernView} onChange={(e) => setPrefs({ southernView: e.target.checked })} className="accent-[var(--tc-gold)]" />
             Draw the Moon as seen from the southern hemisphere
           </label>
@@ -169,8 +169,8 @@ function Calendar({
       <MoonPanel date={date} tz={tz} prefs={prefs} onPrefs={setPrefs} />
 
       <section aria-labelledby="tc-cultures-heading" className="rounded-lg border border-dashed border-[var(--tc-line)] px-4 py-4">
-        <h2 id="tc-cultures-heading" className="font-serif text-lg">Across civilisations</h2>
-        <p className="mt-1 text-sm text-[var(--tc-muted)]">
+        <h2 id="tc-cultures-heading" className="font-serif text-xl">Across civilisations</h2>
+        <p className="mt-1 text-base text-[var(--tc-muted)]">
           What this day meant in other calendars and traditions will appear here as each tradition&apos;s research is checked against its sources. Nothing is shown until it is sourced.
         </p>
       </section>
@@ -209,7 +209,7 @@ function Toolbar({ state, select }: { state: ReturnType<typeof useCalendarState>
   };
 
   const zones = SUGGESTED_TIME_ZONES.includes(tz as (typeof SUGGESTED_TIME_ZONES)[number]) ? SUGGESTED_TIME_ZONES : [tz, ...SUGGESTED_TIME_ZONES];
-  const step = "inline-flex h-8 items-center gap-1 rounded-md border border-[var(--tc-line)] px-2 text-xs hover:bg-[var(--tc-hover)] focus-visible:outline-2 focus-visible:outline-[var(--tc-gold)]";
+  const step = "inline-flex h-10 items-center gap-1 rounded-md border border-[var(--tc-line)] px-2 text-sm hover:bg-[var(--tc-hover)] focus-visible:outline-2 focus-visible:outline-[var(--tc-gold)]";
   const isoValue = date.year >= 1 && date.year <= 9999 ? formatIsoDate(date) : "";
 
   return (
@@ -249,7 +249,7 @@ function Toolbar({ state, select }: { state: ReturnType<typeof useCalendarState>
         </button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 text-xs">
+      <div className="flex flex-wrap items-center gap-2 text-sm">
         <label className="flex items-center gap-1">
           <span className="sr-only">Jump to date</span>
           <input
@@ -259,7 +259,7 @@ function Toolbar({ state, select }: { state: ReturnType<typeof useCalendarState>
               const d = parseIsoDate(e.target.value);
               if (d) select(d);
             }}
-            className="h-8 rounded-md border border-[var(--tc-line)] bg-[var(--tc-panel)] px-2 text-[var(--tc-ink)]"
+            className="h-10 rounded-md border border-[var(--tc-line)] bg-[var(--tc-panel)] px-2 text-[var(--tc-ink)]"
           />
         </label>
         <form onSubmit={goToYear} className="flex items-center gap-1">
@@ -275,7 +275,7 @@ function Toolbar({ state, select }: { state: ReturnType<typeof useCalendarState>
             autoComplete="off"
             aria-invalid={yearError ? true : undefined}
             aria-describedby={yearError ? "tc-year-error" : undefined}
-            className="h-8 w-32 rounded-md border border-[var(--tc-line)] bg-[var(--tc-panel)] px-2 text-[var(--tc-ink)] placeholder:text-[var(--tc-muted)]"
+            className="h-10 w-44 rounded-md border border-[var(--tc-line)] bg-[var(--tc-panel)] px-2 text-[var(--tc-ink)] placeholder:text-[var(--tc-muted)]"
           />
           <button type="submit" className={step}>
             Go
@@ -287,7 +287,7 @@ function Toolbar({ state, select }: { state: ReturnType<typeof useCalendarState>
           <select
             value={state.tzChosen ? tz : ""}
             onChange={(e) => state.setTimeZone(e.target.value || null)}
-            className="h-8 max-w-[12rem] rounded-md border border-[var(--tc-line)] bg-[var(--tc-panel)] px-1 text-[var(--tc-ink)]"
+            className="h-10 max-w-[15rem] rounded-md border border-[var(--tc-line)] bg-[var(--tc-panel)] px-1 text-[var(--tc-ink)]"
           >
             <option value="">My timezone{state.tzChosen ? "" : ` (${tz})`}</option>
             {zones.map((z) => (
@@ -299,7 +299,7 @@ function Toolbar({ state, select }: { state: ReturnType<typeof useCalendarState>
         </label>
       </div>
       {yearError ? (
-        <p id="tc-year-error" role="alert" className="text-xs text-[var(--danger)] lg:basis-full">
+        <p id="tc-year-error" role="alert" className="text-sm text-[var(--danger)] lg:basis-full">
           {yearError}
         </p>
       ) : null}
