@@ -497,7 +497,7 @@ export default async function SpaceDetailPage({
         page's hero (its own upload, or its type's default photo), above
         whatever masthead (or none) the type renders. */}
     <SpaceCover spaceId={space.id} communityId={community.id} spaceType={space.space_type} imageUrl={space.image_url} canEdit={Boolean(isAdmin)} categoryImageUrl={categoryCoverUrl} />
-    {isAdmin && <SpaceTypeBar communitySlug={community.slug} spaceId={space.id} spaceType={space.space_type} />}
+    {isAdmin && !isTrueCalendarSpace && <SpaceTypeBar communitySlug={community.slug} spaceId={space.id} spaceType={space.space_type} />}
     {/* A directory opens straight onto its own controls, so it also gives back
         the page's top padding — every line above the first listing is a line of
         the directory nobody can see.

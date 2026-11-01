@@ -45,8 +45,8 @@ function formatInstant(instant: Date, tz: string, withDate = true): string {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-b border-[var(--tc-line)] py-1.5 last:border-b-0">
-      <dt className="text-xs text-[var(--tc-muted)]">{label}</dt>
-      <dd className="text-right text-sm text-[var(--tc-ink)] tabular-nums">{children}</dd>
+      <dt className="text-sm text-[var(--tc-muted)]">{label}</dt>
+      <dd className="text-right text-base text-[var(--tc-ink)] tabular-nums">{children}</dd>
     </div>
   );
 }
@@ -100,15 +100,15 @@ export function MoonPanel({ date, tz, prefs, onPrefs }: { date: CivilDate; tz: s
       <div className="flex items-start gap-4">
         <MoonGlyph illumination={day.state.illumination} waxing={day.state.waxing} size={72} southern={prefs.southernView} title={`${day.name}, ${Math.round(day.state.illumination * 100)}% lit`} />
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--tc-gold)]">The Moon · astronomically calculated</p>
-          <h3 id="tc-moon-heading" className="font-serif text-2xl leading-tight text-[var(--tc-ink)]">{day.name}</h3>
-          <p className="mt-0.5 text-sm text-[var(--tc-muted)]">
+          <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-[var(--tc-gold)]">The Moon · astronomically calculated</p>
+          <h3 id="tc-moon-heading" className="font-serif text-3xl leading-tight text-[var(--tc-ink)]">{day.name}</h3>
+          <p className="mt-0.5 text-base text-[var(--tc-muted)]">
             {formatLongDate(date)} · {Math.round(day.state.illumination * 100)}% lit · {day.state.ageDays.toFixed(1)} days old · {day.state.waxing ? "waxing" : "waning"}
           </p>
           {highlights.length > 0 ? (
             <ul className="mt-2 flex flex-wrap gap-1.5">
               {highlights.map((h) => (
-                <li key={h} className="rounded-full border border-[var(--tc-gold)] px-2.5 py-0.5 text-xs text-[var(--tc-ink)]">
+                <li key={h} className="rounded-full border border-[var(--tc-gold)] px-2.5 py-0.5 text-sm text-[var(--tc-ink)]">
                   {h}
                 </li>
               ))}
@@ -137,9 +137,9 @@ export function MoonPanel({ date, tz, prefs, onPrefs }: { date: CivilDate; tz: s
           </Row>
         </dl>
         <div>
-          <p className="text-xs text-[var(--tc-muted)]">Tides</p>
-          <p className="mt-0.5 text-sm text-[var(--tc-ink)]">{TIDE_TEXT[tidalPhase(day.state.elongation)]}</p>
-          <p className="mt-1 text-xs text-[var(--tc-muted)]">
+          <p className="text-sm text-[var(--tc-muted)]">Tides</p>
+          <p className="mt-0.5 text-base text-[var(--tc-ink)]">{TIDE_TEXT[tidalPhase(day.state.elongation)]}</p>
+          <p className="mt-1 text-sm text-[var(--tc-muted)]">
             This is the astronomical relationship only. Real coasts lag it by a day or two and shape it strongly, so no heights or times are shown.
           </p>
           <PlacePicker place={place} onChange={(p) => onPrefs({ place: p })} />
@@ -152,12 +152,12 @@ export function MoonPanel({ date, tz, prefs, onPrefs }: { date: CivilDate; tz: s
             </dl>
           ) : null}
           {place?.timeZone && place.timeZone !== tz ? (
-            <p className="mt-1 text-xs text-[var(--tc-muted)]">Times are in the calendar&apos;s timezone ({tz}), not {place.name}&apos;s.</p>
+            <p className="mt-1 text-sm text-[var(--tc-muted)]">Times are in the calendar&apos;s timezone ({tz}), not {place.name}&apos;s.</p>
           ) : null}
         </div>
       </div>
 
-      <details className="mt-4 text-xs text-[var(--tc-muted)]">
+      <details className="mt-4 text-sm text-[var(--tc-muted)]">
         <summary className="cursor-pointer select-none text-[var(--tc-ink)]">How these are calculated</summary>
         <div className="mt-2 space-y-1.5 leading-relaxed">
           <p>
@@ -202,7 +202,7 @@ function PlacePicker({ place, onChange }: { place: Place | null; onChange: (p: P
   };
   return (
     <div className="mt-3">
-      <label className="flex items-center gap-2 text-xs text-[var(--tc-muted)]">
+      <label className="flex items-center gap-2 text-sm text-[var(--tc-muted)]">
         <MapPin className="h-3.5 w-3.5" aria-hidden />
         <span>Rise and set for</span>
         <select
@@ -213,7 +213,7 @@ function PlacePicker({ place, onChange }: { place: Place | null; onChange: (p: P
             else if (v === "__locate") locateMe();
             else if (v !== "__mine") onChange(SUGGESTED_PLACES.find((p) => p.name === v) ?? null);
           }}
-          className="min-w-0 flex-1 rounded-md border border-[var(--tc-line)] bg-[var(--tc-panel)] px-2 py-1 text-xs text-[var(--tc-ink)]"
+          className="min-w-0 flex-1 rounded-md border border-[var(--tc-line)] bg-[var(--tc-panel)] px-2 py-1 text-sm text-[var(--tc-ink)]"
         >
           {SUGGESTED_PLACES.map((p) => (
             <option key={p.name} value={p.name}>
@@ -225,7 +225,7 @@ function PlacePicker({ place, onChange }: { place: Place | null; onChange: (p: P
           <option value="__none">No place</option>
         </select>
       </label>
-      {status ? <p className="mt-1 text-xs text-[var(--tc-muted)]">{status}</p> : null}
+      {status ? <p className="mt-1 text-sm text-[var(--tc-muted)]">{status}</p> : null}
     </div>
   );
 }
