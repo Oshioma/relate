@@ -229,3 +229,48 @@ export async function getBundledResearchStatus(supabase: Client) {
 }
 
 export type BundledResearchStatus = Awaited<ReturnType<typeof getBundledResearchStatus>>[number];
+
+export interface ResearchStats {
+  /** Published research records (sources, the catalogue and modern daily notes excluded). Keys are unique, so no record is counted twice. */
+  records: number;
+  /** Published practices: what a tradition did, with any modern reading kept apart. */
+  actionable: number;
+  /** Cultures with at least one published research record (not just a catalogue entry). */
+  cultures: number;
+  /** Published dates from today on. */
+  upcomingDated: number;
+}
+
+const RECORD_TABLES = [
+  "calendar_systems",
+  "calendar_cycles",
+  "calendar_cycle_positions",
+  "calendar_months",
+  "calendar_lunar_days",
+  "calendar_observances",
+  "calendar_meanings",
+  "calendar_recommendations",
+  "calendar_date_correspondences",
+] as const;
+
+/** Live counts from the database, published rows only (drafts and rejected research excluded). */
+export async function getResearchStats(supabase: Client, todayIso: string): Promise<ResearchStats | null> {
+  const counts = await Promise.all(
+    RECORD_TABLES.map((t) => supabase.from(t).select("key", { count: "exact", head: true }).eq("review_status", published))
+  );
+  if (counts.some((c) => c.error)) return null;
+  const [systems, observances, correspondences, recommendations, upcoming] = await Promise.all([
+    supabase.from("calendar_systems").select("culture_key").eq("review_status", published),
+    supabase.from("calendar_observances").select("culture_key").eq("review_status", published),
+    supabase.from("calendar_date_correspondences").select("culture_key").eq("review_status", published),
+    supabase.from("calendar_recommendations").select("culture_key").eq("review_status", published),
+    supabase.from("calendar_date_correspondences").select("key", { count: "exact", head: true }).eq("review_status", published).gte("gregorian_from", todayIso),
+  ]);
+  const cultures = new Set([...(systems.data ?? []), ...(observances.data ?? []), ...(correspondences.data ?? []), ...(recommendations.data ?? [])].map((r) => r.culture_key));
+  return {
+    records: counts.reduce((n, c) => n + (c.count ?? 0), 0),
+    actionable: counts[RECORD_TABLES.indexOf("calendar_recommendations")].count ?? 0,
+    cultures: cultures.size,
+    upcomingDated: upcoming.count ?? 0,
+  };
+}

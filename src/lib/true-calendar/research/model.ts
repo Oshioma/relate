@@ -53,6 +53,8 @@ export const SYSTEM_KIND_LABELS: Record<SystemKind, string> = {
   seasonal: "Seasonal",
   other: "Other",
 };
+export const DATE_STATUSES = ["official", "published_secondary", "astronomical", "culturally_verified", "provisional", "unknown_disputed"] as const;
+export type DateStatusKey = (typeof DATE_STATUSES)[number];
 export const MOON_PHASE_KEYS = ["new", "first_crescent", "waxing", "first_quarter", "full", "waning", "last_quarter", "dark"] as const;
 export type MoonPhaseKey = (typeof MOON_PHASE_KEYS)[number];
 export const FAVOURABILITY = ["favourable", "unfavourable", "mixed", "neutral"] as const;
@@ -248,6 +250,8 @@ export const recommendationSchema = z.object({
   activity: z.enum(ACTIVITIES),
   historical_practice: text(),
   modern_interpretation: optText(),
+  /** Practices that disagree share a group and are shown side by side. */
+  conflict_group: key.nullish(),
   ...common,
 });
 
@@ -260,6 +264,8 @@ export const correspondenceSchema = z.object({
   gregorian_from: isoDate.nullish(),
   gregorian_to: isoDate.nullish(),
   certainty: z.enum(["exact", "approximate", "uncertain"]).default("uncertain"),
+  /** How the date is known (see the date-status migration). Empty = secondary listing. */
+  date_status: z.enum(DATE_STATUSES).nullish(),
   notes: optText(),
   ...common,
 });

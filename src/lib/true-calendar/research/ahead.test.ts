@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { parseImport } from "./import-plan";
 import { type ResearchBundle, EMPTY_BUNDLE } from "./daily";
-import { adviceAhead, groupUndated, matchesFilter } from "./ahead";
+import { adviceAhead, filterFeed } from "./ahead";
+import { planImport } from "./import-plan";
 import { IMPORT_SECTIONS } from "./model";
 import { moonDays } from "../astronomy";
 
@@ -40,52 +41,97 @@ function publishedBundle(): ResearchBundle {
   return b;
 }
 
-test("next advice: Akwasidae on its published date, Whiro and the Kū nights undated", () => {
-  const from = { year: 2026, month: 11, day: 2 };
-  const { dated, undated } = adviceAhead(publishedBundle(), from, moonDays(from, 35, "Africa/Dar_es_Salaam"));
+const from = { year: 2026, month: 11, day: 2 };
+const all = { category: "all", culture: "all", tier: "all" } as const;
+function feedFrom(day = from, tz = "Africa/Dar_es_Salaam") {
+  return adviceAhead(publishedBundle(), day, moonDays(day, 35, tz));
+}
 
-  const akwasidae = dated.find((i) => i.name === "Akwasidae");
+test("acceptance: Akwasidae dated 22 Nov 2026 with its source-status qualification", () => {
+  const akwasidae = feedFrom().dated.find((i) => i.name === "Akwasidae");
   assert.ok(akwasidae);
   assert.deepEqual(akwasidae.date, { year: 2026, month: 11, day: 22 });
-  assert.equal(akwasidae.status, "published");
-  assert.ok(akwasidae.sources.some((s) => s.key === "src.nyamedua-akwasidae-2026"));
-  assert.ok(akwasidae.sources.some((s) => s.key === "src.akandictionary-akwasidae-2026"));
-  // Batch 05's caveat: a secondary listing, not a Manhyia announcement.
+  assert.equal(akwasidae.status, "secondary"); // batch 05: a secondary listing, never "official"
   assert.match(akwasidae.caution ?? "", /Manhyia/);
-
-  const whiro = undated.filter((i) => i.name === "Whiro");
-  assert.ok(whiro.length >= 1 && whiro.every((i) => i.date === null && i.cultureKey === "oceania.maori"));
-  for (const name of ["Kukahi", "Kulua", "Kukolu", "Kupau"]) {
-    const night = undated.find((i) => i.name === name);
-    assert.ok(night, name);
-    assert.equal(night.status, "undated");
-    assert.ok(night.sources.length > 0, `${name} cites a source`);
-  }
-  // Conflicting Hawaiian accounts are both shown, never collapsed.
-  const night22 = undated.find((i) => i.id === "night|oceania.hawaiian.oahu-lunar-nights.night-22");
-  assert.ok(night22 && night22.says.length >= 2 && night22.evidence.includes("contested"));
-
-  const cultures = new Set([...dated, ...undated].map((i) => i.cultureKey));
-  assert.ok(cultures.size >= 3);
-  // Daily notes (modern suggestions) are never presented as advice from the past.
-  assert.ok(![...dated, ...undated].some((i) => i.name === "Review unfinished work"));
-  // Unanchored cycles (Igbo market week) stay discoverable, undated.
-  assert.ok(undated.some((i) => i.cultureKey === "africa.west.igbo"));
-
-  // Filters and grouping.
-  assert.ok(undated.filter((i) => matchesFilter(i, "fishing", "all")).length > 0);
-  assert.ok(undated.filter((i) => matchesFilter(i, "all", "oceania.hawaiian")).every((i) => i.cultureKey === "oceania.hawaiian"));
-  const groups = groupUndated(undated);
-  assert.ok(groups[0].items.length >= groups[groups.length - 1].items.length);
+  assert.ok(akwasidae.sources.some((s) => s.key === "src.akandictionary-akwasidae-2026"));
+  assert.ok(akwasidae.sources.some((s) => s.key === "src.nyamedua-akwasidae-2026"));
 });
 
-test("next advice: dated items are in date order and never before the day asked about", () => {
-  const from = { year: 2026, month: 11, day: 23 };
-  const { dated } = adviceAhead(publishedBundle(), from, moonDays(from, 35, "UTC"));
+test("acceptance: Whiro and Rākaunui are recurring lunar knowledge, once each, pending verification", () => {
+  const { lunar } = feedFrom();
+  for (const name of ["Whiro", "Rākaunui"]) {
+    const found = lunar.filter((i) => i.name === name);
+    assert.equal(found.length, 1, `${name} appears once (merged across batches)`);
+    assert.equal(found[0].cultureKey, "oceania.maori");
+    assert.equal(found[0].date, null);
+    assert.equal(found[0].status, "lunar_pending");
+    assert.match(found[0].caution ?? "", /full Moon/); // iwi start months differently
+  }
+});
+
+test("acceptance: Hawaiian Kū planting guidance, with the disagreement shown", () => {
+  const { lunar } = feedFrom();
+  const kukahi = lunar.find((i) => i.name === "Kukahi");
+  assert.ok(kukahi && kukahi.categories.includes("farming") && kukahi.sources.length > 0);
+  assert.ok(kukahi.conflicts.length >= 2, "Kū nights: Handy and Handy vs Kepelino");
+  const olekulua = lunar.find((i) => i.id === "night|oceania.hawaiian.oahu-lunar-nights.night-22");
+  assert.ok(olekulua && olekulua.conflicts.length >= 2 && olekulua.evidence.includes("contested"));
+  assert.ok(olekulua.conflicts.every((c) => c.sources.length > 0), "each account beside its source");
+});
+
+test("acceptance: Igbo market days recurring, with no invented dates", () => {
+  const { dated, seasonal } = feedFrom();
+  const igbo = seasonal.filter((i) => i.cultureKey === "africa.west.igbo");
+  assert.deepEqual(igbo.map((i) => i.name).sort(), ["Afọ", "Eke", "Nkwọ", "Orie"].sort());
+  assert.ok(igbo.every((i) => i.date === null && i.status === "recurring" && i.categories.includes("trade")));
+  assert.ok(!dated.some((i) => i.cultureKey === "africa.west.igbo"));
+});
+
+test("acceptance: batch 05 appears; three cultures; every card has a source", () => {
+  const feed = feedFrom();
+  const items = [...feed.dated, ...feed.lunar, ...feed.seasonal];
+  assert.ok(new Set(items.map((i) => i.cultureKey)).size >= 3);
+  assert.ok(items.some((i) => i.modern.some((m) => m.includes("Review garden and fishing plans"))), "batch 05 Whiro reading");
+  assert.ok(items.some((i) => i.name === "Artemis day"), "batch 05 Athenian day 6");
+  for (const i of items) assert.ok(i.sources.length > 0, `${i.id} cites a source`);
+  // Daily notes (modern suggestions) are never presented as advice from the past.
+  assert.ok(!items.some((i) => i.name === "Review unfinished work"));
+  // Egyptian seasons stay in their own region.
+  const egypt = feed.seasonal.find((i) => i.id === "season|africa.north.ancient-egyptian.civil");
+  assert.ok(egypt && /Zanzibar/.test(egypt.caution ?? ""));
+});
+
+test("filters narrow the feed by kind, culture and source confidence", () => {
+  const feed = feedFrom();
+  const fishing = filterFeed(feed, { ...all, category: "fishing" });
+  assert.ok(fishing.lunar.length > 0 && fishing.lunar.every((i) => i.categories.includes("fishing")));
+  const hawaii = filterFeed(feed, { ...all, culture: "oceania.hawaiian" });
+  assert.ok(hawaii.lunar.length >= 30 && [...hawaii.dated, ...hawaii.lunar, ...hawaii.seasonal].every((i) => i.cultureKey === "oceania.hawaiian"));
+  const oral = filterFeed(feed, { ...all, tier: "oral" });
+  assert.ok(oral.lunar.length > 0 && oral.lunar.every((i) => i.tiers.includes("oral")));
+  assert.equal(filterFeed(feed, { ...all, culture: "nowhere" }).lunar.length, 0);
+});
+
+test("dated items are in date order; after the published list the anchor gives a provisional date", () => {
+  const { dated } = feedFrom({ year: 2026, month: 11, day: 23 }, "UTC");
   const akwasidae = dated.find((i) => i.name === "Akwasidae");
-  // After the last published 2026 date the next one is counted from the anchor.
   assert.deepEqual(akwasidae?.date, { year: 2027, month: 1, day: 3 });
   assert.equal(akwasidae?.status, "provisional");
-  const days = dated.map((i) => i.date!.year * 400 + i.date!.month * 32 + i.date!.day);
-  assert.deepEqual(days, [...days].sort((a, b) => a - b));
+  const orders = dated.map((i) => i.order);
+  assert.deepEqual(orders, [...orders].sort((a, b) => a - b));
+});
+
+test("importing the same batch twice writes nothing the second time", () => {
+  const raw = JSON.parse(readFileSync(new URL("../../../../docs/true-calendar/research/batch-05.v1.json", import.meta.url), "utf8"));
+  const file = parseImport(raw).file!;
+  const rows: Record<string, Map<string, Record<string, unknown>>> = {};
+  for (const { section, table } of IMPORT_SECTIONS) {
+    rows[table] = new Map((file[section] as Array<Record<string, unknown>>).map((r) => {
+      const { sources: _s, ...row } = r;
+      void _s;
+      return [String(r.key), { ...row, review_status: "published" }];
+    }));
+  }
+  const plan = planImport(file, { rows: rows as never, citedClaims: new Set() });
+  assert.ok(plan.sections.every((s) => s.insert.length === 0 && s.update.length === 0));
 });
