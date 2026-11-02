@@ -7,6 +7,7 @@ import { moonDays } from "@/lib/true-calendar/astronomy";
 import { type DayEntry, type ResearchBundle, entriesForDay, notesForDay } from "@/lib/true-calendar/research/daily";
 import type { DailyNoteRecord } from "@/lib/true-calendar/research/model";
 import { EvidenceChips } from "./history-bits";
+import { NextAdvice } from "./next-advice";
 
 // "What does this day mean for me?" — the published research that applies to
 // the selected day, the next day and the week ahead. Every entry says why it
@@ -73,6 +74,8 @@ export function DayWisdom({ bundle, date, tz, historyPath, isToday }: { bundle: 
           ))}
         </ol>
       </section>
+
+      <NextAdvice bundle={bundle} date={date} tz={tz} historyPath={historyPath} />
     </div>
   );
 }

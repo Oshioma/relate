@@ -7,6 +7,12 @@ import "server-only";
 
 export const BUNDLED_RESEARCH = [
   {
+    id: "catalogue-west-africa",
+    title: "West African traditions to research",
+    description: "Adds 13 West African traditions to the History directory as research targets (name and region only, no claims): Ewe, Ga-Adangbe, Fon, Edo, Tiv, Hausa, Fulani, Mossi, Dagomba, Bamana, Mande, Wolof, Serer.",
+    load: () => import("../../../../docs/true-calendar/research/catalogue-west-africa.v1.json").then((m) => m.default as unknown),
+  },
+  {
     id: "batch-01",
     title: "Research batch 01",
     description: "Hawaiian Oʻahu lunar nights, Māori maramataka nights, Akan Adaduanan and Akwasidae dates.",
@@ -29,6 +35,12 @@ export const BUNDLED_RESEARCH = [
     title: "Research batch 04",
     description: "Seven modern, optional suggestions for 2 to 8 November 2026, shown as \"A suggestion for the day\". Not attributed to any tradition.",
     load: () => import("../../../../docs/true-calendar/research/batch-04.v1.json").then((m) => m.default as unknown),
+  },
+  {
+    id: "batch-05",
+    title: "Research batch 05",
+    description: "Practices and modern readings for Māori, Hawaiian, Athenian and Igbo nights and days, an Artemis day, and the caveat that the 2026 Akwasidae dates are a secondary listing.",
+    load: () => import("../../../../docs/true-calendar/research/batch-05.v1.json").then((m) => m.default as unknown),
   },
 ] as const;
 
