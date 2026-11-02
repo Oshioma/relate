@@ -264,6 +264,19 @@ export const correspondenceSchema = z.object({
   ...common,
 });
 
+// A dated, modern, optional suggestion for one day. Belongs to no culture and
+// is always shown as a modern suggestion, never as a tradition's instruction.
+export const dailyNoteSchema = z.object({
+  key,
+  note_date: isoDate,
+  time_zone: optText(80),
+  title: text(300),
+  explanation: optText(),
+  disclaimer: optText(2000),
+  ...common,
+  evidence: z.array(z.enum(EVIDENCE_TAGS)).default(["modern_interpretation"]),
+});
+
 // --- Tables, in the order an import writes them (parents first) --------------
 
 export const IMPORT_SECTIONS = [
@@ -278,6 +291,7 @@ export const IMPORT_SECTIONS = [
   { section: "meanings", table: "calendar_meanings", schema: meaningSchema },
   { section: "recommendations", table: "calendar_recommendations", schema: recommendationSchema },
   { section: "date_correspondences", table: "calendar_date_correspondences", schema: correspondenceSchema },
+  { section: "daily_notes", table: "calendar_daily_notes", schema: dailyNoteSchema },
 ] as const;
 
 export type ImportSection = (typeof IMPORT_SECTIONS)[number]["section"];
@@ -294,6 +308,7 @@ export type ObservanceRecord = z.infer<typeof observanceSchema>;
 export type MeaningRecord = z.infer<typeof meaningSchema>;
 export type RecommendationRecord = z.infer<typeof recommendationSchema>;
 export type CorrespondenceRecord = z.infer<typeof correspondenceSchema>;
+export type DailyNoteRecord = z.infer<typeof dailyNoteSchema>;
 
 /** A stored row: the record without its inline citations, plus bookkeeping. */
 export type Stored<R> = Omit<R, "sources"> & { created_by: string | null; created_at: string; updated_at: string };
@@ -313,6 +328,7 @@ export const importFileSchema = z.object({
   meanings: z.array(meaningSchema).default([]),
   recommendations: z.array(recommendationSchema).default([]),
   date_correspondences: z.array(correspondenceSchema).default([]),
+  daily_notes: z.array(dailyNoteSchema).default([]),
 });
 export type ImportFile = z.infer<typeof importFileSchema>;
 

@@ -1,0 +1,154 @@
+{
+  "schema_version": "1.0",
+  "generated_for": "The True Calendar",
+  "start": "2026-11-02",
+  "end": "2026-11-08",
+  "time_zone": "Africa/Dar_es_Salaam",
+  "moon_events": [
+    {
+      "event": "third_quarter",
+      "local_time": "2026-11-01T23:28:00+03:00"
+    },
+    {
+      "event": "new_moon",
+      "local_time": "2026-11-09T10:02:00+03:00"
+    },
+    {
+      "event": "first_quarter",
+      "local_time": "2026-11-17T14:47:00+03:00"
+    },
+    {
+      "event": "full_moon",
+      "local_time": "2026-11-24T17:53:00+03:00"
+    }
+  ],
+  "days": [
+    {
+      "date": "2026-11-02",
+      "timezone": "Africa/Dar_es_Salaam",
+      "astronomical_phase": "Waning crescent",
+      "astronomical_confidence": "phase_window_verified",
+      "primary_activity": "Review unfinished work",
+      "activity_classification": "modern_optional_interpretation",
+      "activity_explanation": "A modern planning prompt inspired by the waning phase, not a documented universal ancient rule.",
+      "verified_culture_specific_observances": [],
+      "culture_specific_day_mapping": "not_verified",
+      "sources": [
+        "https://www.timeanddate.com/moon/phases/tanzania/dar-es-salaam"
+      ],
+      "publishable": true,
+      "disclaimer": "Traditional calendar meanings vary by community. This is a modern reflection, not evidence-based agricultural or medical advice."
+    },
+    {
+      "date": "2026-11-03",
+      "timezone": "Africa/Dar_es_Salaam",
+      "astronomical_phase": "Waning crescent",
+      "astronomical_confidence": "phase_window_verified",
+      "primary_activity": "Repair tools and prepare supplies",
+      "activity_classification": "modern_optional_interpretation",
+      "activity_explanation": "Modern practical suggestion; no historical culture-specific date match.",
+      "verified_culture_specific_observances": [],
+      "culture_specific_day_mapping": "not_verified",
+      "sources": [
+        "https://www.timeanddate.com/moon/phases/tanzania/dar-es-salaam"
+      ],
+      "publishable": true,
+      "disclaimer": "Traditional calendar meanings vary by community. This is a modern reflection, not evidence-based agricultural or medical advice."
+    },
+    {
+      "date": "2026-11-04",
+      "timezone": "Africa/Dar_es_Salaam",
+      "astronomical_phase": "Waning crescent",
+      "astronomical_confidence": "phase_window_verified",
+      "primary_activity": "Check seed stocks and planting beds",
+      "activity_classification": "modern_optional_interpretation",
+      "activity_explanation": "Preparation suggestion; actual planting depends on crop, rain and soil.",
+      "verified_culture_specific_observances": [],
+      "culture_specific_day_mapping": "not_verified",
+      "sources": [
+        "https://www.timeanddate.com/moon/phases/tanzania/dar-es-salaam"
+      ],
+      "publishable": true,
+      "disclaimer": "Traditional calendar meanings vary by community. This is a modern reflection, not evidence-based agricultural or medical advice."
+    },
+    {
+      "date": "2026-11-05",
+      "timezone": "Africa/Dar_es_Salaam",
+      "astronomical_phase": "Waning crescent",
+      "astronomical_confidence": "phase_window_verified",
+      "primary_activity": "Record fishing conditions and tides",
+      "activity_classification": "modern_optional_interpretation",
+      "activity_explanation": "Observe local tides and weather; lunar phase alone cannot establish safe fishing.",
+      "verified_culture_specific_observances": [],
+      "culture_specific_day_mapping": "not_verified",
+      "sources": [
+        "https://www.timeanddate.com/moon/phases/tanzania/dar-es-salaam"
+      ],
+      "publishable": true,
+      "disclaimer": "Traditional calendar meanings vary by community. This is a modern reflection, not evidence-based agricultural or medical advice."
+    },
+    {
+      "date": "2026-11-06",
+      "timezone": "Africa/Dar_es_Salaam",
+      "astronomical_phase": "Waning crescent",
+      "astronomical_confidence": "phase_window_verified",
+      "primary_activity": "Clear paths and maintain equipment",
+      "activity_classification": "modern_optional_interpretation",
+      "activity_explanation": "Modern maintenance suggestion, not a culturally attested daily instruction.",
+      "verified_culture_specific_observances": [],
+      "culture_specific_day_mapping": "not_verified",
+      "sources": [
+        "https://www.timeanddate.com/moon/phases/tanzania/dar-es-salaam"
+      ],
+      "publishable": true,
+      "disclaimer": "Traditional calendar meanings vary by community. This is a modern reflection, not evidence-based agricultural or medical advice."
+    },
+    {
+      "date": "2026-11-07",
+      "timezone": "Africa/Dar_es_Salaam",
+      "astronomical_phase": "Waning crescent",
+      "astronomical_confidence": "phase_window_verified",
+      "primary_activity": "Plan next planting cycle",
+      "activity_classification": "modern_optional_interpretation",
+      "activity_explanation": "Compare the coming new moon with rainfall and crop requirements.",
+      "verified_culture_specific_observances": [],
+      "culture_specific_day_mapping": "not_verified",
+      "sources": [
+        "https://www.timeanddate.com/moon/phases/tanzania/dar-es-salaam"
+      ],
+      "publishable": true,
+      "disclaimer": "Traditional calendar meanings vary by community. This is a modern reflection, not evidence-based agricultural or medical advice."
+    },
+    {
+      "date": "2026-11-08",
+      "timezone": "Africa/Dar_es_Salaam",
+      "astronomical_phase": "Waning crescent",
+      "astronomical_confidence": "phase_window_verified",
+      "primary_activity": "Prepare a new-cycle intention or project",
+      "activity_classification": "modern_optional_interpretation",
+      "activity_explanation": "Optional symbolic reflection; no claim of historical consensus.",
+      "verified_culture_specific_observances": [],
+      "culture_specific_day_mapping": "not_verified",
+      "sources": [
+        "https://www.timeanddate.com/moon/phases/tanzania/dar-es-salaam"
+      ],
+      "publishable": true,
+      "disclaimer": "Traditional calendar meanings vary by community. This is a modern reflection, not evidence-based agricultural or medical advice."
+    }
+  ],
+  "unmapped_traditions": [
+    "Māori maramataka iwi variants",
+    "Hawaiian lunar nights",
+    "Igbo market-day local variants",
+    "Yoruba ritual day variants"
+  ],
+  "published_observances": [
+    {
+      "date": "2026-11-22",
+      "culture": "Akan/Asante",
+      "name": "Akwasidae",
+      "verification": "published community schedule, not universal",
+      "source": "https://www.nyamedua.org/2025/07/19/akwasidae-dates-2026/"
+    }
+  ]
+}

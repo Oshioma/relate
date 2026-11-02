@@ -3799,6 +3799,7 @@ export type Database = {
       calendar_meanings: CalendarResearchTable<TC.MeaningRecord>;
       calendar_recommendations: CalendarResearchTable<TC.RecommendationRecord>;
       calendar_date_correspondences: CalendarResearchTable<TC.CorrespondenceRecord>;
+      calendar_daily_notes: CalendarResearchTable<TC.DailyNoteRecord>;
       calendar_claim_sources: {
         Row: TC.CalendarClaimSource;
         Insert: Partial<TC.CalendarClaimSource> & { claim_table: string; claim_key: string; source_key: string };

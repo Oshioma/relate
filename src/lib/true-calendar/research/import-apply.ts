@@ -44,7 +44,12 @@ export async function runCalendarImport(supabase: Client, userId: string, raw: u
     if (records.length === 0) continue;
     const rows = records.map((r) => {
       const row = rowOf(r);
-      return existing.rows[table]?.has(String(row.key)) ? row : { ...row, created_by: userId };
+      const stored = existing.rows[table]?.get(String(row.key));
+      if (!stored) return { ...row, created_by: userId };
+      // Existing rows keep their review status and author (see changed() in
+      // import-plan). Every row in a batch carries the same columns, so a
+      // bulk upsert never fills a missing one with null.
+      return { ...row, review_status: stored.review_status, created_by: stored.created_by ?? null };
     });
     for (let i = 0; i < rows.length; i += 200) {
       // The table name is one of a fixed list; the row shape was validated by zod.

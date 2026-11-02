@@ -16,7 +16,7 @@
 
 import { type CivilDate, addDays, daysFromCivil, formatIsoDate, parseIsoDate } from "../dates";
 import type { DayMoon } from "../astronomy";
-import type { CorrespondenceRecord, CultureRecord, CyclePositionRecord, CycleRecord, MeaningRecord, MoonPhaseKey, ObservanceRecord, RecommendationRecord, SystemRecord } from "./model";
+import type { CorrespondenceRecord, CultureRecord, DailyNoteRecord, CyclePositionRecord, CycleRecord, MeaningRecord, MoonPhaseKey, ObservanceRecord, RecommendationRecord, SystemRecord } from "./model";
 
 type Row<R> = Omit<R, "sources">;
 
@@ -30,9 +30,17 @@ export interface ResearchBundle {
   recommendations: Row<RecommendationRecord>[];
   /** Dated entries a source gives directly (e.g. a published festival date). */
   correspondences: Row<CorrespondenceRecord>[];
+  /** Modern, optional suggestions for particular dates (no culture). */
+  notes: Row<DailyNoteRecord>[];
 }
 
-export const EMPTY_BUNDLE: ResearchBundle = { cultures: [], systems: [], cycles: [], positions: [], observances: [], meanings: [], recommendations: [], correspondences: [] };
+export const EMPTY_BUNDLE: ResearchBundle = { cultures: [], systems: [], cycles: [], positions: [], observances: [], meanings: [], recommendations: [], correspondences: [], notes: [] };
+
+/** The modern suggestions written for this date. */
+export function notesForDay(bundle: ResearchBundle, date: CivilDate): Row<DailyNoteRecord>[] {
+  const iso = formatIsoDate(date);
+  return bundle.notes.filter((n) => n.note_date === iso);
+}
 
 function mod(a: number, n: number): number {
   return ((a % n) + n) % n;

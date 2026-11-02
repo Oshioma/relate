@@ -15,7 +15,7 @@ const published = "published";
 /** Everything the calendar needs to say what a day means. Small: rule rows,
  * not dates. Errors (e.g. the tables not migrated yet) read as "no research". */
 export async function getResearchBundle(supabase: Client): Promise<ResearchBundle> {
-  const [cultures, systems, cycles, positions, observances, meanings, recommendations, correspondences] = await Promise.all([
+  const [cultures, systems, cycles, positions, observances, meanings, recommendations, correspondences, notes] = await Promise.all([
     supabase.from("calendar_cultures").select("*").eq("review_status", published).order("sort_order"),
     supabase.from("calendar_systems").select("*").eq("review_status", published),
     supabase.from("calendar_cycles").select("*").eq("review_status", published),
@@ -24,6 +24,7 @@ export async function getResearchBundle(supabase: Client): Promise<ResearchBundl
     supabase.from("calendar_meanings").select("*").eq("review_status", published),
     supabase.from("calendar_recommendations").select("*").eq("review_status", published),
     supabase.from("calendar_date_correspondences").select("*").eq("review_status", published).not("gregorian_from", "is", null),
+    supabase.from("calendar_daily_notes").select("*").eq("review_status", published),
   ]);
   if (cultures.error) return EMPTY_BUNDLE;
   return {
@@ -35,6 +36,8 @@ export async function getResearchBundle(supabase: Client): Promise<ResearchBundl
     meanings: meanings.data ?? [],
     recommendations: recommendations.data ?? [],
     correspondences: correspondences.data ?? [],
+    // Missing until the daily-notes migration runs; read as "no notes".
+    notes: notes.error ? [] : notes.data ?? [],
   };
 }
 
@@ -140,6 +143,9 @@ export async function getExistingForImport(supabase: Client, keys: Record<Calend
   return { rows, citedClaims };
 }
 
+/** Review-queue group for daily notes, which belong to no culture. */
+export const DAILY_NOTES_GROUP = "daily-notes";
+
 export interface ReviewItem {
   table: CalendarTable;
   key: string;
@@ -158,6 +164,7 @@ export async function getReviewQueue(supabase: Client): Promise<{ items: ReviewI
   const { data: allCultures } = await supabase.from("calendar_cultures").select("key, name");
   const cultureNames = new Map((allCultures ?? []).map((c) => [c.key, c.name]));
   const cultureKeys = [...cultureNames.keys()].sort((a, b) => b.length - a.length);
+  cultureNames.set(DAILY_NOTES_GROUP, "Daily suggestions (modern)");
   const cultureOf = (key: string) => cultureKeys.find((c) => key === c || key.startsWith(`${c}.`)) ?? "";
 
   const items: ReviewItem[] = [];
@@ -176,14 +183,14 @@ export async function getReviewQueue(supabase: Client): Promise<{ items: ReviewI
     for (const r of rows) {
       const key = String(r.key);
       const field = LABEL_FIELDS.find((f) => typeof r[f] === "string" && r[f]);
-      const label = table === "calendar_lunar_days" ? `Day ${r.day_number}${r.name ? `: ${r.name}` : ""}` : field ? String(r[field]) : key;
+      const label = table === "calendar_lunar_days" ? `Day ${r.day_number}${r.name ? `: ${r.name}` : ""}` : table === "calendar_daily_notes" ? `${r.note_date}: ${r.title}` : field ? String(r[field]) : key;
       items.push({
         table,
         key,
         label: label.length > 120 ? `${label.slice(0, 117)}…` : label,
         status: String(r.review_status),
         supporting: counts.get(key) ?? 0,
-        cultureKey: table === "calendar_sources" ? "" : cultureOf(table === "calendar_cultures" ? key : String(r.culture_key ?? key)),
+        cultureKey: table === "calendar_sources" ? "" : table === "calendar_daily_notes" ? DAILY_NOTES_GROUP : cultureOf(table === "calendar_cultures" ? key : String(r.culture_key ?? key)),
       });
     }
   }
@@ -194,3 +201,25 @@ export async function getRecentImportRuns(supabase: Client, limit = 10) {
   const { data } = await supabase.from("calendar_import_runs").select("*").order("created_at", { ascending: false }).limit(limit);
   return data ?? [];
 }
+
+/** For each research file that ships with the app: how much of it is not yet in the database. */
+export async function getBundledResearchStatus(supabase: Client) {
+  const { BUNDLED_RESEARCH } = await import("@/lib/true-calendar/research/bundled");
+  const { parseImport, planImport, keysMentioned } = await import("@/lib/true-calendar/research/import-plan");
+  return Promise.all(
+    BUNDLED_RESEARCH.map(async (b) => {
+      const { file, errors } = parseImport(await b.load());
+      if (!file) return { id: b.id, title: b.title, description: b.description, ok: false, problems: errors.length, toWrite: 0, total: 0 };
+      try {
+        const plan = planImport(file, await getExistingForImport(supabase, keysMentioned(file)));
+        const toWrite = plan.sections.reduce((n, s) => n + s.insert.length + s.update.length, 0);
+        const total = plan.sections.reduce((n, s) => n + s.insert.length + s.update.length + s.unchanged.length, 0);
+        return { id: b.id, title: b.title, description: b.description, ok: plan.ok, problems: plan.errors.length, toWrite, total };
+      } catch {
+        return { id: b.id, title: b.title, description: b.description, ok: false, problems: 1, toWrite: 0, total: 0 };
+      }
+    })
+  );
+}
+
+export type BundledResearchStatus = Awaited<ReturnType<typeof getBundledResearchStatus>>[number];

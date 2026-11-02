@@ -32,6 +32,14 @@ test("principal phases match published times", () => {
   near(nextQuarter(new Date("2000-01-01T00:00Z"), "new").instant, "2000-01-06T18:14Z");
 });
 
+test("Nov-Dec 2026 phases match USNO (research batch 03)", () => {
+  near(nextQuarter(new Date("2026-11-02T00:00Z"), "new").instant, "2026-11-09T07:02Z");
+  near(nextQuarter(new Date("2026-11-02T00:00Z"), "first").instant, "2026-11-17T11:48Z");
+  near(nextQuarter(new Date("2026-11-02T00:00Z"), "full").instant, "2026-11-24T14:53Z");
+  near(nextQuarter(new Date("2026-11-02T00:00Z"), "last").instant, "2026-12-01T06:08Z");
+  near(nextQuarter(new Date("2026-11-10T00:00Z"), "new").instant, "2026-12-09T00:52Z");
+});
+
 test("eclipses match NASA's catalogue", () => {
   const solar = nextSolarEclipse(new Date("2024-03-01T00:00Z"));
   assert.equal(solar.kind, "total");

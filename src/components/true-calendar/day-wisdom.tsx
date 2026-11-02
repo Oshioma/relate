@@ -4,7 +4,8 @@ import { useMemo } from "react";
 import Link from "@/components/ui/link";
 import { type CivilDate, addDays, formatIsoDate, weekdayOf, WEEKDAYS, GREGORIAN_MONTHS } from "@/lib/true-calendar/dates";
 import { moonDays } from "@/lib/true-calendar/astronomy";
-import { type DayEntry, type ResearchBundle, entriesForDay } from "@/lib/true-calendar/research/daily";
+import { type DayEntry, type ResearchBundle, entriesForDay, notesForDay } from "@/lib/true-calendar/research/daily";
+import type { DailyNoteRecord } from "@/lib/true-calendar/research/model";
 import { EvidenceChips } from "./history-bits";
 
 // "What does this day mean for me?" — the published research that applies to
@@ -18,7 +19,7 @@ export function DayWisdom({ bundle, date, tz, historyPath, isToday }: { bundle: 
     const moons = moonDays(date, 7, tz);
     return moons.map((moon, i) => {
       const d = addDays(date, i);
-      return { date: d, entries: entriesForDay(bundle, d, moon) };
+      return { date: d, entries: entriesForDay(bundle, d, moon), notes: notesForDay(bundle, d) };
     });
   }, [bundle, date, tz]);
 
@@ -37,15 +38,16 @@ export function DayWisdom({ bundle, date, tz, historyPath, isToday }: { bundle: 
   const [first, second] = week;
   return (
     <div className="space-y-5">
-      <DaySection id="tc-wisdom-today" heading={isToday ? "Ancient wisdom for today" : `Ancient wisdom for ${shortDate(first.date)}`} entries={first.entries} historyPath={historyPath} />
-      <DaySection id="tc-wisdom-tomorrow" heading={isToday ? "Tomorrow's guidance" : `The day after: ${shortDate(second.date)}`} entries={second.entries} historyPath={historyPath} compact />
+      <DaySection id="tc-wisdom-today" heading={isToday ? "Ancient wisdom for today" : `Ancient wisdom for ${shortDate(first.date)}`} entries={first.entries} notes={first.notes} historyPath={historyPath} />
+      <DaySection id="tc-wisdom-tomorrow" heading={isToday ? "Tomorrow's guidance" : `The day after: ${shortDate(second.date)}`} entries={second.entries} notes={second.notes} historyPath={historyPath} compact />
 
       <section aria-labelledby="tc-outlook-heading" className="rounded-lg border border-[var(--tc-line)] bg-[var(--tc-panel)] px-4 py-4">
         <h2 id="tc-outlook-heading" className="font-serif text-2xl">Seven-day outlook</h2>
         <ol className="mt-3 divide-y divide-[var(--tc-line)]">
-          {week.map(({ date: d, entries }) => (
+          {week.map(({ date: d, entries, notes }) => (
             <li key={formatIsoDate(d)} className="flex flex-col gap-1 py-2.5 sm:flex-row sm:gap-4">
               <span className="w-40 shrink-0 text-base font-medium">{shortDate(d)}</span>
+              <div className="space-y-1">
               {entries.length === 0 ? (
                 <span className="text-base text-[var(--tc-muted)]">Nothing sourced marks this day.</span>
               ) : (
@@ -60,6 +62,13 @@ export function DayWisdom({ bundle, date, tz, historyPath, isToday }: { bundle: 
                   ))}
                 </ul>
               )}
+              {notes.map((n) => (
+                <p key={n.key} className="text-base">
+                  <span className="text-[var(--tc-muted)]">Modern suggestion: </span>
+                  {n.title}
+                </p>
+              ))}
+              </div>
             </li>
           ))}
         </ol>
@@ -72,7 +81,9 @@ function shortDate(d: CivilDate): string {
   return `${WEEKDAYS[weekdayOf(d)]} ${d.day} ${GREGORIAN_MONTHS[d.month - 1]}`;
 }
 
-function DaySection({ id, heading, entries, historyPath, compact }: { id: string; heading: string; entries: DayEntry[]; historyPath: string; compact?: boolean }) {
+type Note = Omit<DailyNoteRecord, "sources">;
+
+function DaySection({ id, heading, entries, notes, historyPath, compact }: { id: string; heading: string; entries: DayEntry[]; notes: Note[]; historyPath: string; compact?: boolean }) {
   return (
     <section aria-labelledby={id} className="rounded-lg border border-[var(--tc-line)] bg-[var(--tc-panel)] px-4 py-4">
       <h2 id={id} className="font-serif text-2xl">{heading}</h2>
@@ -87,7 +98,27 @@ function DaySection({ id, heading, entries, historyPath, compact }: { id: string
           ))}
         </ul>
       )}
+      {notes.map((n) => (
+        <NoteCard key={n.key} note={n} compact={compact} />
+      ))}
     </section>
+  );
+}
+
+// A modern suggestion for the day. It belongs to no tradition, so it is kept
+// apart from the entries above and always says so.
+function NoteCard({ note, compact }: { note: Note; compact?: boolean }) {
+  return (
+    <div className="mt-4 rounded-md border border-dashed border-[var(--tc-line)] px-3 py-2">
+      <p className="text-xs font-semibold uppercase tracking-wider text-[var(--tc-muted)]">A suggestion for the day · modern and optional</p>
+      <p className="mt-1 text-lg font-medium">{note.title}</p>
+      {!compact && note.explanation ? <p className="mt-1 text-base leading-relaxed">{note.explanation}</p> : null}
+      {!compact ? (
+        <p className="mt-1 text-sm text-[var(--tc-muted)]">
+          {note.disclaimer ?? "A modern reflection, not a tradition's instruction for this date."}
+        </p>
+      ) : null}
+    </div>
   );
 }
 

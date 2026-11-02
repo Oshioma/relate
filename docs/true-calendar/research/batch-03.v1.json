@@ -1,0 +1,253 @@
+{
+  "format": "true-calendar/v1",
+  "sources": [
+    {
+      "key": "src.nyamedua-akwasidae-2026",
+      "title": "Akwasidae dates 2026",
+      "publisher": "Nyame Dua (nyamedua.org)",
+      "published": "2025-07-19",
+      "url": "https://www.nyamedua.org/2025/07/19/akwasidae-dates-2026/",
+      "source_type": "web",
+      "notes": "Community calendar listing the eight 2026 Akwasidae Sundays; agrees with the Akan Dictionary list in batch 01. Dates should be confirmed with the relevant community. From Oshi's research batch 03.",
+      "review_status": "draft"
+    }
+  ],
+  "cycles": [
+    {
+      "key": "africa.west.akan.adaduanan.cycle",
+      "system_key": "africa.west.akan.adaduanan",
+      "name": "Adaduanan",
+      "original_name": "Adaduanan",
+      "length_days": 42,
+      "description": "The 42-day cycle, counted here from Akwasidae (position 0) because that is the day the source dates.",
+      "anchor_date": "2026-02-01",
+      "anchor_position": 0,
+      "anchor_source_key": "src.akandictionary-akwasidae-2026",
+      "anchor_note": "All 8 published 2026 Akwasidae dates (2026-02-01 to 2026-11-22) fall exactly 42 days apart on Sundays, so one anchor reproduces them. Dates outside 2026 are extended by the same cycle and need confirming.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.nyamedua-akwasidae-2026"
+        }
+      ]
+    }
+  ],
+  "observances": [
+    {
+      "key": "africa.west.akan.akwasidae",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "name": "Akwasidae",
+      "original_name": "Akwasidae",
+      "kind": "royal",
+      "timing": "Every 42 days, on a Sunday",
+      "cycle_position_key": "africa.west.akan.adaduanan.akwasidae",
+      "description": "Recurring Sunday ancestral and royal stool observance.",
+      "evidence": [
+        "ethnographically_documented"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.nyamedua-akwasidae-2026"
+        }
+      ],
+      "uncertainty": "Confirm with the local community; not universal to all Akan groups."
+    }
+  ],
+  "date_correspondences": [
+    {
+      "key": "africa.west.akan.akwasidae.2026-02-01",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-02-01",
+      "gregorian_to": "2026-02-01",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.nyamedua-akwasidae-2026"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.akan.akwasidae.2026-03-15",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-03-15",
+      "gregorian_to": "2026-03-15",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.nyamedua-akwasidae-2026"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.akan.akwasidae.2026-04-26",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-04-26",
+      "gregorian_to": "2026-04-26",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.nyamedua-akwasidae-2026"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.akan.akwasidae.2026-06-07",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-06-07",
+      "gregorian_to": "2026-06-07",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.nyamedua-akwasidae-2026"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.akan.akwasidae.2026-07-19",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-07-19",
+      "gregorian_to": "2026-07-19",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.nyamedua-akwasidae-2026"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.akan.akwasidae.2026-08-30",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-08-30",
+      "gregorian_to": "2026-08-30",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.nyamedua-akwasidae-2026"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.akan.akwasidae.2026-10-11",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-10-11",
+      "gregorian_to": "2026-10-11",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.nyamedua-akwasidae-2026"
+        }
+      ]
+    },
+    {
+      "key": "africa.west.akan.akwasidae.2026-11-22",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-11-22",
+      "gregorian_to": "2026-11-22",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.nyamedua-akwasidae-2026"
+        }
+      ]
+    }
+  ]
+}

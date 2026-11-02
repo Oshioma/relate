@@ -3,8 +3,8 @@
 import { useState, useTransition, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useFormDraft } from "@/lib/use-form-draft";
-import { importCalendarResearch, publishReadyForCulture, reviewCalendarRecord, type ImportResult } from "@/app/c/[communitySlug]/spaces/[spaceSlug]/research/actions";
-import type { ReviewItem } from "@/lib/data/true-calendar";
+import { importBundledResearch, importCalendarResearch, publishReadyForCulture, reviewCalendarRecord, type ImportResult } from "@/app/c/[communitySlug]/spaces/[spaceSlug]/research/actions";
+import type { BundledResearchStatus, ReviewItem } from "@/lib/data/true-calendar";
 import { cn } from "@/lib/utils";
 
 // The research desk: paste or load a true-calendar/v1 JSON file, check it
@@ -13,6 +13,60 @@ import { cn } from "@/lib/utils";
 // until it is imported or you sign out.
 
 const button = "inline-flex h-10 items-center rounded-md px-4 text-base font-medium disabled:opacity-50";
+
+export function ReadyToImport({ spacePath, files }: { spacePath: string; files: BundledResearchStatus[] }) {
+  const [results, setResults] = useState<Record<string, ImportResult>>({});
+  const [busy, setBusy] = useState<string | null>(null);
+  const [, start] = useTransition();
+  const router = useRouter();
+  if (files.length === 0) return null;
+  return (
+    <section aria-labelledby="tc-ready-heading" className="rounded-lg border border-[var(--tc-line)] bg-[var(--tc-panel)] px-4 py-4">
+      <h2 id="tc-ready-heading" className="font-serif text-2xl">Ready to import</h2>
+      <p className="mt-1 text-base text-[var(--tc-muted)]">Research files that come with the calendar. Importing adds them as drafts; nothing shows on the calendar until it is published below.</p>
+      <ul className="mt-3 space-y-3">
+        {files.map((f) => {
+          const result = results[f.id];
+          const done = f.ok && f.toWrite === 0;
+          return (
+            <li key={f.id} className="flex flex-wrap items-center gap-3 rounded-md border border-[var(--tc-line)] px-3 py-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-base font-medium">{f.title}</p>
+                <p className="text-sm text-[var(--tc-muted)]">{f.description}</p>
+                <p className={cn("text-sm", f.ok ? "text-[var(--tc-muted)]" : "text-red-700 dark:text-red-300")}>
+                  {!f.ok
+                    ? `${f.problems} problem${f.problems === 1 ? "" : "s"} in the file; it can't be imported as it is.`
+                    : done
+                      ? `Imported: all ${f.total} records are in.`
+                      : `${f.toWrite} of ${f.total} records to add or update.`}
+                </p>
+                {result ? <ImportReport result={result} dryRun={false} /> : null}
+              </div>
+              {f.ok && !done ? (
+                <button
+                  type="button"
+                  disabled={busy !== null}
+                  onClick={() => {
+                    setBusy(f.id);
+                    start(async () => {
+                      const r = await importBundledResearch(spacePath, f.id);
+                      setResults((prev) => ({ ...prev, [f.id]: r }));
+                      setBusy(null);
+                      router.refresh();
+                    });
+                  }}
+                  className={cn(button, "bg-[var(--tc-selected)] text-[var(--tc-selected-ink)]")}
+                >
+                  {busy === f.id ? "Importing…" : "Import"}
+                </button>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
 
 export function ImportPanel({ spacePath }: { spacePath: string }) {
   const { formRef, clearDraft } = useFormDraft("true-calendar-import");
