@@ -20,6 +20,9 @@ only ever see rows whose `review_status` is `published`.
    `date_correspondences`.
 3. **Modern interpretation**: `recommendations.modern_interpretation`, always
    shown apart from `historical_practice` and labelled as a suggestion.
+   A modern suggestion for a particular date that belongs to no tradition
+   goes in `daily_notes` (`note_date`, `title`, `explanation`, `disclaimer`);
+   its evidence must include `modern_interpretation`.
 
 ## Importing
 

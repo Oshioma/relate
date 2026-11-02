@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseImport, planImport, keysMentioned } from "./import-plan";
-import { cyclePositionOn, entriesForDay, isAnchored, nextDatesForPosition, phaseKeysFor, EMPTY_BUNDLE } from "./daily";
+import { cyclePositionOn, entriesForDay, isAnchored, nextDatesForPosition, notesForDay, phaseKeysFor, EMPTY_BUNDLE } from "./daily";
 import { moonDay } from "../astronomy";
 
 // Test data is deliberately fictional ("Example people", "test." keys): these
@@ -136,4 +136,15 @@ test("re-importing a draft file never unpublishes a reviewed record", () => {
   const rows = { calendar_sources: new Map([["test.book", { key: "test.book", title: "An example book", source_type: "academic", review_status: "published" }]]) };
   const plan = planImport(parsed!, { rows, citedClaims: new Set() });
   assert.deepEqual(plan.sections.find((s) => s.section === "sources")!.unchanged, ["test.book"]);
+});
+
+test("daily notes must be labelled modern, and appear only on their date", () => {
+  const note = { key: "test.note.2026-01-05", note_date: "2026-01-05", title: "An example suggestion", sources: [{ source: "test.book" }] };
+  const ok = planImport(parseImport({ ...file, daily_notes: [note] }).file!, empty);
+  assert.equal(ok.ok, true);
+  const bad = planImport(parseImport({ ...file, daily_notes: [{ ...note, evidence: ["historically_documented"] }] }).file!, empty);
+  assert.ok(bad.errors.some((e) => e.path === "daily_notes[0].evidence"));
+  const notes = [{ ...ok.file!.daily_notes[0] }];
+  assert.equal(notesForDay({ ...EMPTY_BUNDLE, notes }, { year: 2026, month: 1, day: 5 }).length, 1);
+  assert.equal(notesForDay({ ...EMPTY_BUNDLE, notes }, { year: 2026, month: 1, day: 6 }).length, 0);
 });

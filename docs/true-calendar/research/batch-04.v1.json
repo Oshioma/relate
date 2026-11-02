@@ -1,0 +1,149 @@
+{
+  "format": "true-calendar/v1",
+  "sources": [
+    {
+      "key": "src.timeanddate-moon-phases-dar-es-salaam",
+      "title": "Moon phases for Dar es Salaam, Tanzania",
+      "publisher": "timeanddate.com",
+      "url": "https://www.timeanddate.com/moon/phases/tanzania/dar-es-salaam",
+      "source_type": "web",
+      "notes": "Moon phase times in East Africa Time, used for the phase each daily suggestion is written around. The suggestions themselves are modern and are not taken from this source. From Oshi's research batch 04.",
+      "review_status": "draft"
+    }
+  ],
+  "daily_notes": [
+    {
+      "key": "notes.2026-11-02",
+      "note_date": "2026-11-02",
+      "time_zone": "Africa/Dar_es_Salaam",
+      "title": "Review unfinished work",
+      "explanation": "A modern planning prompt inspired by the waning phase, not a documented universal ancient rule.",
+      "disclaimer": "Traditional calendar meanings vary by community. This is a modern reflection, not evidence-based agricultural or medical advice.",
+      "evidence": [
+        "modern_interpretation"
+      ],
+      "uncertainty": "Written for the waning crescent Moon as seen from East Africa. Not attributed to any tradition.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.timeanddate-moon-phases-dar-es-salaam",
+          "locator": "Moon phase for 2026-11-02 (the suggestion itself is modern)"
+        }
+      ]
+    },
+    {
+      "key": "notes.2026-11-03",
+      "note_date": "2026-11-03",
+      "time_zone": "Africa/Dar_es_Salaam",
+      "title": "Repair tools and prepare supplies",
+      "explanation": "Modern practical suggestion; no historical culture-specific date match.",
+      "disclaimer": "Traditional calendar meanings vary by community. This is a modern reflection, not evidence-based agricultural or medical advice.",
+      "evidence": [
+        "modern_interpretation"
+      ],
+      "uncertainty": "Written for the waning crescent Moon as seen from East Africa. Not attributed to any tradition.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.timeanddate-moon-phases-dar-es-salaam",
+          "locator": "Moon phase for 2026-11-03 (the suggestion itself is modern)"
+        }
+      ]
+    },
+    {
+      "key": "notes.2026-11-04",
+      "note_date": "2026-11-04",
+      "time_zone": "Africa/Dar_es_Salaam",
+      "title": "Check seed stocks and planting beds",
+      "explanation": "Preparation suggestion; actual planting depends on crop, rain and soil.",
+      "disclaimer": "Traditional calendar meanings vary by community. This is a modern reflection, not evidence-based agricultural or medical advice.",
+      "evidence": [
+        "modern_interpretation"
+      ],
+      "uncertainty": "Written for the waning crescent Moon as seen from East Africa. Not attributed to any tradition.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.timeanddate-moon-phases-dar-es-salaam",
+          "locator": "Moon phase for 2026-11-04 (the suggestion itself is modern)"
+        }
+      ]
+    },
+    {
+      "key": "notes.2026-11-05",
+      "note_date": "2026-11-05",
+      "time_zone": "Africa/Dar_es_Salaam",
+      "title": "Record fishing conditions and tides",
+      "explanation": "Observe local tides and weather; lunar phase alone cannot establish safe fishing.",
+      "disclaimer": "Traditional calendar meanings vary by community. This is a modern reflection, not evidence-based agricultural or medical advice.",
+      "evidence": [
+        "modern_interpretation"
+      ],
+      "uncertainty": "Written for the waning crescent Moon as seen from East Africa. Not attributed to any tradition.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.timeanddate-moon-phases-dar-es-salaam",
+          "locator": "Moon phase for 2026-11-05 (the suggestion itself is modern)"
+        }
+      ]
+    },
+    {
+      "key": "notes.2026-11-06",
+      "note_date": "2026-11-06",
+      "time_zone": "Africa/Dar_es_Salaam",
+      "title": "Clear paths and maintain equipment",
+      "explanation": "Modern maintenance suggestion, not a culturally attested daily instruction.",
+      "disclaimer": "Traditional calendar meanings vary by community. This is a modern reflection, not evidence-based agricultural or medical advice.",
+      "evidence": [
+        "modern_interpretation"
+      ],
+      "uncertainty": "Written for the waning crescent Moon as seen from East Africa. Not attributed to any tradition.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.timeanddate-moon-phases-dar-es-salaam",
+          "locator": "Moon phase for 2026-11-06 (the suggestion itself is modern)"
+        }
+      ]
+    },
+    {
+      "key": "notes.2026-11-07",
+      "note_date": "2026-11-07",
+      "time_zone": "Africa/Dar_es_Salaam",
+      "title": "Plan next planting cycle",
+      "explanation": "Compare the coming new moon with rainfall and crop requirements.",
+      "disclaimer": "Traditional calendar meanings vary by community. This is a modern reflection, not evidence-based agricultural or medical advice.",
+      "evidence": [
+        "modern_interpretation"
+      ],
+      "uncertainty": "Written for the waning crescent Moon as seen from East Africa. Not attributed to any tradition.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.timeanddate-moon-phases-dar-es-salaam",
+          "locator": "Moon phase for 2026-11-07 (the suggestion itself is modern)"
+        }
+      ]
+    },
+    {
+      "key": "notes.2026-11-08",
+      "note_date": "2026-11-08",
+      "time_zone": "Africa/Dar_es_Salaam",
+      "title": "Prepare a new-cycle intention or project",
+      "explanation": "Optional symbolic reflection; no claim of historical consensus.",
+      "disclaimer": "Traditional calendar meanings vary by community. This is a modern reflection, not evidence-based agricultural or medical advice.",
+      "evidence": [
+        "modern_interpretation"
+      ],
+      "uncertainty": "Written for the waning crescent Moon as seen from East Africa. Not attributed to any tradition.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.timeanddate-moon-phases-dar-es-salaam",
+          "locator": "Moon phase for 2026-11-08 (the suggestion itself is modern)"
+        }
+      ]
+    }
+  ]
+}

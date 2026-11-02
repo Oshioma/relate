@@ -181,6 +181,9 @@ export function planImport(file: ImportFile, existing: ExistingState): ImportPla
       if (section === "recommendations" && record.modern_interpretation && !(record.evidence as string[]).includes("modern_interpretation")) {
         warnings.push({ path: at, message: "Has a modern interpretation; it will be labelled as modern" });
       }
+      if (section === "daily_notes" && !(record.evidence as string[]).includes("modern_interpretation")) {
+        errors.push({ path: `${at}.evidence`, message: "A daily note is a modern suggestion: its evidence must include modern_interpretation" });
+      }
       if (section === "date_correspondences" && record.certainty === "exact" && !record.gregorian_from) {
         errors.push({ path: at, message: "An exact correspondence needs gregorian_from" });
       }
