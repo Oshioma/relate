@@ -1,0 +1,122 @@
+{
+  "format": "true-calendar/v1",
+  "cultures": [
+    {
+      "key": "africa.west.ewe",
+      "name": "Ewe",
+      "continent": "Africa",
+      "region": "West Africa",
+      "sort_order": 80,
+      "research_status": "not_started",
+      "review_status": "published"
+    },
+    {
+      "key": "africa.west.ga-adangbe",
+      "name": "Ga-Adangbe",
+      "continent": "Africa",
+      "region": "West Africa",
+      "sort_order": 81,
+      "research_status": "not_started",
+      "review_status": "published"
+    },
+    {
+      "key": "africa.west.fon",
+      "name": "Fon",
+      "continent": "Africa",
+      "region": "West Africa",
+      "sort_order": 82,
+      "research_status": "not_started",
+      "review_status": "published"
+    },
+    {
+      "key": "africa.west.edo",
+      "name": "Edo (Benin Kingdom)",
+      "continent": "Africa",
+      "region": "West Africa",
+      "sort_order": 83,
+      "research_status": "not_started",
+      "review_status": "published"
+    },
+    {
+      "key": "africa.west.tiv",
+      "name": "Tiv",
+      "continent": "Africa",
+      "region": "West Africa",
+      "sort_order": 84,
+      "research_status": "not_started",
+      "review_status": "published"
+    },
+    {
+      "key": "africa.west.hausa",
+      "name": "Hausa",
+      "continent": "Africa",
+      "region": "West Africa",
+      "sort_order": 85,
+      "research_status": "not_started",
+      "review_status": "published"
+    },
+    {
+      "key": "africa.west.fulani",
+      "name": "Fulani (Fulɓe)",
+      "continent": "Africa",
+      "region": "West Africa",
+      "sort_order": 86,
+      "research_status": "not_started",
+      "review_status": "published"
+    },
+    {
+      "key": "africa.west.mossi",
+      "name": "Mossi",
+      "continent": "Africa",
+      "region": "West Africa",
+      "sort_order": 87,
+      "research_status": "not_started",
+      "review_status": "published"
+    },
+    {
+      "key": "africa.west.dagomba",
+      "name": "Dagomba",
+      "continent": "Africa",
+      "region": "West Africa",
+      "sort_order": 88,
+      "research_status": "not_started",
+      "review_status": "published"
+    },
+    {
+      "key": "africa.west.bamana",
+      "name": "Bamana (Bambara)",
+      "continent": "Africa",
+      "region": "West Africa",
+      "sort_order": 89,
+      "research_status": "not_started",
+      "review_status": "published"
+    },
+    {
+      "key": "africa.west.mande",
+      "name": "Mande / Malinke",
+      "continent": "Africa",
+      "region": "West Africa",
+      "sort_order": 90,
+      "research_status": "not_started",
+      "review_status": "published"
+    },
+    {
+      "key": "africa.west.wolof",
+      "name": "Wolof",
+      "continent": "Africa",
+      "region": "West Africa",
+      "sort_order": 91,
+      "research_status": "not_started",
+      "review_status": "published"
+    },
+    {
+      "key": "africa.west.serer",
+      "name": "Serer",
+      "continent": "Africa",
+      "region": "West Africa",
+      "sort_order": 92,
+      "research_status": "not_started",
+      "review_status": "published"
+    }
+  ]
+}

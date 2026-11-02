@@ -7,6 +7,12 @@ import "server-only";
 
 export const BUNDLED_RESEARCH = [
   {
+    id: "catalogue-west-africa",
+    title: "West African traditions to research",
+    description: "Adds 13 West African traditions to the History directory as research targets (name and region only, no claims): Ewe, Ga-Adangbe, Fon, Edo, Tiv, Hausa, Fulani, Mossi, Dagomba, Bamana, Mande, Wolof, Serer.",
+    load: () => import("../../../../docs/true-calendar/research/catalogue-west-africa.v1.json").then((m) => m.default as unknown),
+  },
+  {
     id: "batch-01",
     title: "Research batch 01",
     description: "Hawaiian Oʻahu lunar nights, Māori maramataka nights, Akan Adaduanan and Akwasidae dates.",
