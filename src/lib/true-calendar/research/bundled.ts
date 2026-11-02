@@ -48,6 +48,12 @@ export const BUNDLED_RESEARCH = [
     description: "A Ngāti Kahungunu maramataka of 30 nights and the 12 Ngāi Tūhoe months (both from Te Ara). Its Hawaiian nights and Igbo market days were already in from batches 01 and 02.",
     load: () => import("../../../../docs/true-calendar/research/batch-06.v1.json").then((m) => m.default as unknown),
   },
+  {
+    id: "batch-07",
+    title: "Research batch 07",
+    description: "Hesiod's days of the month (Works and Days), the Egyptian calendar of lucky and unlucky days, and three Hawaiian seasonal months. None of these get Gregorian dates.",
+    load: () => import("../../../../docs/true-calendar/research/batch-07.v1.json").then((m) => m.default as unknown),
+  },
 ] as const;
 
 export type BundledResearchId = (typeof BUNDLED_RESEARCH)[number]["id"];

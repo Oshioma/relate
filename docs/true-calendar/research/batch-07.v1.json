@@ -1,0 +1,696 @@
+{
+ "format": "true-calendar/v1",
+ "sources": [
+  {
+   "key": "src.hesiod-works-days-chs",
+   "title": "Hesiod, Works and Days (translation, lines 765–828 on the days of the month)",
+   "publisher": "Center for Hellenic Studies, Harvard University",
+   "url": "https://chs.harvard.edu/primary-source/hesiod-works-and-days-sb/",
+   "source_type": "primary_text",
+   "notes": "An ancient poem in translation. One author's prescriptions, not a universal Greek calendar. From Oshi's research batch 07.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.bm-lucky-days-papyrus",
+   "title": "Papyrus with a calendar of lucky and unlucky days",
+   "publisher": "British Museum, on Google Arts & Culture",
+   "url": "https://artsandculture.google.com/asset/papyrus-with-a-calendar-of-lucky-and-unlucky-days/6wHYNyTcUFL8Bw",
+   "source_type": "reference",
+   "notes": "A museum description of the object; it does not give the individual days. From Oshi's research batch 07.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.uh-hawaiian-lunar-calendar",
+   "title": "Hawaiian lunar calendar",
+   "publisher": "University of Hawaiʻi Climate Data Portal",
+   "url": "https://www.hawaii.edu/climate-data-portal/hawaiian-lunar-calendar/",
+   "source_type": "academic",
+   "notes": "A university compilation. From Oshi's research batch 07.",
+   "review_status": "draft"
+  }
+ ],
+ "cultures": [
+  {
+   "key": "europe.hesiodic-greek",
+   "name": "Ancient Greek (Hesiodic)",
+   "continent": "Europe",
+   "region": "Boeotia, Greece",
+   "countries": [
+    "Greece"
+   ],
+   "related_keys": [
+    "europe.athenian-greek"
+   ],
+   "continues_today": "no",
+   "people": "Hesiod",
+   "overview": "The days of the month as Hesiod's poem Works and Days (around 700 BCE) describes them: one farmer-poet's advice, not a calendar every Greek city kept.",
+   "research_status": "in_progress",
+   "sort_order": 29,
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "systems": [
+  {
+   "key": "europe.hesiodic-greek.works-and-days",
+   "culture_key": "europe.hesiodic-greek",
+   "name": "Works and Days: the days of the month",
+   "kind": "lunar",
+   "description": "Hesiod's list of good and bad days of the lunar month for farm work, crafts and household rites.",
+   "month_rule": "Hesiod counts a lunar month of about 30 days, partly in three ten-day parts (\"the middle sixth\" is the sixth day of the middle part). When his month began is not stated.",
+   "uncertainty": "One poet's prescriptions, not universal Greek practice. Not placed on modern dates.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "lines 765–828"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.north.ancient-egyptian.lucky-days",
+   "culture_key": "africa.north.ancient-egyptian",
+   "name": "Calendar of lucky and unlucky days",
+   "kind": "solar",
+   "description": "Papyri that rate days of the civil calendar as good, bad or mixed, often by reference to events in the myths of the gods.",
+   "uncertainty": "Days of the 365-day civil calendar. Placing one on a modern date needs a specific historical calendar and epoch; the museum description used here does not list the days.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.bm-lucky-days-papyrus"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "oceania.hawaiian.seasonal-months",
+   "culture_key": "oceania.hawaiian",
+   "name": "Hawaiian seasonal months",
+   "kind": "lunisolar",
+   "description": "Named lunar months of the Hawaiian year, each bounded by new Moons and linked to seasonal signs at sea and on land.",
+   "uncertainty": "These describe Hawaiʻi's seasons; they don't carry over to East Africa. The source is a university compilation.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.uh-hawaiian-lunar-calendar"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "lunar_days": [
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-01",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "day_number": 1,
+   "name": "Day 1",
+   "meaning": "Holy day",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-001"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-04",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "day_number": 4,
+   "name": "Day 4",
+   "meaning": "Holy day; also discussed for marriage and beginning ship construction",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-002"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-07",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "day_number": 7,
+   "name": "Day 7",
+   "meaning": "Sacred to Apollo; also references threshing grain in mid-month, a separate day count",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-003"
+    }
+   ]
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-08",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "day_number": 8,
+   "name": "Day 8",
+   "meaning": "Favourable for human work during waxing part of month",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-004"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-09",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "day_number": 9,
+   "name": "Day 9",
+   "meaning": "Favourable for human work during waxing part of month",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-005"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-11",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "day_number": 11,
+   "name": "Day 11",
+   "meaning": "Favourable for shearing sheep and harvesting grain",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-006"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-12",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "day_number": 12,
+   "name": "Day 12",
+   "meaning": "Especially favourable for shearing and harvesting; also loom work",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-007"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-13",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "day_number": 13,
+   "name": "Day 13",
+   "meaning": "Avoid beginning to sow during waxing month; suitable for setting plants",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-008"
+    }
+   ],
+   "favourability": "unfavourable"
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-20",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "day_number": 20,
+   "name": "Day 20",
+   "meaning": "The Great Twentieth is singled out for favourable birth character; historical belief only",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-009"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-27",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "day_number": 27,
+   "name": "Day 27",
+   "meaning": "Favourable for opening wine jars, yoking animals and launching a ship",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-010"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-30",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "day_number": 30,
+   "name": "Day 30",
+   "meaning": "Review work and distribute supplies",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-011"
+    }
+   ]
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-16",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "day_number": 16,
+   "name": "Sixth of mid-month",
+   "meaning": "Unfavourable for plants in Hesiod’s account",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known. Day 16 here is our reading of \"the sixth of the middle part of the month\"; the batch gives the position only in words.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-012"
+    }
+   ],
+   "favourability": "unfavourable"
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-17",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "day_number": 17,
+   "name": "Seventh of mid-month",
+   "meaning": "References threshing grain and cutting timbers for building and ships",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known. Day 17 here is our reading of \"the seventh of the middle part of the month\"; the batch gives the position only in words.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-013"
+    }
+   ]
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-05",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "day_number": 5,
+   "name": "Fifth days",
+   "meaning": "Described as ominous days in Hesiodic tradition",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known. Hesiod warns against the fifth days (the 5th, 15th and 25th); shown here at day 5.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-014"
+    }
+   ],
+   "favourability": "unfavourable"
+  }
+ ],
+ "observances": [
+  {
+   "key": "africa.north.ancient-egyptian.lucky-days.favourable",
+   "culture_key": "africa.north.ancient-egyptian",
+   "system_key": "africa.north.ancient-egyptian.lucky-days",
+   "name": "Favourable day",
+   "kind": "other",
+   "timing": "Particular days of the civil calendar (which days is not given in this source)",
+   "description": "Surviving papyrus rates some civil-calendar days as good, often referring to divine mythic events",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "British Museum papyrus; exact day/month not supplied by this summary. No automatic date assignment.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.bm-lucky-days-papyrus",
+     "locator": "b07-015"
+    }
+   ]
+  },
+  {
+   "key": "africa.north.ancient-egyptian.lucky-days.unfavourable",
+   "culture_key": "africa.north.ancient-egyptian",
+   "system_key": "africa.north.ancient-egyptian.lucky-days",
+   "name": "Unfavourable day",
+   "kind": "other",
+   "timing": "Particular days of the civil calendar (which days is not given in this source)",
+   "description": "Surviving papyrus rates some days as bad, sometimes advising against travel or work",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Not a general waning/new moon rule; Egyptian civil dates need a specific historical calendar and epoch. Shown as history, not safety advice.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.bm-lucky-days-papyrus",
+     "locator": "b07-016"
+    }
+   ]
+  },
+  {
+   "key": "africa.north.ancient-egyptian.lucky-days.mixed",
+   "culture_key": "africa.north.ancient-egyptian",
+   "system_key": "africa.north.ancient-egyptian.lucky-days",
+   "name": "Mixed day",
+   "kind": "other",
+   "timing": "Particular days of the civil calendar (which days is not given in this source)",
+   "description": "Some papyrus entries have combinations of good and bad day signs",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "No exact date alignment established.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.bm-lucky-days-papyrus",
+     "locator": "b07-017"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.seasonal-months.makalii",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.seasonal-months",
+   "name": "Makaliʻi",
+   "original_name": "Makaliʻi",
+   "kind": "other",
+   "timing": "A month of the Hawaiian year, between two new Moons",
+   "description": "Pleiades-associated seasonal month; observations include marine conditions and fish availability",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Hawaiian seasonal context, not transferable directly to East Africa; source is a university compilation.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.uh-hawaiian-lunar-calendar",
+     "locator": "b07-018"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.seasonal-months.welehu",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.seasonal-months",
+   "name": "Welehu",
+   "original_name": "Welehu",
+   "kind": "other",
+   "timing": "A month of the Hawaiian year, between two new Moons",
+   "description": "Traditional month identified by new-moon boundary after ʻIkuwa",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Hawaiian seasonal context, not transferable directly to East Africa; source is a university compilation.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.uh-hawaiian-lunar-calendar",
+     "locator": "b07-019"
+    }
+   ]
+  },
+  {
+   "key": "oceania.hawaiian.seasonal-months.ikiiki",
+   "culture_key": "oceania.hawaiian",
+   "system_key": "oceania.hawaiian.seasonal-months",
+   "name": "Ikiʻiki",
+   "original_name": "Ikiʻiki",
+   "kind": "other",
+   "timing": "A month of the Hawaiian year, between two new Moons",
+   "description": "Traditional month identified by new-moon boundary after Welo",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Hawaiian seasonal context, not transferable directly to East Africa; source is a university compilation.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.uh-hawaiian-lunar-calendar",
+     "locator": "b07-020"
+    }
+   ]
+  }
+ ],
+ "recommendations": [
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-08.practice",
+   "culture_key": "europe.hesiodic-greek",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "lunar_day_key": "europe.hesiodic-greek.works-and-days.day-08",
+   "activity": "other",
+   "historical_practice": "Favourable for human work during waxing part of month",
+   "modern_interpretation": "Plan productive tasks (modern suggestion)",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-004"
+    }
+   ]
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-09.practice",
+   "culture_key": "europe.hesiodic-greek",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "lunar_day_key": "europe.hesiodic-greek.works-and-days.day-09",
+   "activity": "other",
+   "historical_practice": "Favourable for human work during waxing part of month",
+   "modern_interpretation": "Schedule ordinary work (modern suggestion)",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-005"
+    }
+   ]
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-11.practice",
+   "culture_key": "europe.hesiodic-greek",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "lunar_day_key": "europe.hesiodic-greek.works-and-days.day-11",
+   "activity": "harvesting",
+   "historical_practice": "Favourable for shearing sheep and harvesting grain",
+   "modern_interpretation": "Consider shearing or harvest planning if seasonally appropriate (modern suggestion)",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-006"
+    }
+   ]
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-12.practice",
+   "culture_key": "europe.hesiodic-greek",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "lunar_day_key": "europe.hesiodic-greek.works-and-days.day-12",
+   "activity": "harvesting",
+   "historical_practice": "Especially favourable for shearing and harvesting; also loom work",
+   "modern_interpretation": "Check crop maturity and work plans (modern suggestion)",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-007"
+    }
+   ]
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-13.practice",
+   "culture_key": "europe.hesiodic-greek",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "lunar_day_key": "europe.hesiodic-greek.works-and-days.day-13",
+   "activity": "planting",
+   "historical_practice": "Avoid beginning to sow during waxing month; suitable for setting plants",
+   "modern_interpretation": "Distinguish sowing seeds from transplanting (modern suggestion)",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-008"
+    }
+   ]
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-27.practice",
+   "culture_key": "europe.hesiodic-greek",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "lunar_day_key": "europe.hesiodic-greek.works-and-days.day-27",
+   "activity": "trade",
+   "historical_practice": "Favourable for opening wine jars, yoking animals and launching a ship",
+   "modern_interpretation": "Review storage, transport and marine readiness (modern suggestion)",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-010"
+    }
+   ]
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-30.practice",
+   "culture_key": "europe.hesiodic-greek",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "lunar_day_key": "europe.hesiodic-greek.works-and-days.day-30",
+   "activity": "other",
+   "historical_practice": "Review work and distribute supplies",
+   "modern_interpretation": "Audit work completed and inventory (modern suggestion)",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-011"
+    }
+   ]
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-16.practice",
+   "culture_key": "europe.hesiodic-greek",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "lunar_day_key": "europe.hesiodic-greek.works-and-days.day-16",
+   "activity": "planting",
+   "historical_practice": "Unfavourable for plants in Hesiod’s account",
+   "modern_interpretation": "Compare against agronomic evidence rather than treating as established fact (modern suggestion)",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known. Day 16 here is our reading of \"the sixth of the middle part of the month\"; the batch gives the position only in words.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-012"
+    }
+   ]
+  },
+  {
+   "key": "europe.hesiodic-greek.works-and-days.day-17.practice",
+   "culture_key": "europe.hesiodic-greek",
+   "system_key": "europe.hesiodic-greek.works-and-days",
+   "lunar_day_key": "europe.hesiodic-greek.works-and-days.day-17",
+   "activity": "harvesting",
+   "historical_practice": "References threshing grain and cutting timbers for building and ships",
+   "modern_interpretation": "Check local harvest and timber conditions (modern suggestion)",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "One poet's prescription (Hesiod, Works and Days), not universal Greek practice. Not placed on modern dates: when Hesiod's month started is not known. Day 17 here is our reading of \"the seventh of the middle part of the month\"; the batch gives the position only in words.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.hesiod-works-days-chs",
+     "locator": "b07-013"
+    }
+   ]
+  }
+ ]
+}
