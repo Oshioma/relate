@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { loadTrueCalendarSpace } from "@/lib/data/true-calendar-space";
 import { getBundledResearchStatus, getRecentImportRuns, getReviewQueue } from "@/lib/data/true-calendar";
 import { TrueCalendarFrame } from "@/components/true-calendar/true-calendar-frame";
-import { ImportPanel, ReadyToImport, ReviewQueue } from "@/components/true-calendar/research-desk";
+import { ImportPanel, ReadyToImport, ResearchStart, ReviewQueue } from "@/components/true-calendar/research-desk";
 
 export const metadata: Metadata = { title: "Research · The True Calendar" };
 
@@ -28,9 +28,20 @@ export default async function TrueCalendarResearchPage({ params }: { params: Pro
         <p className="text-base text-[var(--tc-muted)]">
           You are a {researcherRole}. {researcherRole === "reviewer" ? "You can import research and publish it." : "You can import research as drafts and mark it ready; a reviewer publishes it."}
         </p>
-        <ReadyToImport spacePath={spacePath} files={bundled} />
-        <ImportPanel spacePath={spacePath} />
-        <ReviewQueue spacePath={spacePath} items={items} cultureNames={[...cultureNames]} isReviewer={researcherRole === "reviewer"} />
+        <ResearchStart
+          spacePath={spacePath}
+          newFiles={bundled.filter((b) => b.ok && b.newRecords > 0).length}
+          drafts={items.filter((i) => i.status !== "published" && i.status !== "rejected" && i.table !== "calendar_sources").length}
+          isReviewer={researcherRole === "reviewer"}
+        />
+        <details className="rounded-lg border border-[var(--tc-line)] px-4 py-3">
+          <summary className="cursor-pointer text-base font-medium">More: research files one by one, paste a file, review record by record</summary>
+          <div className="mt-3 space-y-5">
+            <ReadyToImport spacePath={spacePath} files={bundled} />
+            <ImportPanel spacePath={spacePath} />
+            <ReviewQueue spacePath={spacePath} items={items} cultureNames={[...cultureNames]} isReviewer={researcherRole === "reviewer"} />
+          </div>
+        </details>
         {runs.length > 0 ? (
           <section aria-labelledby="tc-runs-heading" className="rounded-lg border border-[var(--tc-line)] bg-[var(--tc-panel)] px-4 py-4">
             <h2 id="tc-runs-heading" className="font-serif text-2xl">Recent imports</h2>
