@@ -15,7 +15,7 @@ const published = "published";
 /** Everything the calendar needs to say what a day means. Small: rule rows,
  * not dates. Errors (e.g. the tables not migrated yet) read as "no research". */
 export async function getResearchBundle(supabase: Client): Promise<ResearchBundle> {
-  const [cultures, systems, cycles, positions, observances, meanings, recommendations, correspondences, notes] = await Promise.all([
+  const [cultures, systems, cycles, positions, observances, meanings, recommendations, correspondences, notes, lunarDays, sources, citations] = await Promise.all([
     supabase.from("calendar_cultures").select("*").eq("review_status", published).order("sort_order"),
     supabase.from("calendar_systems").select("*").eq("review_status", published),
     supabase.from("calendar_cycles").select("*").eq("review_status", published),
@@ -25,6 +25,9 @@ export async function getResearchBundle(supabase: Client): Promise<ResearchBundl
     supabase.from("calendar_recommendations").select("*").eq("review_status", published),
     supabase.from("calendar_date_correspondences").select("*").eq("review_status", published).not("gregorian_from", "is", null),
     supabase.from("calendar_daily_notes").select("*").eq("review_status", published),
+    supabase.from("calendar_lunar_days").select("*").eq("review_status", published).order("day_number"),
+    supabase.from("calendar_sources").select("key, title, url, publisher").eq("review_status", published),
+    supabase.from("calendar_claim_sources").select("claim_table, claim_key, source_key").eq("relation", "supports").limit(5000),
   ]);
   if (cultures.error) return EMPTY_BUNDLE;
   return {
@@ -38,6 +41,9 @@ export async function getResearchBundle(supabase: Client): Promise<ResearchBundl
     correspondences: correspondences.data ?? [],
     // Missing until the daily-notes migration runs; read as "no notes".
     notes: notes.error ? [] : notes.data ?? [],
+    lunarDays: lunarDays.data ?? [],
+    sources: sources.data ?? [],
+    citations: citations.data ?? [],
   };
 }
 
