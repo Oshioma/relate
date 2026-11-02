@@ -42,6 +42,12 @@ export const BUNDLED_RESEARCH = [
     description: "Practices and modern readings for Māori, Hawaiian, Athenian and Igbo nights and days, an Artemis day, and the caveat that the 2026 Akwasidae dates are a secondary listing.",
     load: () => import("../../../../docs/true-calendar/research/batch-05.v1.json").then((m) => m.default as unknown),
   },
+  {
+    id: "batch-06",
+    title: "Research batch 06",
+    description: "A Ngāti Kahungunu maramataka of 30 nights and the 12 Ngāi Tūhoe months (both from Te Ara). Its Hawaiian nights and Igbo market days were already in from batches 01 and 02.",
+    load: () => import("../../../../docs/true-calendar/research/batch-06.v1.json").then((m) => m.default as unknown),
+  },
 ] as const;
 
 export type BundledResearchId = (typeof BUNDLED_RESEARCH)[number]["id"];

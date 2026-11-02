@@ -1,272 +1,352 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowRight,
+  CalendarDays,
+  ChevronRight,
+  CircleCheck,
+  Fish,
+  Leaf,
+  type LucideIcon,
+  Moon,
+  RefreshCw,
+  Sparkles,
+  Sprout,
+  Store,
+  Users,
+  Utensils,
+  X,
+} from "lucide-react";
 import Link from "@/components/ui/link";
-import { type CivilDate, GREGORIAN_MONTHS, WEEKDAYS, weekdayOf } from "@/lib/true-calendar/dates";
-import { moonDays } from "@/lib/true-calendar/astronomy";
+import { type CivilDate, GREGORIAN_MONTHS, WEEKDAYS_SHORT, weekdayOf } from "@/lib/true-calendar/dates";
+import { lunarMonthContaining, moonDay, moonDays } from "@/lib/true-calendar/astronomy";
 import type { ResearchBundle } from "@/lib/true-calendar/research/daily";
 import type { ResearchStats } from "@/lib/data/true-calendar";
 import {
   ADVICE_CATEGORIES,
-  CONFIDENCE_TIERS,
+  DATE_STATUS_BADGES,
   DATE_STATUS_LABELS,
   type AdviceCategory,
   type AdviceFilter,
   type AdviceItem,
-  type ConfidenceTier,
   type DateStatus,
   adviceAhead,
+  adviceList,
   filterFeed,
 } from "@/lib/true-calendar/research/ahead";
 import { EvidenceChips } from "./history-bits";
+import { MoonGlyph } from "./moon-glyph";
 
-// "Next advice from the past": what the published research says is coming up,
-// from any tradition, not limited to the week. Three groups (dated, lunar,
-// seasonal and recurring); every card says how its date is known, keeps the
-// tradition's own words apart from our modern reading, and links its sources
-// and the culture's History page. Nothing here is generated to fill a gap.
+// "Next Advice From the Past": one list of what the published research says is
+// coming up. Every card has a date where one can be worked out:
+// a listed date, a calculated Moon phase, or a lunar night counted from the
+// calculated new Moon (the card's details say which rule was used). Only
+// cycles with no known anchor (the Igbo market week) stay undated, at the end.
+// The tradition's own words are kept apart from modern readings, and every
+// card links its sources. Nothing here is generated to fill a gap.
 
-const STEP = 5;
+const FIRST = 5;
+const MORE = 10;
 
-const STATUS_STYLE: Record<DateStatus, string> = {
-  official: "border-emerald-600/50 text-emerald-800 dark:text-emerald-300",
-  verified: "border-emerald-600/50 text-emerald-800 dark:text-emerald-300",
-  secondary: "border-amber-600/50 text-amber-800 dark:text-amber-300",
-  astronomical: "border-sky-600/40 text-sky-800 dark:text-sky-300",
-  provisional: "border-amber-600/50 text-amber-800 dark:text-amber-300",
-  lunar_pending: "border-[var(--tc-line)] text-[var(--tc-muted)]",
-  recurring: "border-[var(--tc-line)] text-[var(--tc-muted)]",
-  disputed: "border-rose-600/40 text-rose-800 dark:text-rose-300",
+const CATEGORY_UI: Record<AdviceCategory, { short: string; icon: LucideIcon; tint: string }> = {
+  farming: { short: "Farming", icon: Sprout, tint: "from-emerald-200 to-lime-100 text-emerald-800 dark:from-emerald-900 dark:to-emerald-950 dark:text-emerald-200" },
+  fishing: { short: "Fishing", icon: Fish, tint: "from-sky-300 to-cyan-100 text-sky-900 dark:from-sky-900 dark:to-cyan-950 dark:text-sky-200" },
+  food: { short: "Food", icon: Utensils, tint: "from-amber-200 to-orange-100 text-amber-900 dark:from-amber-900 dark:to-orange-950 dark:text-amber-200" },
+  community: { short: "Community", icon: Users, tint: "from-rose-200 to-amber-100 text-rose-900 dark:from-rose-900 dark:to-amber-950 dark:text-rose-200" },
+  ceremony: { short: "Spirituality", icon: Sparkles, tint: "from-violet-200 to-amber-100 text-violet-900 dark:from-violet-900 dark:to-amber-950 dark:text-violet-200" },
+  conservation: { short: "Conservation", icon: Leaf, tint: "from-green-200 to-teal-100 text-green-900 dark:from-green-900 dark:to-teal-950 dark:text-green-200" },
+  trade: { short: "Trade", icon: Store, tint: "from-yellow-200 to-amber-100 text-yellow-900 dark:from-yellow-900 dark:to-amber-950 dark:text-yellow-200" },
+};
+const PLAIN_TINT = "from-stone-200 to-amber-50 text-stone-700 dark:from-stone-800 dark:to-stone-900 dark:text-stone-200";
+
+const BADGE_STYLE: Record<DateStatus, string> = {
+  official: "border-emerald-600/40 bg-emerald-50 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
+  verified: "border-emerald-600/40 bg-emerald-50 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
+  secondary: "border-emerald-600/40 bg-emerald-50 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
+  astronomical: "border-amber-600/40 bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
+  provisional: "border-amber-600/40 bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
+  counted: "border-[var(--tc-line)] bg-[var(--tc-panel)] text-[var(--tc-ink)]",
+  lunar_pending: "border-[var(--tc-line)] bg-[var(--tc-panel)] text-[var(--tc-muted)]",
+  recurring: "border-[var(--tc-line)] bg-[var(--tc-panel)] text-[var(--tc-ink)]",
+  disputed: "border-rose-600/40 bg-rose-50 text-rose-900 dark:bg-rose-950 dark:text-rose-200",
 };
 
-const GROUPS = [
-  { key: "dated", title: "Upcoming dated observances", blurb: "Dates a source lists, or that a sourced cycle anchor counts to. Each says which.", empty: "No dated observance matches yet." },
-  {
-    key: "lunar",
-    title: "Upcoming lunar knowledge",
-    blurb: "Guidance tied to lunar nights and Moon phases. A Moon phase is calculated; a named night waits for its tradition's own month rule (when the month starts, and which community's count), so it shows \"Lunar date pending verification\" instead of a guessed date.",
-    empty: "No lunar knowledge matches yet.",
-  },
-  {
-    key: "seasonal",
-    title: "Seasonal and recurring wisdom",
-    blurb: "Market cycles, seasons and other recurring calendars, in their own region's terms. Their alignment with today's date has not been verified, and seasons from another region do not carry over to Zanzibar.",
-    empty: "No seasonal or recurring knowledge matches yet.",
-  },
-] as const;
-
 export function NextAdvice({ bundle, stats, date, tz, historyPath }: { bundle: ResearchBundle; stats: ResearchStats | null; date: CivilDate; tz: string; historyPath: string }) {
-  const feed = useMemo(() => adviceAhead(bundle, date, moonDays(date, 35, tz)), [bundle, date, tz]);
+  const feed = useMemo(
+    () => adviceAhead(bundle, date, moonDays(date, 35, tz), { monthStart: lunarMonthContaining(date, tz).month.start }),
+    [bundle, date, tz],
+  );
   // "See related advice" on a History page links here with ?advice=<culture>.
   // The calendar renders only in the browser (it waits for the local date), so
   // reading the address here is safe.
   const [linkedCulture] = useState(() => (typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("advice")));
   const [filter, setFilter] = useState<AdviceFilter>({ category: "all", culture: linkedCulture ?? "all", tier: "all" });
-  const [shown, setShown] = useState({ dated: STEP, lunar: STEP, seasonal: STEP });
+  const [shown, setShown] = useState(FIRST);
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (linkedCulture) sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [linkedCulture]);
 
-  const cultures = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const i of [...feed.dated, ...feed.lunar, ...feed.seasonal]) m.set(i.cultureKey, i.cultureName);
-    return [...m].sort((a, b) => a[1].localeCompare(b[1]));
-  }, [feed]);
-  const filtered = filterFeed(feed, filter);
-  const total = feed.dated.length + feed.lunar.length + feed.seasonal.length;
+  const everything = useMemo(() => [...feed.dated, ...feed.lunar, ...feed.seasonal], [feed]);
+  // One list: listed dates, the Moon, then each tradition in turn; undated last.
+  const items = useMemo(() => adviceList(filterFeed(feed, filter)), [feed, filter]);
+  const cultureName = filter.culture === "all" ? null : (everything.find((i) => i.cultureKey === filter.culture)?.cultureName ?? filter.culture);
+
   const set = (patch: Partial<AdviceFilter>) => {
     setFilter((f) => ({ ...f, ...patch }));
-    setShown({ dated: STEP, lunar: STEP, seasonal: STEP });
+    setShown(FIRST);
   };
 
   return (
-    <section ref={sectionRef} id="tc-next-advice" aria-labelledby="tc-next-advice-heading" className="scroll-mt-4 space-y-3">
-      <ResearchCounters stats={stats} historyPath={historyPath} />
+    <section
+      ref={sectionRef}
+      id="tc-next-advice"
+      aria-labelledby="tc-next-advice-heading"
+      className="scroll-mt-4 rounded-2xl border border-[var(--tc-line)] bg-[var(--tc-panel)] px-4 py-5 sm:px-6 sm:py-6"
+    >
+      <h2 id="tc-next-advice-heading" className="font-serif text-3xl font-semibold sm:text-4xl">Next Advice From the Past</h2>
+      <p className="mt-1 text-lg text-[var(--tc-muted)]">Traditional knowledge to use in the days and weeks ahead.</p>
 
-      <div className="rounded-lg border border-[var(--tc-line)] bg-[var(--tc-panel)] px-4 py-4">
-        <h2 id="tc-next-advice-heading" className="font-serif text-2xl">Next Advice From the Past</h2>
-        <p className="mt-0.5 text-base text-[var(--tc-muted)]">Traditional knowledge worth knowing, from cultures around the world.</p>
-
-        <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Filter by kind of knowledge">
-          <FilterChip active={filter.category === "all"} onClick={() => set({ category: "all" })}>All knowledge</FilterChip>
-          {ADVICE_CATEGORIES.map((c) => (
-            <FilterChip key={c.key} active={filter.category === c.key} onClick={() => set({ category: c.key as AdviceCategory })}>{c.label}</FilterChip>
-          ))}
-        </div>
-        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-sm text-[var(--tc-muted)]">
-          <label className="flex items-center gap-2">
-            Culture
-            <select value={filter.culture} onChange={(e) => set({ culture: e.target.value })} className="rounded-md border border-[var(--tc-line)] bg-[var(--tc-panel)] px-2 py-1 text-base text-[var(--tc-ink)]">
-              <option value="all">All cultures</option>
-              {cultures.map(([key, name]) => (
-                <option key={key} value={key}>{name}</option>
-              ))}
-              {filter.culture !== "all" && !cultures.some(([k]) => k === filter.culture) ? <option value={filter.culture}>{filter.culture}</option> : null}
-            </select>
-          </label>
-          <label className="flex items-center gap-2">
-            Source confidence
-            <select value={filter.tier} onChange={(e) => set({ tier: e.target.value as ConfidenceTier | "all" })} className="rounded-md border border-[var(--tc-line)] bg-[var(--tc-panel)] px-2 py-1 text-base text-[var(--tc-ink)]">
-              <option value="all">Any</option>
-              {CONFIDENCE_TIERS.map((t) => (
-                <option key={t.key} value={t.key}>{t.label}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        {total === 0 ? (
-          <p className="mt-4 text-base text-[var(--tc-muted)]">
-            No research has been published yet. Knowledge appears here as soon as a reviewer publishes it.{" "}
-            <Link href={historyPath} className="underline underline-offset-2 hover:text-[var(--tc-ink)]">Browse the traditions in History</Link>.
-          </p>
-        ) : (
-          GROUPS.map((g) => {
-            const items = filtered[g.key];
-            const n = shown[g.key];
-            return (
-              <div key={g.key} className="mt-5">
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--tc-muted)]">
-                  {g.title} <span className="font-normal normal-case tracking-normal">({items.length})</span>
-                </h3>
-                <p className="mt-0.5 text-sm text-[var(--tc-muted)]">{g.blurb}</p>
-                {items.length === 0 ? (
-                  <p className="mt-2 text-base text-[var(--tc-muted)]">{g.empty}</p>
-                ) : (
-                  <ul className="mt-2 space-y-2">
-                    {items.slice(0, n).map((item) => (
-                      <AdviceCard key={item.id} item={item} historyPath={historyPath} />
-                    ))}
-                  </ul>
-                )}
-                {items.length > n ? (
-                  <button
-                    type="button"
-                    onClick={() => setShown((s) => ({ ...s, [g.key]: s[g.key] + STEP }))}
-                    className="mt-2 rounded-md border border-[var(--tc-line)] px-3 py-1.5 text-base font-medium hover:bg-[var(--tc-hover)]"
-                  >
-                    Show more ({items.length - n} more)
-                  </button>
-                ) : null}
-              </div>
-            );
-          })
-        )}
+      <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Filter by kind of knowledge">
+        <Chip active={filter.category === "all"} onClick={() => set({ category: "all" })}>All</Chip>
+        {ADVICE_CATEGORIES.map((c) => {
+          const ui = CATEGORY_UI[c.key];
+          const Icon = ui.icon;
+          return (
+            <Chip key={c.key} active={filter.category === c.key} onClick={() => set({ category: c.key })} title={c.label}>
+              <Icon aria-hidden className="size-4" />
+              {ui.short}
+            </Chip>
+          );
+        })}
       </div>
+      {cultureName ? (
+        <p className="mt-2 text-sm text-[var(--tc-muted)]">
+          Showing {cultureName} only.{" "}
+          <button type="button" onClick={() => set({ culture: "all" })} className="inline-flex items-center gap-1 underline underline-offset-2 hover:text-[var(--tc-ink)]">
+            <X aria-hidden className="size-3.5" /> Show every culture
+          </button>
+        </p>
+      ) : null}
+
+      {everything.length === 0 ? (
+        <p className="mt-5 text-base text-[var(--tc-muted)]">
+          No research has been published yet. Knowledge appears here as soon as a reviewer publishes it.{" "}
+          <Link href={historyPath} className="underline underline-offset-2 hover:text-[var(--tc-ink)]">Browse the traditions in History</Link>.
+        </p>
+      ) : items.length === 0 ? (
+        <p className="mt-5 text-base text-[var(--tc-muted)]">Nothing of this kind yet.</p>
+      ) : (
+        <ul className="mt-5 space-y-3">
+          {items.slice(0, shown).map((item, i) => (
+            <AdviceCard key={item.id} item={item} tz={tz} historyPath={historyPath} highlight={i === 0 && ["official", "verified", "secondary"].includes(item.status)} />
+          ))}
+        </ul>
+      )}
+
+      {items.length > shown ? (
+        <div className="mt-5 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setShown((n) => n + MORE)}
+            className="inline-flex items-center gap-2 rounded-full bg-[var(--tc-hover)] px-6 py-3 text-lg font-medium hover:brightness-95"
+          >
+            See more ancient wisdom <ArrowRight aria-hidden className="size-5" />
+          </button>
+        </div>
+      ) : null}
+
+      {stats && stats.records > 0 ? (
+        <p className="mt-4 text-center text-sm text-[var(--tc-muted)]">
+          From {stats.records} published research records across {stats.cultures} cultures.{" "}
+          <Link href={historyPath} className="underline underline-offset-2 hover:text-[var(--tc-ink)]">Browse them in History</Link>.
+        </p>
+      ) : null}
     </section>
   );
 }
 
-function ResearchCounters({ stats, historyPath }: { stats: ResearchStats | null; historyPath: string }) {
-  if (!stats) return null;
-  const cell = "rounded-lg border border-[var(--tc-line)] bg-[var(--tc-panel)] px-3 py-2";
-  return (
-    <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Published research">
-      <div className={`${cell} flex flex-col-reverse`}>
-        <dt className="text-sm text-[var(--tc-muted)]">Research records</dt>
-        <dd className="font-serif text-3xl">{stats.records}</dd>
-      </div>
-      <div className={`${cell} flex flex-col-reverse`}>
-        <dt className="text-sm text-[var(--tc-muted)]">With practical guidance</dt>
-        <dd className="font-serif text-3xl">{stats.actionable}</dd>
-      </div>
-      <div className={`${cell} flex flex-col-reverse`}>
-        <dt className="text-sm text-[var(--tc-muted)]">
-          <Link href={historyPath} className="underline-offset-2 hover:text-[var(--tc-ink)] hover:underline">Cultures represented</Link>
-        </dt>
-        <dd className="font-serif text-3xl">{stats.cultures}</dd>
-      </div>
-      <div className={`${cell} flex flex-col-reverse`}>
-        <dt className="text-sm text-[var(--tc-muted)]">Upcoming dated observances</dt>
-        <dd className="font-serif text-3xl">{stats.upcomingDated}</dd>
-      </div>
-    </dl>
-  );
-}
-
-function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function Chip({ active, onClick, title, children }: { active: boolean; onClick: () => void; title?: string; children: React.ReactNode }) {
   return (
     <button
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`rounded-full border px-3 py-1 text-sm ${active ? "border-[var(--tc-gold)] bg-[var(--tc-hover)] font-medium" : "border-[var(--tc-line)] text-[var(--tc-muted)] hover:text-[var(--tc-ink)]"}`}
+      title={title}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-base ${
+        active
+          ? "border-emerald-900 bg-emerald-900 font-medium text-white dark:border-emerald-300 dark:bg-emerald-300 dark:text-emerald-950"
+          : "border-[var(--tc-line)] bg-[var(--tc-panel)] text-[var(--tc-ink)] hover:bg-[var(--tc-hover)]"
+      }`}
     >
       {children}
     </button>
   );
 }
 
-function Indicator({ item }: { item: AdviceItem }) {
+function DateTile({ item }: { item: AdviceItem }) {
   if (item.date) {
     const d = item.date;
     return (
-      <div className="text-center leading-tight">
-        <div className="text-xs uppercase tracking-wider text-[var(--tc-muted)]">{WEEKDAYS[weekdayOf(d)].slice(0, 3)}</div>
-        <div className="font-serif text-2xl">{d.day}</div>
-        <div className="text-xs">{GREGORIAN_MONTHS[d.month - 1].slice(0, 3)} {d.year}</div>
+      <div className="flex flex-col items-center justify-center px-1 text-center leading-tight">
+        <div className="text-base text-[var(--tc-muted)] sm:text-lg">{WEEKDAYS_SHORT[weekdayOf(d)]}</div>
+        <div className="font-serif text-4xl font-semibold sm:text-5xl">{d.day}</div>
+        <div className="text-sm sm:text-base">{GREGORIAN_MONTHS[d.month - 1].slice(0, 3)} {d.year}</div>
+        {item.status === "counted" || item.status === "provisional" ? (
+          <div className="mt-1 rounded-full border border-[var(--tc-line)] px-2 text-xs text-[var(--tc-muted)]" title="Worked out by us, not a verified traditional date">Approx.</div>
+        ) : null}
       </div>
     );
   }
+  const recurring = item.status === "recurring";
+  const Icon = recurring ? RefreshCw : CalendarDays;
   return (
-    <div className="text-center leading-tight text-[var(--tc-muted)]">
-      <div aria-hidden className="text-xl">{item.group === "lunar" ? "☾" : "↻"}</div>
-      <div className="text-xs">{item.position}</div>
+    <div className="flex flex-col items-center justify-center gap-1 px-1 text-center leading-tight">
+      <Icon aria-hidden className="size-8 text-[var(--tc-muted)]" />
+      <div className="text-sm font-medium sm:text-base">{recurring ? "Recurring" : "Date pending"}</div>
+      {item.position ? <div className="text-xs text-[var(--tc-muted)] sm:text-sm">{item.position}</div> : null}
     </div>
   );
 }
 
-function AdviceCard({ item, historyPath }: { item: AdviceItem; historyPath: string }) {
-  const href = `${historyPath}/${item.cultureKey}`;
-  return (
-    <li className="grid grid-cols-[3.75rem_1fr] gap-3 rounded-md border border-[var(--tc-line)] px-3 py-2">
-      <Indicator item={item} />
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <span className="font-serif text-lg">{item.name}</span>
-          <span className="text-sm text-[var(--tc-muted)]">
-            <Link href={href} className="font-medium text-[var(--tc-ink)] underline-offset-2 hover:underline">{item.cultureName}</Link>
-            {item.region ? ` · ${item.region}` : null}
-          </span>
-          <span className={`ml-auto inline-block whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium ${STATUS_STYLE[item.status]}`}>{DATE_STATUS_LABELS[item.status]}</span>
-        </div>
-        {item.cycle ? <p className="text-sm text-[var(--tc-muted)]">{item.cycle}</p> : null}
-
-        {item.conflicts.length > 0 ? (
-          <details className="mt-1 text-base">
-            <summary className="cursor-pointer font-medium text-amber-800 dark:text-amber-300">Historical interpretations differ. See each account</summary>
-            <ul className="mt-1 space-y-1 border-l-2 border-amber-600/40 pl-3">
-              {item.conflicts.map((c, i) => (
-                <li key={i}>
-                  {c.text} <SourceLinks sources={c.sources} />
-                </li>
-              ))}
-            </ul>
-          </details>
-        ) : null}
-        <p className="mt-1 text-base leading-snug">
-          <span className="text-[var(--tc-muted)]">The tradition says: </span>
-          {item.says.join(". ")}
-        </p>
-        {item.modern.length > 0 ? (
-          <p className="mt-0.5 text-base leading-snug">
-            <span className="text-[var(--tc-muted)]">Today, you could (our modern reading): </span>
-            {item.modern.join(" ")}
-          </p>
-        ) : null}
-        {item.caution ? <p className="mt-0.5 text-sm text-amber-700 dark:text-amber-300">{item.caution}</p> : null}
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--tc-muted)]">
-          <EvidenceChips tags={item.evidence} />
-          {item.sources.length > 0 ? (
-            <span>
-              Source: <SourceLinks sources={item.sources} />
-            </span>
-          ) : null}
-          <Link href={href} className="text-[var(--tc-gold)] underline-offset-2 hover:underline">History</Link>
-        </div>
+function PictureTile({ item, tz }: { item: AdviceItem; tz: string }) {
+  if (item.cultureKey === "sky" && item.date) {
+    const moon = moonDay(item.date, tz);
+    return (
+      <div className="flex h-full min-h-24 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-950">
+        <MoonGlyph illumination={moon.state.illumination} waxing={moon.state.waxing} size={64} title={item.name} />
       </div>
+    );
+  }
+  const cat = item.categories[0];
+  const ui = cat ? CATEGORY_UI[cat] : null;
+  const Icon = ui?.icon ?? (item.group === "lunar" ? Moon : Sparkles);
+  return (
+    <div className={`flex h-full min-h-24 items-center justify-center rounded-xl bg-gradient-to-br ${ui?.tint ?? PLAIN_TINT}`}>
+      <Icon aria-hidden className="size-12 opacity-80" strokeWidth={1.5} />
+    </div>
+  );
+}
+
+function Badge({ item }: { item: AdviceItem }) {
+  const cat = item.categories[0];
+  const Icon =
+    item.status === "official" || item.status === "verified" || item.status === "secondary"
+      ? CircleCheck
+      : item.status === "astronomical"
+        ? Moon
+        : item.status === "recurring"
+          ? RefreshCw
+          : cat
+            ? CATEGORY_UI[cat].icon
+            : Moon;
+  return (
+    <span
+      title={DATE_STATUS_LABELS[item.status]}
+      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-sm font-medium ${BADGE_STYLE[item.status]}`}
+    >
+      <Icon aria-hidden className="size-4" />
+      {DATE_STATUS_BADGES[item.status]}
+    </span>
+  );
+}
+
+function AdviceCard({ item, tz, historyPath, highlight }: { item: AdviceItem; tz: string; historyPath: string; highlight: boolean }) {
+  const [open, setOpen] = useState(false);
+  const href = item.cultureKey === "sky" ? null : `${historyPath}/${item.cultureKey}`;
+  const practical = item.modern[0] ?? null;
+  const traditionally = !practical && item.says.length > 1 ? item.says[1] : null;
+  const detailsId = `tc-advice-${item.id.replace(/[^a-zA-Z0-9-]/g, "-")}`;
+
+  return (
+    <li className={`overflow-hidden rounded-2xl border border-[var(--tc-line)] shadow-sm ${highlight ? "bg-amber-50/70 dark:bg-amber-950/30" : "bg-[var(--tc-bg)]"}`}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-controls={detailsId}
+        className="grid w-full grid-cols-[4.5rem_1fr_auto] items-stretch gap-3 p-3 text-left hover:bg-[var(--tc-hover)] sm:grid-cols-[5.5rem_7rem_1fr_auto] sm:gap-4"
+      >
+        <DateTile item={item} />
+        <div className="hidden sm:block">
+          <PictureTile item={item} tz={tz} />
+        </div>
+        <div className="min-w-0 py-1">
+          <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
+            <div className="min-w-0">
+              <span className="font-serif text-2xl font-semibold leading-tight sm:text-3xl">{item.name}</span>
+              <span className="ml-2 text-base text-[var(--tc-muted)]">
+                {item.cultureName}
+                {item.region ? ` · ${item.region}` : null}
+              </span>
+            </div>
+            <Badge item={item} />
+          </div>
+          <p className="mt-1.5 text-base leading-snug sm:text-lg">{item.says[0]}</p>
+          {practical ? (
+            <p className="mt-1 text-base leading-snug sm:text-lg">
+              <span className="font-semibold text-emerald-800 dark:text-emerald-300">Practical today:</span> {practical}
+            </p>
+          ) : traditionally ? (
+            <p className="mt-1 text-base leading-snug sm:text-lg">
+              <span className="font-semibold text-emerald-800 dark:text-emerald-300">Traditionally:</span> {traditionally}
+            </p>
+          ) : null}
+          {item.conflicts.length > 0 ? <p className="mt-1 text-sm font-medium text-amber-800 dark:text-amber-300">Historical interpretations differ. Open to see each account.</p> : null}
+        </div>
+        <ChevronRight aria-hidden className={`size-6 self-center text-[var(--tc-muted)] transition-transform ${open ? "rotate-90" : ""}`} />
+      </button>
+
+      {open ? (
+        <div id={detailsId} className="space-y-2 border-t border-[var(--tc-line)] px-4 py-3 text-base sm:pl-[13.5rem]">
+          {item.says.length > 1 ? (
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wider text-[var(--tc-muted)]">What the tradition says</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                {item.says.map((t, i) => (
+                  <li key={i}>{t}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {item.modern.length > 0 ? (
+            <p>
+              <span className="text-[var(--tc-muted)]">Modern reading (optional, not historical): </span>
+              {item.modern.join(" ")}
+            </p>
+          ) : null}
+          {item.conflicts.length > 0 ? (
+            <div>
+              <p className="font-medium text-amber-800 dark:text-amber-300">Historical interpretations differ</p>
+              <ul className="mt-1 space-y-1 border-l-2 border-amber-600/40 pl-3">
+                {item.conflicts.map((c, i) => (
+                  <li key={i}>
+                    {c.text} <SourceLinks sources={c.sources} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          <p className="text-sm text-[var(--tc-muted)]">
+            <span className="font-medium text-[var(--tc-ink)]">How this date is known: </span>
+            {DATE_STATUS_LABELS[item.status]}.{item.cycle ? ` ${item.cycle}.` : null}
+          </p>
+          {item.caution ? <p className="text-sm text-amber-800 dark:text-amber-300">{item.caution}</p> : null}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--tc-muted)]">
+            <EvidenceChips tags={item.evidence} />
+            {item.sources.length > 0 ? (
+              <span>
+                Source: <SourceLinks sources={item.sources} />
+              </span>
+            ) : null}
+            {href ? (
+              <Link href={href} className="text-[var(--tc-gold)] underline-offset-2 hover:underline">More about the {item.cultureName} in History</Link>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </li>
   );
 }

@@ -6,10 +6,12 @@
 //                  it (date_correspondences, with its date_status) or a
 //                  sourced cycle anchor counts forward to it (provisional).
 //   B. lunar     — knowledge attached to lunar nights or Moon phases. A Moon
-//                  phase is calculated (astronomical date); a named night of a
-//                  particular calendar is "lunar date pending verification",
-//                  because when its month starts is a local rule (iwi differ,
-//                  first crescent is not conjunction, Athens set it civically).
+//                  phase is calculated (astronomical date). A named night of a
+//                  particular calendar is counted from the calculated new Moon
+//                  by a stated rule (status "counted"): when its month really
+//                  starts is a local rule (iwi differ, first crescent is not
+//                  conjunction, Athens set it civically), so the card says which
+//                  rule was used and that the date is our count, not a listing.
 //   C. seasonal  — recurring cycles with no verified alignment (the Igbo
 //                  market week), observances with no date rule, and seasons of
 //                  a tradition's own region.
@@ -17,7 +19,7 @@
 // Nothing is promoted: an item's status says exactly how its date is known.
 // Every item comes from an imported, published record. Pure functions.
 
-import { type CivilDate, addDays, compareDates, daysFromCivil, formatIsoDate, parseIsoDate } from "../dates";
+import { type CivilDate, GREGORIAN_MONTHS, addDays, compareDates, daysFromCivil, formatIsoDate, parseIsoDate } from "../dates";
 import type { DayMoon } from "../astronomy";
 import { type ResearchBundle, cyclePositionOn, isAnchored, phaseKeysFor } from "./daily";
 import type { Activity, CorrespondenceRecord, DateStatusKey, EvidenceTag, MoonPhaseKey } from "./model";
@@ -44,13 +46,14 @@ export const CONFIDENCE_TIERS = [
 ] as const;
 export type ConfidenceTier = (typeof CONFIDENCE_TIERS)[number]["key"];
 
-export type DateStatus = "official" | "secondary" | "astronomical" | "verified" | "provisional" | "lunar_pending" | "recurring" | "disputed";
+export type DateStatus = "official" | "secondary" | "astronomical" | "verified" | "provisional" | "counted" | "lunar_pending" | "recurring" | "disputed";
 export const DATE_STATUS_LABELS: Record<DateStatus, string> = {
   official: "Officially published date",
   secondary: "Published secondary-source date",
   astronomical: "Astronomically calculated date",
   verified: "Culturally verified conversion",
   provisional: "Provisional conversion",
+  counted: "Counted from the calculated new Moon",
   lunar_pending: "Lunar date pending verification",
   recurring: "Undated recurring cycle",
   disputed: "Unknown or disputed",
@@ -63,6 +66,49 @@ const FROM_DATE_STATUS: Record<DateStatusKey, DateStatus> = {
   provisional: "provisional",
   unknown_disputed: "disputed",
 };
+/** Short labels for the badge on a card. */
+export const DATE_STATUS_BADGES: Record<DateStatus, string> = {
+  official: "Official date",
+  secondary: "Published date",
+  astronomical: "Astronomical",
+  verified: "Verified date",
+  provisional: "Provisional date",
+  counted: "Lunar guidance",
+  lunar_pending: "Date pending",
+  recurring: "Recurring cycle",
+  disputed: "Disputed",
+};
+
+// How night 1 of each lunar calendar is placed against the calculated new
+// Moon. Our counting rule, stated on every card it dates; the first match wins.
+const NIGHT_ONE: { match: RegExp; offset: number; rule: string; exact: boolean }[] = [
+  {
+    match: /^oceania\.hawaiian\./,
+    offset: 1,
+    rule: "night 1 (Hilo) is taken as the first evening after the new Moon, when the first crescent can appear",
+    exact: true,
+  },
+  {
+    match: /\.tepapa-sequence$/,
+    offset: 0,
+    rule: "the first entry (Whiro) is taken as the day of the new Moon and the entries are counted in Te Papa's order, which is not an exact night count, so this date is approximate",
+    exact: false,
+  },
+  { match: /^oceania\.maori\./, offset: 0, rule: "Whiro (night 1) is taken as the day of the new Moon; some iwi begin the month at the full Moon instead", exact: true },
+  { match: /^africa\.north\.ancient-egyptian\./, offset: 0, rule: "day 1 is taken as the day of the new Moon, when the old Moon can no longer be seen", exact: true },
+  { match: /^europe\.athenian-greek\./, offset: 1, rule: "the Noumenia (day 1) is taken as the day after the new Moon, at the first crescent", exact: true },
+];
+const DEFAULT_NIGHT_ONE = { offset: 0, rule: "day 1 is taken as the day of the new Moon", exact: true };
+export function nightOneRule(systemKey: string) {
+  return NIGHT_ONE.find((r) => r.match.test(systemKey)) ?? DEFAULT_NIGHT_ONE;
+}
+
+const SKY_SOURCE: AdviceSource = {
+  key: "calc.astronomy-engine",
+  title: "Calculated with Astronomy Engine (Don Cross), checked against USNO phase times",
+  url: "https://github.com/cosinekitty/astronomy",
+};
+
 /** A listed date with no stated status is a secondary listing, never official. */
 export function statusOfListedDate(c: Pick<Row<CorrespondenceRecord>, "date_status">): DateStatus {
   return c.date_status ? FROM_DATE_STATUS[c.date_status] : "secondary";
@@ -194,7 +240,7 @@ export interface AdviceFeed {
  * Everything ahead from `from` (inclusive). `moons` is the calculated Moon for
  * consecutive days starting at `from` (about 35 days covers every phase).
  */
-export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayMoon[]): AdviceFeed {
+export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayMoon[], opts: { monthStart?: CivilDate } = {}): AdviceFeed {
   const cultures = new Map(bundle.cultures.map((c) => [c.key, c]));
   const systems = new Map(bundle.systems.map((s) => [s.key, s]));
   const sourceByKey = new Map(bundle.sources.map((s) => [s.key, s]));
@@ -414,9 +460,22 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
     });
   }
 
-  // --- Lunar nights of particular calendars: pending verification ---
+  // --- Lunar nights of particular calendars: counted from the new Moon ---
+  // The local dates of the new Moons around `from`: the one opening the current
+  // lunar month (when given) and every one in the window.
+  const newMoons = [...(opts.monthStart ? [opts.monthStart] : []), ...moons.filter((m) => m.quarter?.kind === "new").map((m) => m.date)]
+    .filter((d, i, list) => list.findIndex((x) => compareDates(x, d) === 0) === i)
+    .sort(compareDates);
+  const countNight = (n: number, offset: number) => {
+    for (const nm of newMoons) {
+      const d = addDays(nm, offset + n - 1);
+      if (compareDates(d, from) >= 0) return { date: d, newMoon: nm };
+    }
+    return null;
+  };
+  const dayMonth = (d: CivilDate) => `${d.day} ${GREGORIAN_MONTHS[d.month - 1]}`;
   const usedObservances = new Set<string>();
-  const nights: AdviceItem[] = [];
+  const nights: (AdviceItem & { exact: boolean })[] = [];
   for (const day of bundle.lunarDays) {
     const system = systems.get(day.system_key);
     const culture = system ? cultureBits(system.culture_key) : null;
@@ -427,14 +486,17 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
     const says = uniq([day.meaning, ...observances.map((o) => o.description), ...recs.map((r) => r.historical_practice)]);
     if (says.length === 0) continue;
     const evidence = [...new Set([...day.evidence, ...recs.flatMap((r) => r.evidence), ...observances.flatMap((o) => o.evidence)])] as EvidenceTag[];
+    const rule = nightOneRule(system.key);
+    const counted = countNight(day.day_number, rule.offset);
     nights.push({
       ...culture,
       id: `night|${day.key}`,
       group: "lunar",
-      date: null,
-      status: "lunar_pending",
+      date: counted?.date ?? null,
+      status: counted ? "counted" : "lunar_pending",
+      exact: rule.exact,
       position: `No. ${day.day_number}`,
-      name: day.original_name ?? day.name ?? "Name not given in the source",
+      name: day.original_name ?? day.name ?? `Unnamed night (No. ${day.day_number})`,
       // "No." rather than "Night": some sources list entries in display order,
       // not by night of the month (the record's caution says so).
       cycle: `No. ${day.day_number} · ${system.name}`,
@@ -444,9 +506,15 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       evidence,
       tiers: tiersFrom(evidence),
       sources: sourcesFor([["calendar_lunar_days", day.key], ...recs.map((r) => ["calendar_recommendations", r.key] as [string, string])]),
-      caution: uniq([day.uncertainty, ...recs.map((r) => r.uncertainty), system.month_rule]).join(" ") || null,
+      caution:
+        uniq([
+          counted ? `Date counted by us from the new Moon of ${dayMonth(counted.newMoon)}: ${rule.rule}.` : null,
+          day.uncertainty,
+          ...recs.map((r) => r.uncertainty),
+          system.month_rule,
+        ]).join(" ") || null,
       conflicts: conflictsFor(recs),
-      order: day.day_number,
+      order: counted ? daysFromCivil(counted.date) : day.day_number,
       systemKey: system.key,
       hasPractice: recs.length > 0,
     });
@@ -454,9 +522,11 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
   // The same named night recorded in two calendars of one culture (Whiro in
   // batch 01's maramataka and in Te Papa's sequence) is one piece of knowledge:
   // one card, with both records' claims and sources.
+  // An exact count wins over an approximate one, so it goes first.
   const merged = new Map<string, AdviceItem>();
-  for (const n of nights) {
-    const named = !n.name.startsWith("Name not given");
+  for (const { exact: _exact, ...n } of [...nights].sort((a, b) => Number(b.exact) - Number(a.exact))) {
+    void _exact;
+    const named = !n.name.startsWith("Unnamed night");
     const k = named ? `${n.cultureKey}|${n.name.toLowerCase()}` : n.id;
     const prev = merged.get(k);
     if (!prev) {
@@ -489,12 +559,17 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
     const recs = bundle.recommendations.filter((r) => r.observance_key === o.key);
     const says = uniq([o.description, ...recs.map((r) => r.historical_practice)]);
     const evidence = [...new Set([...o.evidence, ...recs.flatMap((r) => r.evidence)])] as EvidenceTag[];
+    // A lunar observance on a stated night: "the last day of the lunar month"
+    // is the day before night 1; a lunar_day is counted like a night.
+    const rule = system ? nightOneRule(system.key) : DEFAULT_NIGHT_ONE;
+    const nightNo = o.lunar_day ?? (/last day/i.test(o.timing ?? "") ? 0 : null);
+    const counted = isLunar && nightNo !== null ? countNight(nightNo, rule.offset) : null;
     const item: AdviceItem = {
       ...culture,
       id: `obs|${o.key}`,
       group: isLunar ? "lunar" : "seasonal",
-      date: null,
-      status: isLunar ? "lunar_pending" : "recurring",
+      date: counted?.date ?? null,
+      status: counted ? "counted" : isLunar ? "lunar_pending" : "recurring",
       position: o.lunar_day ? `No. ${o.lunar_day}` : "Recurring",
       name: o.original_name ?? o.name,
       cycle: [o.timing, system?.name].filter(Boolean).join(" · "),
@@ -504,13 +579,89 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       evidence,
       tiers: tiersFrom(evidence),
       sources: sourcesFor([["calendar_observances", o.key], ...recs.map((r) => ["calendar_recommendations", r.key] as [string, string])]),
-      caution: uniq([o.uncertainty, system?.month_rule]).join(" ") || null,
+      caution:
+        uniq([
+          counted ? `Date counted by us from the new Moon of ${dayMonth(counted.newMoon)}: ${rule.rule}${nightNo === 0 ? ", and the last day of the month is the day before it" : ""}.` : null,
+          o.uncertainty,
+          system?.month_rule,
+        ]).join(" ") || null,
       conflicts: conflictsFor(recs),
-      order: o.lunar_day ?? 31,
+      order: counted ? daysFromCivil(counted.date) : (o.lunar_day ?? 31),
       systemKey: system?.key ?? null,
       hasPractice: recs.length > 0,
     };
     (isLunar ? lunar : seasonal).push(item);
+  }
+
+  // --- The calculated New and Full Moons the lunar nights are counted from ---
+  if (lunar.length > 0) {
+    for (const m of moons) {
+      const kind = m.quarter?.kind;
+      if (kind !== "new" && kind !== "full") continue;
+      lunar.push({
+        id: `sky|${kind}|${formatIsoDate(m.date)}`,
+        group: "lunar",
+        date: m.date,
+        status: "astronomical",
+        position: "",
+        cultureKey: "sky",
+        cultureName: "Astronomical",
+        region: "Global",
+        name: kind === "new" ? "New Moon" : "Full Moon",
+        cycle: "",
+        says: [
+          kind === "new"
+            ? "The calculated new Moon. The lunar nights in this list are counted from it."
+            : "The calculated full Moon, the middle of the lunar month.",
+        ],
+        modern: [],
+        categories: [],
+        evidence: ["astronomically_calculated"],
+        tiers: ["documented"],
+        sources: [SKY_SOURCE],
+        caution: null,
+        conflicts: [],
+        order: daysFromCivil(m.date) - 0.5, // first on its day
+        systemKey: null,
+        hasPractice: false,
+      });
+    }
+  }
+
+  // --- Named months of a tradition's year (seasonal, never dated) ---
+  for (const m of bundle.months) {
+    const system = systems.get(m.system_key);
+    const culture = system ? cultureBits(system.culture_key) : null;
+    if (!system || !culture) continue;
+    const says = uniq([m.description, m.season]);
+    if (says.length === 0) continue;
+    const evidence = m.evidence as EvidenceTag[];
+    seasonal.push({
+      ...culture,
+      id: `month|${m.key}`,
+      group: "seasonal",
+      date: null,
+      status: "recurring",
+      position: `Month ${m.ordinal}`,
+      name: m.original_name ?? m.name,
+      cycle: `Month ${m.ordinal} · ${system.name}`,
+      says,
+      modern: [],
+      categories: categoriesFrom([...says, m.translation], []),
+      evidence,
+      tiers: tiersFrom(evidence),
+      sources: sourcesFor([["calendar_months", m.key]]),
+      caution:
+        uniq([
+          m.uncertainty,
+          system.uncertainty,
+          culture.region ? `These months belong to ${culture.region}'s seasons. They don't carry over to another region's seasons, Zanzibar's included.` : null,
+        ]).join(" ") || null,
+      conflicts: [],
+      order: 100 + m.ordinal,
+      systemKey: system.key,
+      hasPractice: false,
+    });
   }
 
   // --- Seasons of a tradition's own region ---
@@ -547,8 +698,30 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
   // Lunar: calculated dates first in date order; then pending nights, those
   // with practical guidance first, taking turns between traditions so one long
   // calendar does not crowd out the rest.
-  const lunarDated = lunar.filter((i) => i.date).sort((a, b) => a.order - b.order);
+  const lunarDated = lunar.filter((i) => i.date).sort((a, b) => a.order - b.order || Number(b.hasPractice) - Number(a.hasPractice) || a.cultureName.localeCompare(b.cultureName));
   return { dated, lunar: [...lunarDated, ...takeTurns(lunar.filter((i) => !i.date))], seasonal: takeTurns(seasonal) };
+}
+
+/**
+ * The feed as one list, the way the page shows it: listed observances first,
+ * then the calculated New and Full Moons, then each tradition's next nights in
+ * turn (so one long calendar doesn't fill the first screen), each round in
+ * date order; undated cycles last.
+ */
+export function adviceList(feed: AdviceFeed): AdviceItem[] {
+  const all = [...feed.dated, ...feed.lunar, ...feed.seasonal];
+  const byDate = (a: AdviceItem, b: AdviceItem) => a.order - b.order || Number(b.hasPractice) - Number(a.hasPractice) || a.cultureName.localeCompare(b.cultureName);
+  const listed = feed.dated.filter((i) => i.date).sort(byDate);
+  const sky = all.filter((i) => i.cultureKey === "sky").sort(byDate);
+  const rest = all.filter((i) => i.date && i.group !== "dated" && i.cultureKey !== "sky");
+  const byCulture = new Map<string, AdviceItem[]>();
+  for (const i of [...rest].sort((a, b) => Number(a.name.startsWith("Unnamed")) - Number(b.name.startsWith("Unnamed")) || byDate(a, b))) {
+    byCulture.set(i.cultureKey, [...(byCulture.get(i.cultureKey) ?? []), i]);
+  }
+  const rounds: AdviceItem[] = [];
+  const lists = [...byCulture.values()];
+  for (let r = 0; lists.some((l) => r < l.length); r++) rounds.push(...lists.flatMap((l) => (r < l.length ? [l[r]] : [])).sort(byDate));
+  return [...listed, ...sky, ...rounds, ...all.filter((i) => !i.date)];
 }
 
 function takeTurns(items: AdviceItem[]): AdviceItem[] {
