@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { parseImport } from "./import-plan";
 import { type ResearchBundle, EMPTY_BUNDLE } from "./daily";
-import { adviceAhead, adviceEvents, adviceList, filterFeed } from "./ahead";
+import { adviceAhead, adviceDays, filterFeed } from "./ahead";
 import { planImport } from "./import-plan";
 import { IMPORT_SECTIONS } from "./model";
 import { lunarMonthContaining, moonDays } from "../astronomy";
@@ -173,16 +173,6 @@ test("batch 06: Ngāti Kahungunu nights dated approximately, Tūhoe months never
   assert.ok(months.every((m) => m.date === null && m.status === "recurring" && /Zanzibar/.test(m.caution ?? "")));
 });
 
-test("the page list opens with listed dates and the Moon, then takes turns between traditions", () => {
-  const list = adviceList(feedWithMonth());
-  assert.equal(list[0].name, "Akwasidae");
-  assert.equal(list[1].cultureKey, "sky");
-  const next = list.slice(3, 7).map((i) => i.cultureKey);
-  assert.ok(new Set(next).size >= 3, "different traditions near the top");
-  const firstUndated = list.findIndex((i) => !i.date);
-  assert.ok(firstUndated > 0 && list.slice(firstUndated).every((i) => !i.date));
-});
-
 test("batch 07: Hesiod's days undated with their practices; Egyptian lucky days and Hawaiian months recurring", () => {
   const feed = feedWithMonth();
   const hesiod = feed.lunar.filter((i) => i.cultureKey === "europe.hesiodic-greek");
@@ -198,35 +188,74 @@ test("batch 07: Hesiod's days undated with their practices; Egyptian lucky days 
   assert.deepEqual(months.map((i) => i.name).sort(), ["Ikiʻiki", "Makaliʻi", "Welehu"]);
 });
 
-test("acceptance: from 4 July 2027 the New Moon comes first, then the Full Moon, before anything in August", () => {
-  const day = { year: 2027, month: 7, day: 4 };
+const iso = (d: { year: number; month: number; day: number }) => `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`;
+function daysFrom(day: { year: number; month: number; day: number }, range: number, filter?: Parameters<typeof adviceDays>[4]) {
   const tz = "Africa/Dar_es_Salaam";
-  const moons = moonDays(day, 121, tz);
+  const moons = moonDays(day, range + 31, tz);
   const feed = adviceAhead(publishedBundle(), day, moons, { monthStart: lunarMonthContaining(day, tz).month.start });
-  const events = adviceEvents(feed, moons, day, 90);
-  const iso = (d: { year: number; month: number; day: number }) => `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`;
-  // Strict date order.
-  const dates = events.map((e) => iso(e.date));
+  return adviceDays(feed, moons, day, range, filter);
+}
+
+test("acceptance: from 2 November 2026 one card per date, strictly in date order", () => {
+  const days = daysFrom(from, 30);
+  const dates = days.map((d) => iso(d.date));
+  // Proper date order, never 22 → 9 → 24 → 2, and no date twice.
   assert.deepEqual(dates, [...dates].sort());
-  const newMoon = events.findIndex((e) => e.kind === "moon" && e.quarter === "new" && iso(e.date) === "2027-07-04");
-  const fullMoon = events.findIndex((e) => e.kind === "moon" && e.quarter === "full" && iso(e.date) === "2027-07-18");
-  const firstAugust = events.findIndex((e) => e.date.month === 8);
-  assert.equal(newMoon, 0, "the 4 July New Moon is the first event");
-  assert.ok(fullMoon > newMoon && fullMoon < firstAugust);
-  // One New Moon card, with Māori interpretations grouped under it.
-  assert.equal(events.filter((e) => e.kind === "moon" && iso(e.date) === "2027-07-04").length, 1);
-  const nm = events[newMoon];
-  assert.ok(nm.entries.some((e) => e.item.cultureKey === "oceania.maori" && e.item.name === "Whiro"));
-  assert.ok(nm.entries.every((e) => e.item.status === "counted" && e.item.sources.length > 0));
-  // The Full Moon gathers Hawaiian and Māori nights counted to that date.
-  const fm = events[fullMoon];
-  const cultures = new Set(fm.entries.map((e) => e.item.cultureKey));
+  assert.equal(new Set(dates).size, dates.length);
+  assert.equal(dates[0], "2026-11-02");
+  for (const want of ["2026-11-03", "2026-11-04", "2026-11-09", "2026-11-22", "2026-11-24"]) assert.ok(dates.includes(want), want);
+  assert.ok(dates.indexOf("2026-11-09") < dates.indexOf("2026-11-22") && dates.indexOf("2026-11-22") < dates.indexOf("2026-11-24"));
+  // The New Moon on 9 Nov and the Full Moon on 24 Nov are the cards for those dates.
+  const nm = days.find((d) => iso(d.date) === "2026-11-09")!;
+  const fm = days.find((d) => iso(d.date) === "2026-11-24")!;
+  assert.equal(nm.quarter, "new");
+  assert.equal(fm.quarter, "full");
+  assert.ok(nm.rows.some((r) => r.item.cultureKey === "oceania.maori" && r.item.name === "Whiro"));
+  // Several civilisations on one date, Māori and Hawaiian among them. (No
+  // Māori record is counted to night 16, so the Full Moon has Hawaiian only.)
+  const cultures = new Set(nm.cultures.map((c) => c.cultureKey));
+  assert.ok(cultures.has("oceania.maori") && cultures.has("oceania.hawaiian"), [...cultures].join(", "));
+  assert.ok(fm.cultures.some((c) => c.cultureKey === "oceania.hawaiian"));
+  assert.ok(days.some((d) => d.cultures.length >= 2));
+  // Akwasidae (a published date) on 22 Nov, ranked before the counted nights that day.
+  const akw = days.find((d) => iso(d.date) === "2026-11-22")!;
+  assert.equal(akw.rows[0].item.name, "Akwasidae");
+  assert.equal(akw.rows[0].kind, "observance");
+  // Every row has a source; every counted night is marked approximate; no Greek day is dated.
+  for (const d of days) {
+    assert.equal(d.rows.length, d.cultures.reduce((n, c) => n + c.rows.length, 0));
+    for (const r of d.rows) {
+      assert.ok(r.item.sources.length > 0, `${r.item.id} has a source`);
+      assert.equal(r.approximate, r.item.status === "counted");
+      assert.ok(!/greek/.test(r.item.cultureKey), "ancient Greek days are never dated");
+    }
+    // Cultures in order of their best row: observances, astronomical, approximate, other.
+    const ranks = d.cultures.map((c) => ["observance", "astronomical", "approximate", "other"].indexOf(c.rows[0].kind));
+    assert.deepEqual(ranks, [...ranks].sort((a, b) => a - b));
+  }
+  // Knowledge between the major phases, not only New and Full Moon.
+  assert.ok(days.filter((d) => !d.quarter).length > 10);
+});
+
+test("filters keep date order and the Moon, showing only matching interpretations", () => {
+  const days = daysFrom(from, 30, { category: "fishing", culture: "all", tier: "all" });
+  const dates = days.map((d) => iso(d.date));
+  assert.deepEqual(dates, [...dates].sort());
+  assert.ok(days.length > 0);
+  assert.ok(days.every((d) => d.rows.length > 0 && d.rows.every((r) => r.item.categories.includes("fishing")) && d.moon));
+});
+
+test("acceptance: from 4 July 2027 the New Moon comes first, then the Full Moon, before anything in August", () => {
+  const days = daysFrom({ year: 2027, month: 7, day: 4 }, 90);
+  const dates = days.map((d) => iso(d.date));
+  assert.deepEqual(dates, [...dates].sort());
+  assert.equal(new Set(dates).size, dates.length);
+  assert.equal(dates[0], "2027-07-04");
+  assert.equal(days[0].quarter, "new");
+  const full = dates.indexOf("2027-07-18");
+  assert.equal(days[full].quarter, "full");
+  assert.ok(full < days.findIndex((d) => d.date.month === 8));
+  assert.ok(days[0].rows.some((r) => r.item.cultureKey === "oceania.maori" && r.item.name === "Whiro"));
+  const cultures = new Set(days[full].cultures.map((c) => c.cultureKey));
   assert.ok(cultures.has("oceania.hawaiian") && cultures.has("oceania.maori"));
-  // Activity windows from the Hawaiian and Māori sequences, marked approximate.
-  const windows = events.filter((e) => e.kind === "window");
-  assert.ok(windows.some((w) => w.cultureKey === "oceania.hawaiian") && windows.some((w) => w.cultureKey === "oceania.maori"));
-  assert.ok(windows.every((w) => w.status === "counted" && w.entries.length >= 2));
-  // Akwasidae appears only at its own date, in order.
-  const akwasidae = events.filter((e) => e.title === "Akwasidae");
-  assert.ok(akwasidae.every((e) => e.kind === "observance"));
 });
