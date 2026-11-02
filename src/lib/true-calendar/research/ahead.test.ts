@@ -48,7 +48,10 @@ test("every lunar night gets a date; Hawaiian nights start at the first crescent
   const { lunar } = feedWithMonth();
   // Greek and Babylonian days: illustrative models of ancient calendars.
   const greek = (i: { cultureKey: string }) => /^(europe\.(athenian|hesiodic)-greek|middle-east\.babylonian)$/.test(i.cultureKey);
-  const bad = lunar.filter((i) => !greek(i) && i.cultureKey !== "sky" && !(i.date !== null && i.status === "counted"));
+  // A Hindu tithi can be skipped at sunrise (kṣaya), so one may have no date in a short window.
+  const tithi = (i: { id: string }) => /vedic-hindu\.tithi/.test(i.id);
+  const bad = lunar.filter((i) => !greek(i) && !tithi(i) && i.cultureKey !== "sky" && !(i.date !== null && i.status === "counted"));
+  assert.ok(lunar.filter((i) => tithi(i) && i.date !== null && i.status === "counted").length >= 26, "almost every tithi is dated within the window");
   assert.deepEqual(bad.map((i) => `${i.id} ${i.status}`), [], "every non-Greek lunar night is dated, approximately");
   // Greek days: an illustrative model only, never presented as a historical date.
   assert.ok(lunar.filter(greek).every((i) => i.status === "illustrative" || (i.date === null && i.status === "lunar_pending")));
@@ -71,12 +74,14 @@ test("acceptance: Hawaiian Kū planting guidance, with the disagreement shown", 
   assert.ok(olekulua.conflicts.every((c) => c.sources.length > 0), "each account beside its source");
 });
 
-test("acceptance: Igbo market days recurring, with no invented dates", () => {
-  const { dated, seasonal } = feedFrom();
-  const igbo = seasonal.filter((i) => i.cultureKey === "africa.west.igbo");
+test("acceptance: Igbo market days counted every four days from the Nri anchor, labelled as one community's count", () => {
+  const { dated } = feedFrom();
+  const igbo = dated.filter((i) => i.cultureKey === "africa.west.igbo");
   assert.deepEqual(igbo.map((i) => i.name).sort(), ["Afọ", "Eke", "Nkwọ", "Orie"].sort());
-  assert.ok(igbo.every((i) => i.date === null && i.status === "recurring" && i.categories.includes("trade")));
-  assert.ok(!dated.some((i) => i.cultureKey === "africa.west.igbo"));
+  assert.ok(igbo.every((i) => i.status === "provisional" && i.recurrence === "Every 4 days" && i.categories.includes("trade")));
+  assert.ok(igbo.every((i) => /Nri/.test(i.caution ?? "")), "says whose count it is");
+  // 18 February 2012 was Nkwọ; 2 November 2026 is two days on in the cycle: Afọ.
+  assert.equal(igbo.find((i) => i.name === "Afọ")?.date?.day, 2);
 });
 
 test("acceptance: batch 05 appears; three cultures; every card has a source", () => {
@@ -202,7 +207,7 @@ test("acceptance: from 2 November 2026 one card per date, strictly in date order
     assert.equal(d.rows.length, d.cultures.reduce((n, c) => n + c.rows.length, 0));
     for (const r of d.rows) {
       assert.ok(r.item.sources.length > 0, `${r.item.id} has a source`);
-      assert.equal(r.approximate, r.item.status === "counted" || r.item.status === "illustrative");
+      assert.equal(r.approximate, r.item.status === "counted" || r.item.status === "illustrative" || r.item.status === "provisional");
       if (/greek/.test(r.item.cultureKey)) assert.equal(r.item.status, "illustrative", "Greek days only by the illustrative model");
     }
     // Cultures in order of their best row: observances, astronomical, approximate, other.

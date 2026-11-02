@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { explainItem } from "@/lib/true-calendar/research/explanations";
 import Link from "@/components/ui/link";
 import { type CivilDate, daysFromCivil, weekdayOf, WEEKDAYS, GREGORIAN_MONTHS } from "@/lib/true-calendar/dates";
 import { moonDays } from "@/lib/true-calendar/astronomy";
@@ -75,6 +76,12 @@ function DayHub({ bundle, date, tz, historyPath, isToday, notes }: { bundle: Res
                   <span className="font-semibold">{p.label}</span>
                   <span className="text-[var(--tc-muted)]">, day {p.day} of {p.length} · {p.item.recurrence}</span>
                 </p>
+                {explainItem(p.item) ? (
+                  <p className="mt-0.5">
+                    <span className="text-sky-800 dark:text-sky-300" title="Our explanation in everyday words, not a source">In plain words (our explanation): </span>
+                    {explainItem(p.item)}
+                  </p>
+                ) : null}
                 <p className="mt-0.5">
                   <span className="text-[var(--tc-muted)]">What the tradition says: </span>
                   {p.item.says.join(" ")}

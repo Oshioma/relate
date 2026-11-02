@@ -23,6 +23,7 @@ import { type CivilDate, addDays, civilDateAt, compareDates, daysFromCivil, form
 import type { DayMoon, QuarterKind } from "../astronomy";
 import { type ResearchBundle, cyclePositionOn, isAnchored, phaseKeysFor } from "./daily";
 import type { Activity, CorrespondenceRecord, DateStatusKey, EvidenceTag, MoonPhaseKey } from "./model";
+import { jianchuDates } from "./day-rules";
 import { type MappingChoice, type MappingLevel, type MappingProfile, type MonthSpan, anchorDates, lunarNightDates, monthSpans, profileFor } from "./mapping";
 import { MERCURY_NOTES, retrogradePeriods } from "../mercury";
 
@@ -191,7 +192,7 @@ const OBSERVANCE_CATEGORY: Record<string, AdviceCategory> = {
 // Categories read from the sourced wording itself.
 const WORD_CATEGORY: [RegExp, AdviceCategory][] = [
   [/\b(plant|crop|seed|garden|kūmara|kumara|taro|banana|sow|weed|tuber|cultivat|farm|field)/i, "farming"],
-  [/\b(fish|eel|crayfish|shellfish|tide|shore|net|squid|octopus|sea)/i, "fishing"],
+  [/\b(fish|eel|crayfish|shellfish|tide|shore|nets?\b|squid|octopus|seas?\b|seashore)/i, "fishing"],
   [/\b(harvest|gather|food|shellfish|eel|fruit|herb|inundation)/i, "food"],
   [/\b(family|ancestor|elder|lineage|household|community|visit|naming|personal name)/i, "community"],
   [/\b(ceremon|ritual|offering|sacred|god|deity|deities|spirit|shrine|stool|festival|prayer|temple|orisha|kapu|feast)/i, "ceremony"],
@@ -346,15 +347,25 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       systemKey: system.key,
       hasPractice: recs.length > 0,
       profileKey: profile?.key,
-      recurrence: `Every ${cycle.length_days} days`,
+      recurrence:
+        profile?.anchor.kind === "jianchu"
+          ? "Every 12 days (one repeat at each solar-term month)"
+          : cycle.length_days === 7
+            ? "Weekly"
+            : cycle.length_days === 365
+              ? "Once a year (365-day year)"
+              : `Every ${cycle.length_days} days`,
     };
     const listed = bundle.correspondences
       .filter((c) => c.culture_key === culture.cultureKey && (!c.system_key || c.system_key === cycle.system_key) && c.gregorian_from && c.gregorian_from >= today)
       .filter((c) => observances.some((o) => o.name === c.label) || c.label === position.name)
       .sort((a, b) => a.gregorian_from!.localeCompare(b.gregorian_from!));
     let next: CivilDate | null = null;
+    // The Chinese day officers follow a rule (day branch against solar-term month), not a plain count.
+    const ruled = profile?.anchor.kind === "jianchu" ? jianchuDates(position.position, from, horizon) : null;
+    if (ruled) next = ruled[0] ?? null;
     // Only a profile with a working anchor counts a cycle forward.
-    if (isAnchored(cycle) && profile?.level !== "C") {
+    else if (isAnchored(cycle) && profile?.level !== "C") {
       const here = cyclePositionOn(cycle, from)!;
       next = addDays(from, (((position.position - here) % cycle.length_days) + cycle.length_days) % cycle.length_days);
     }
@@ -369,7 +380,8 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       const dates: CivilDate[] = listedOn
         ? listed.map((c) => parseIsoDate(c.gregorian_from!)!).filter((d) => compareDates(d, horizon) <= 0)
         : [];
-      if (!listedOn) for (let d = next!; compareDates(d, horizon) <= 0; d = addDays(d, cycle.length_days)) dates.push(d);
+      if (!listedOn && ruled) dates.push(...ruled);
+      else if (!listedOn) for (let d = next!; compareDates(d, horizon) <= 0; d = addDays(d, cycle.length_days)) dates.push(d);
       dated.push({
         ...base,
         id: `pos|${position.key}`,
@@ -804,6 +816,8 @@ export function nightGroupsOf(days: ResearchBundle["lunarDays"]): Map<string, { 
   for (const d of days) {
     // Te Papa's list is a display order, not a night count: no runs.
     if (/tepapa-sequence$/.test(d.system_key)) continue;
+    // Tithis are named by number within a fortnight, not runs of a named night.
+    if (/\.tithi$/.test(d.system_key)) continue;
     bySystem.set(d.system_key, [...(bySystem.get(d.system_key) ?? []), d]);
   }
   for (const list of bySystem.values()) {

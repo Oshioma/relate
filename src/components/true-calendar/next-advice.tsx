@@ -27,6 +27,7 @@ import {
 import { MAPPING_LEVELS, type MappingChoice, MAPPING_PROFILES, alternativeGroups } from "@/lib/true-calendar/research/mapping";
 import { mercuryOn } from "@/lib/true-calendar/mercury";
 import { plainAdvice, termsIn } from "@/lib/true-calendar/research/plain-words";
+import { explainItem } from "@/lib/true-calendar/research/explanations";
 import { EvidenceChips } from "./history-bits";
 import { MercuryNotes, mercuryHeadline } from "./mercury-status";
 import { MoonGlyph } from "./moon-glyph";
@@ -373,6 +374,7 @@ function MercuryLine({ date, tz }: { date: CivilDate; tz: string }) {
 /** "Unnamed night (No. 24)" reads better as where it sits in its source. */
 function rowName(item: AdviceItem): string {
   if (item.name.startsWith("Unnamed")) return item.cycle.split(";")[0];
+  if (item.night !== undefined && /\.tithi$/.test(item.systemKey ?? "")) return `${item.name} (lunar day ${item.night} of 30)`;
   return item.night !== undefined ? `${item.name} (night ${item.night})` : item.name;
 }
 
@@ -450,6 +452,7 @@ function Row({ row, historyPath, date }: { row: DayRow; historyPath: string; dat
   const { item } = row;
   const [open, setOpen] = useState(false);
   const plain = item.plain ?? plainAdvice(item);
+  const explain = explainItem(item);
   const span = date ? item.periods?.find((p) => compareDates(date, p.start) >= 0 && compareDates(date, p.end) <= 0) : undefined;
   // A long period (Mercury retrograde) repeats day after day: after its first card, say it briefly.
   const brief = !open && item.id.startsWith("mercury|") && Boolean(date && item.dates && compareDates(date, item.dates[0]) !== 0);
@@ -477,6 +480,12 @@ function Row({ row, historyPath, date }: { row: DayRow; historyPath: string; dat
         <p className="text-sm text-[var(--tc-muted)]">
           {item.nightGroup ? `${item.nightGroup.label}, ${item.nightGroup.index} of ${item.nightGroup.count}` : null}
           {span ? `Day ${daysFromCivil(date!) - daysFromCivil(span.start) + 1} of ${daysFromCivil(span.end) - daysFromCivil(span.start) + 1} (${shortDate(span.start)} to ${shortDate(span.end)} ${span.end.year})` : null}
+        </p>
+      ) : null}
+      {explain && !brief ? (
+        <p className="mt-0.5">
+          <span className="text-sky-800 dark:text-sky-300" title="Our explanation in everyday words, not a source">In plain words (our explanation): </span>
+          {explain}
         </p>
       ) : null}
       {brief ? null : (

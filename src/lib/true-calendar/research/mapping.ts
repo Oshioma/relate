@@ -21,6 +21,7 @@
 
 import { type CivilDate, addDays, civilDateAt, compareDates, daysFromCivil, startOfDayIn } from "../dates";
 import { type QuarterKind, quartersBetween, seasonsOf } from "../astronomy";
+import { tithiDates } from "./day-rules";
 
 export type MappingLevel = "A" | "B" | "C";
 export const MAPPING_LEVELS: Record<MappingLevel, { name: string; short: string; explain: string }> = {
@@ -41,6 +42,10 @@ export type Anchor =
   | { kind: "full_moon"; offsetDays: number }
   /** A fixed-length day cycle counted from a sourced anchor date stored on the cycle record. */
   | { kind: "cycle_anchor" }
+  /** Hindu tithi: the lunar day in force at local sunrise at a stated place (one tithi per 12° of Moon–Sun elongation). */
+  | { kind: "tithi"; place: { lat: number; lon: number; height: number; tz: string }; placeName: string }
+  /** Chinese twelve day officers: from the day's earthly branch and the solar-term month (see day-rules.ts). */
+  | { kind: "jianchu" }
   /** No defensible anchor: nothing is dated. */
   | { kind: "none"; needs: string };
 
@@ -240,27 +245,27 @@ export const MAPPING_PROFILES: MappingProfile[] = [
     assumption: "Dates are counted forward 42 days at a time from the sourced anchor (1 Feb 2026). A published listing for the date is shown as such; a counted date is an estimate.",
   },
   {
-    key: "igbo.market-week-unanchored",
+    key: "igbo.nri-market-count",
     group: "igbo-market-week",
     isDefault: true,
-    label: "Igbo four-day market week (Eke, Orie, Afọ, Nkwọ)",
+    label: "Igbo four-day market week, Nri count",
     cultureKey: "africa.west.igbo",
-    community: "Igbo communities (local market days differ)",
+    community: "Nri (Ịgụ Arọ festival date); other towns' market days can differ",
     systems: /^africa\.west\.igbo\.market-week$/,
     calendarSystem: "Izu (four-day week)",
     cycleType: "day_cycle",
     cycleLength: 4,
-    anchor: { kind: "none", needs: "a community-specific date anchor (which Gregorian day is Eke in that town)" },
+    anchor: { kind: "cycle_anchor" },
     monthBoundary: "No month: a repeating four-day cycle.",
     region: "Southeastern Nigeria",
     timezone: "Africa/Lagos",
-    adjustment: "Communities hold their markets on different days of the cycle; one town's Eke is not another's.",
-    sourceKeys: ["src.elias-igbo-days", "src.igbo-nkwerre-2022"],
-    level: "C",
-    historicalPeriod: "Documented 19th century to today",
+    adjustment: "Communities hold their markets on different days of the cycle; one town's Eke is not another's. The days are counted from the Nri anchor.",
+    sourceKeys: ["src.wikipedia-igbo-calendar", "src.elias-igbo-days"],
+    level: "B",
+    historicalPeriod: "Documented 19th century to today; anchor 2012",
     validFrom: null,
     validTo: null,
-    assumption: "Not dated: we need a community-specific anchor before any Gregorian date can be given.",
+    assumption: "Counted four days at a time from 18 February 2012, recorded as an Nkwọ day for the Nri year-counting festival. Your own town's market may fall on a different day of the cycle.",
   },
   {
     key: "yoruba.ritual-week-unanchored",
@@ -390,7 +395,98 @@ export const MAPPING_PROFILES: MappingProfile[] = [
       "An illustrative reconstruction: day 1 is the first evening (6 pm Babylon time) when the Moon is at least a day past the calculated new Moon, and Nisānu (month 1) is the month that begins nearest the March equinox; a 13th month in a year is the inserted Addaru II. It shows where the days would fall if the calendar were kept today; it is not an ancient listing.",
     yearStart: { kind: "nearest_equinox" },
   },
-
+  {
+    key: "maya.gmt-highland-count",
+    group: "maya-count",
+    isDefault: true,
+    label: "Maya day count (GMT correlation)",
+    cultureKey: "americas.maya",
+    community: "Highland Guatemalan daykeepers (Kʼicheʼ, Ixil, Mam and others), whose living count agrees with the GMT correlation",
+    systems: /^americas\.maya\.(tzolkin|haab)$/,
+    calendarSystem: "Tzolkʼin and haabʼ",
+    cycleType: "day_cycle",
+    cycleLength: 260,
+    anchor: { kind: "cycle_anchor" },
+    monthBoundary: "No lunar month: 20 day names with 13 numbers (260 days), beside a 365-day year.",
+    region: "Guatemala and southern Mexico",
+    timezone: "America/Guatemala",
+    adjustment: "Communities keeping the count agree with the GMT correlation; some scholars argue for a correlation a day or two different.",
+    sourceKeys: ["src.wikipedia-maya-long-count", "src.wikipedia-tzolkin"],
+    level: "A",
+    historicalPeriod: "Classic Maya inscriptions to today",
+    validFrom: null,
+    validTo: null,
+    assumption: "Counted from 21 December 2012 = 4 Ajaw 3 Kʼankʼin (GMT correlation 584,283), which the highland daykeepers' unbroken count agrees with.",
+  },
+  {
+    key: "akan.six-and-seven-day-weeks",
+    group: "akan-weeks",
+    isDefault: true,
+    label: "Akan six-day and seven-day weeks",
+    cultureKey: "africa.west.akan",
+    community: "Akan (recorded in Kwahu and Bono; dated by the published Asante Akwasidae listings)",
+    systems: /^africa\.west\.akan\.(nnanson|nnawotwe)$/,
+    calendarSystem: "Nnanson and nnawɔtwe",
+    cycleType: "day_cycle",
+    cycleLength: 6,
+    anchor: { kind: "cycle_anchor" },
+    monthBoundary: "No month: two weeks of six and seven days, together making the 42-day adaduanan.",
+    region: "Ghana",
+    timezone: "Africa/Accra",
+    adjustment: "The seven-day week is the Gregorian week. The six-day week is counted from Akwasidae (Kuru on a Sunday), as in the 42-day grid.",
+    sourceKeys: ["src.wikipedia-akan-calendar", "src.akandictionary-akwasidae-2026"],
+    level: "A",
+    historicalPeriod: "Documented 18th century to today",
+    validFrom: null,
+    validTo: null,
+    assumption: "Akwasidae (1 February 2026, published) is Kuru of the six-day week on a Sunday; the days before and after are counted from it. Bartle's 1978 dates count to the same days.",
+  },
+  {
+    key: "chinese.jianchu-qing-rule",
+    group: "chinese-officers",
+    isDefault: true,
+    label: "Chinese day officers (Qing almanac rule)",
+    cultureKey: "asia.east.chinese",
+    community: "Chinese almanacs (Tongshu) since the Qing dynasty",
+    systems: /^asia\.east\.chinese\.jianchu$/,
+    calendarSystem: "建除 (twelve day officers)",
+    cycleType: "day_cycle",
+    cycleLength: 12,
+    anchor: { kind: "jianchu" },
+    monthBoundary: "Solar-term months: each opens at a 'jie' term (Lichun at 315° of the Sun's longitude, Jingzhe at 345°…), when the officer repeats.",
+    region: "China",
+    timezone: "Asia/Shanghai",
+    adjustment: "Worked out in China time; an almanac printed for another time zone can differ by a day only on the day a solar term begins.",
+    sourceKeys: ["src.zhwiki-jianchu", "src.wikipedia-sexagenary-cycle"],
+    level: "B",
+    historicalPeriod: "3rd century BCE to today (this rule: Qing, 1741)",
+    validFrom: null,
+    validTo: null,
+    assumption: "The day whose earthly branch matches the solar-term month's branch is Jian; the other officers follow in order, and the officer repeats on the day a new month begins. Day branches are counted from 1 October 1949 (甲子), and the months from the Sun's calculated position.",
+  },
+  {
+    key: "hindu.tithi-ujjain-sunrise",
+    group: "hindu-tithi",
+    isDefault: true,
+    label: "Hindu tithi at sunrise (Ujjain)",
+    cultureKey: "asia.south.vedic-hindu",
+    community: "Hindu pañcāṅga (almanacs); calculated for Ujjain",
+    systems: /^asia\.south\.vedic-hindu\.tithi$/,
+    calendarSystem: "Tithi",
+    cycleType: "synodic_lunar",
+    cycleLength: 29.53,
+    anchor: { kind: "tithi", place: { lat: 23.18, lon: 75.78, height: 490, tz: "Asia/Kolkata" }, placeName: "Ujjain" },
+    monthBoundary: "Thirty tithis: the bright half ends at the full Moon (Pūrṇimā), the dark half at the new Moon (Amāvasyā).",
+    region: "India",
+    timezone: "Asia/Kolkata",
+    adjustment: "Each city's almanac uses its own sunrise, and traditional almanacs may use the older Sūrya Siddhānta reckoning; the tithi of a day can differ by one near a boundary.",
+    sourceKeys: ["src.wikipedia-tithi", "src.wikipedia-paksha"],
+    level: "B",
+    historicalPeriod: "Vedic period to today",
+    validFrom: null,
+    validTo: null,
+    assumption: "The tithi of a day is the one in force at sunrise in Ujjain, the traditional meridian of Indian astronomy, calculated from the true positions of the Sun and Moon (one tithi for each 12° the Moon gains on the Sun).",
+  },
 ];
 
 /** Which alternative each group uses: the defaults unless the reader picks another. */
@@ -445,6 +541,8 @@ export function anchorDates(profile: MappingProfile, from: CivilDate, to: CivilD
 export function lunarNightDates(profile: MappingProfile, n: number, from: CivilDate, to: CivilDate, anchors = anchorDates(profile, from, to)): CivilDate[] {
   if (profile.cycleType !== "synodic_lunar" || profile.level === "C") return [];
   const a = profile.anchor;
+  // A tithi is the lunar day at sunrise, worked out day by day (it can skip or repeat).
+  if (a.kind === "tithi") return tithiDates(n === 0 ? 30 : n, from, to, a.place);
   if (a.kind !== "conjunction" && a.kind !== "first_crescent" && a.kind !== "full_moon") return [];
   const offset = a.kind === "first_crescent" ? 0 : a.offsetDays;
   const out: CivilDate[] = [];

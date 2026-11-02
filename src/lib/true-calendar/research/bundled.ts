@@ -60,6 +60,12 @@ export const BUNDLED_RESEARCH = [
     description: "Babylonian moon-day knowledge: the month that began at the first crescent, the unfavourable 7th, 14th, 21st and 28th, the full-Moon šapattu, the twelve months, and day-by-day advice from the hemerologies (marrying, travel, oaths, food).",
     load: () => import("../../../../docs/true-calendar/research/batch-08.v1.json").then((m) => m.default as unknown),
   },
+  {
+    id: "batch-09",
+    title: "Research batch 09",
+    description: "A line for every day from five more traditions: the Maya day names (with an 1854 highland daykeeper's reading of each), the Akan six- and seven-day weeks and the other three special days of the 42-day cycle, the Igbo market day (Nri count), the Chinese twelve day officers, and the Hindu tithi with its fasts (Ekadashi, Pradosha, Sankashti, Amavasya).",
+    load: () => import("../../../../docs/true-calendar/research/batch-09.v1.json").then((m) => m.default as unknown),
+  },
 ] as const;
 
 export type BundledResearchId = (typeof BUNDLED_RESEARCH)[number]["id"];

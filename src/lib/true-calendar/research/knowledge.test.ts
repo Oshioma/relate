@@ -8,6 +8,9 @@ import { type AdviceCategory, adviceAhead, adviceDays, nightGroupsOf } from "./a
 import { dailyCoverage, mappingCoverage } from "./coverage";
 import { anchorDates, lunarNightDates, monthSpans, profileFor } from "./mapping";
 import { publishedBundle } from "./test-bundle";
+import { cyclePositionOn } from "./daily";
+import { jianchuOn, sexagenaryName, tithiOn } from "./day-rules";
+import { explainItem } from "./explanations";
 
 const EAT = "Africa/Dar_es_Salaam";
 const iso = formatIsoDate;
@@ -162,4 +165,61 @@ test("coverage counts what readers see, and names the research gaps", () => {
   assert.equal(daily.perDay.length, 30);
   assert.equal(daily.datesWithAdvice + daily.emptyDays.length, 30);
   assert.ok(daily.avgCultures >= 2 && daily.avgInterpretations >= daily.avgCultures);
+});
+
+// --- Batch 09: a line for every day from five more traditions ---------------
+
+test("at least 8 lines a day: Nov 2026 and Jul 2027 average 8+ interpretations from 6+ traditions", () => {
+  for (const from of [d(2026, 11, 1), d(2027, 7, 1)]) {
+    const daily = dailyCoverage(bundle, from, 30, EAT);
+    assert.equal(daily.emptyDays.length, 0);
+    assert.ok(daily.avgInterpretations >= 8, `${iso(from)}: ${daily.avgInterpretations}`);
+    assert.ok(daily.avgCultures >= 6, `${iso(from)}: ${daily.avgCultures}`);
+  }
+});
+
+test("Maya day names follow the GMT correlation: 21 Dec 2012 was Ajaw, 16 May 2026 Ix, 2 Nov 2026 Kʼan", () => {
+  const cycle = bundle.cycles.find((c) => c.key === "americas.maya.tzolkin.day-names")!;
+  const nameOn = (x: CivilDate) => bundle.positions.find((p) => p.cycle_key === cycle.key && p.position === cyclePositionOn(cycle, x))!.name;
+  assert.equal(nameOn(d(2012, 12, 21)), "Ajaw");
+  assert.equal(nameOn(d(2026, 5, 16)), "Ix"); // 10 Ix 7 Sip on the FAMSI converter
+  assert.equal(nameOn(d(2026, 11, 2)), "Kʼan");
+  const haab = bundle.cycles.find((c) => c.key === "americas.maya.haab.year")!;
+  assert.equal(cyclePositionOn(haab, d(2026, 5, 16)), 2 * 20 + 7, "7 Sip");
+});
+
+test("Akan: the six-day week meets the seven-day week in the 42-day grid (Akwasidae = Kuru on a Sunday)", () => {
+  const { days } = view(d(2026, 11, 1), 30);
+  const on = (x: string) => days.find((y) => iso(y.date) === x)!.rows.map((r) => r.item.name);
+  assert.ok(on("2026-11-22").includes("Akwasidae") && on("2026-11-22").includes("Kuru") && on("2026-11-22").includes("Kwasiada"));
+  // Awukudae is Kuru on a Wednesday, 24 days after Akwasidae: 4 Nov 2026 (from 11 Oct).
+  assert.ok(on("2026-11-04").includes("Awukudae") && on("2026-11-04").includes("Wukuada"));
+  // Bartle's 1978 dates count to the same cycle as the 2026 listings.
+  assert.equal((daysFromCivil(d(2026, 2, 1)) - daysFromCivil(d(1978, 1, 8))) % 42, 0);
+});
+
+test("Hindu tithi at sunrise: 2 Nov 2026 is Kṛṣṇa Aṣṭamī; Ekādaśī comes twice a month", () => {
+  assert.equal(tithiOn(d(2026, 11, 2)), 23);
+  const { days } = view(d(2026, 11, 1), 60);
+  const ek = days.filter((x) => x.rows.some((r) => /Ekādaśī/.test(r.item.name)));
+  assert.ok(ek.length >= 3 && ek.length <= 5, ek.map((x) => iso(x.date)).join(","));
+  // Never two tithis on one day.
+  for (const x of days) assert.ok(x.rows.filter((r) => r.item.systemKey === "asia.south.vedic-hindu.tithi").length <= 1, iso(x.date));
+});
+
+test("Chinese day officers: 2 Nov 2026 (庚辰) is 破; the officer repeats when Lidong opens the 亥 month", () => {
+  assert.equal(sexagenaryName(d(2026, 11, 2)), "庚辰");
+  assert.equal(sexagenaryName(d(1949, 10, 1)), "甲子");
+  assert.equal(jianchuOn(d(2026, 11, 2)), 6); // 破
+  // 6 and 7 November 2026: the day before and the day of Lidong share an officer.
+  assert.equal(jianchuOn(d(2026, 11, 6)), jianchuOn(d(2026, 11, 7)));
+  const { days } = view(d(2026, 11, 1), 30);
+  assert.ok(days.every((x) => x.rows.filter((r) => r.item.systemKey === "asia.east.chinese.jianchu").length === 1), "one officer every day");
+});
+
+test("every line has a plain-words explanation", () => {
+  const { days } = view(d(2026, 11, 1), 365);
+  const missing = new Set<string>();
+  for (const x of days) for (const r of x.rows) if (!explainItem(r.item)) missing.add(r.item.id);
+  assert.deepEqual([...missing], []);
 });
