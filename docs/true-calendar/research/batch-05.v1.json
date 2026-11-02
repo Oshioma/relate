@@ -1,0 +1,692 @@
+{
+  "format": "true-calendar/v1",
+  "sources": [
+    {
+      "key": "src.exploreghanaguide-akwasidae",
+      "title": "Akwasidae and Odwira",
+      "publisher": "Explore Ghana Guide",
+      "url": "https://exploreghanaguide.com/events/akwasidae-and-odwira",
+      "source_type": "web",
+      "notes": "Describes the published 2026 Akwasidae dates as calculated from 2025 dates rather than formally announced by Manhyia Palace. From Oshi's research batch 05.",
+      "review_status": "draft"
+    },
+    {
+      "key": "src.paian-lunar-calendar",
+      "title": "Lunar Calendar 101",
+      "publisher": "Paian (paian.org)",
+      "url": "https://www.paian.org/festivals/lunar-calendar-101",
+      "source_type": "web",
+      "notes": "Modern Hellenic reconstruction site, not an ancient primary source. From Oshi's research batch 05.",
+      "review_status": "draft"
+    },
+    {
+      "key": "src.igbo-nkwerre-2022",
+      "title": "Igbo traditional calendar and agricultural activities in Nkwerre (journal article)",
+      "url": "https://doi.org/10.1080/23311983.2022.2131067",
+      "source_type": "academic",
+      "notes": "Cogent Arts & Humanities, 2022. Title taken from the batch; confirm the exact title and authors on review. Describes Nkwerre; order and alignment of market days vary by community. From Oshi's research batch 05.",
+      "review_status": "draft"
+    }
+  ],
+  "lunar_days": [
+    {
+      "key": "europe.athenian-greek.lunar-month.day-06",
+      "system_key": "europe.athenian-greek.lunar-month",
+      "day_number": 6,
+      "name": "Artemis day",
+      "meaning": "Sixth day associated with Artemis in a modern reconstruction.",
+      "evidence": [
+        "modern_interpretation",
+        "unverified_lead"
+      ],
+      "uncertainty": "Modern reconstruction; historical corroboration needed.",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.paian-lunar-calendar",
+          "locator": "TC05-018"
+        }
+      ]
+    }
+  ],
+  "recommendations": [
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-01.batch05",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "activity": "planting",
+      "historical_practice": "Unfavourable for planting and general fishing; good for taking eels in Te Papa compilation.",
+      "modern_interpretation": "Review garden and fishing plans; assess local conditions. (modern suggestion)",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "TC05-001"
+        }
+      ],
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-01",
+      "uncertainty": "Not universally shared across iwi; no automatic Gregorian match. The batch calls this \"lunar night 1\"; Te Papa's page order is used here, and night numbers vary by iwi (some start the month at the full Moon)."
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-02.batch05",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "activity": "planting",
+      "historical_practice": "Reasonably good for crayfishing, eeling, planting, and shellfish collecting.",
+      "modern_interpretation": "Consider planting and shore gathering where conditions and regulations permit. (modern suggestion)",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "TC05-002"
+        }
+      ],
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-02",
+      "uncertainty": "The batch calls this \"lunar night 2\"; Te Papa's page order is used here, and night numbers vary by iwi (some start the month at the full Moon)."
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-16.batch05",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "activity": "planting",
+      "historical_practice": "Crops bountiful and fishing favourable, but not eeling.",
+      "modern_interpretation": "Compare fishing conditions and crop readiness. (modern suggestion)",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "TC05-004"
+        }
+      ],
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-16",
+      "uncertainty": "The batch calls this \"full moon / night 14\"; Te Papa's page order is used here, and night numbers vary by iwi (some start the month at the full Moon)."
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-04.batch05",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "activity": "planting",
+      "historical_practice": "Good for tuber beds, planting and fishing.",
+      "modern_interpretation": "Prepare or plant tuber beds if local agronomic conditions suit. (modern suggestion)",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "TC05-003"
+        }
+      ],
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-04",
+      "uncertainty": "The batch calls this \"lunar night 4\"; Te Papa's page order is used here, and night numbers vary by iwi (some start the month at the full Moon)."
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-18.batch05",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "activity": "other",
+      "historical_practice": "Unfavourable day; allow resources to recover.",
+      "modern_interpretation": "Consider leaving a harvesting or fishing area undisturbed. (modern suggestion)",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "TC05-005"
+        }
+      ],
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-18",
+      "uncertainty": "The batch calls this \"lunar night 16\"; Te Papa's page order is used here, and night numbers vary by iwi (some start the month at the full Moon)."
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence.entry-28.batch05",
+      "culture_key": "oceania.maori",
+      "system_key": "oceania.maori.tepapa-sequence",
+      "activity": "planting",
+      "historical_practice": "Very productive for planting, fishing and eeling in the cited compilation.",
+      "modern_interpretation": "Check locally suitable planting or fishing opportunities. (modern suggestion)",
+      "evidence": [
+        "oral_tradition",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka",
+          "locator": "TC05-006"
+        }
+      ],
+      "lunar_day_key": "oceania.maori.tepapa-sequence.entry-28",
+      "uncertainty": "The batch calls this \"lunar night 26\"; Te Papa's page order is used here, and night numbers vary by iwi (some start the month at the full Moon)."
+    },
+    {
+      "key": "oceania.hawaiian.oahu-lunar-nights.night-01.batch05",
+      "culture_key": "oceania.hawaiian",
+      "system_key": "oceania.hawaiian.oahu-lunar-nights",
+      "activity": "planting",
+      "historical_practice": "Planting favourable, though tubers may remain small.",
+      "modern_interpretation": "Consider sowing appropriate crops; note tuber caveat. (modern suggestion)",
+      "evidence": [
+        "historically_documented",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.kapiolani-oahu-days",
+          "locator": "TC05-007"
+        }
+      ],
+      "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-01"
+    },
+    {
+      "key": "oceania.hawaiian.oahu-lunar-nights.night-02.batch05",
+      "culture_key": "oceania.hawaiian",
+      "system_key": "oceania.hawaiian.oahu-lunar-nights",
+      "activity": "planting",
+      "historical_practice": "Good day for planting.",
+      "modern_interpretation": "Plan planting according to rainfall and soil moisture. (modern suggestion)",
+      "evidence": [
+        "historically_documented",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.kapiolani-oahu-days",
+          "locator": "TC05-008"
+        }
+      ],
+      "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-02"
+    },
+    {
+      "key": "oceania.hawaiian.oahu-lunar-nights.night-03.batch05",
+      "culture_key": "oceania.hawaiian",
+      "system_key": "oceania.hawaiian.oahu-lunar-nights",
+      "activity": "planting",
+      "historical_practice": "Kū nights recommended for sweet potato, taro and banana in Handy and Handy.",
+      "modern_interpretation": "Consider banana or root-crop planting, subject to local conditions. (modern suggestion)",
+      "evidence": [
+        "historically_documented",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.kapiolani-oahu-days",
+          "locator": "TC05-009"
+        }
+      ],
+      "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-03",
+      "uncertainty": "Historical ritual restrictions could override activity guidance."
+    },
+    {
+      "key": "oceania.hawaiian.oahu-lunar-nights.night-05.batch05",
+      "culture_key": "oceania.hawaiian",
+      "system_key": "oceania.hawaiian.oahu-lunar-nights",
+      "activity": "planting",
+      "historical_practice": "Kepelino cautions against planting bananas, gourds and sweet potatoes; good for fishing.",
+      "modern_interpretation": "Compare alternatives to planting these crops; check fishing conditions. (modern suggestion)",
+      "evidence": [
+        "historically_documented",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.kapiolani-oahu-days",
+          "locator": "TC05-010"
+        }
+      ],
+      "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-05",
+      "uncertainty": "Tradition-specific exception to general Kū-night rule."
+    },
+    {
+      "key": "oceania.hawaiian.oahu-lunar-nights.night-07.batch05",
+      "culture_key": "oceania.hawaiian",
+      "system_key": "oceania.hawaiian.oahu-lunar-nights",
+      "activity": "planting",
+      "historical_practice": "Unfavourable for planting in cited sources.",
+      "modern_interpretation": "Use the day for observation and maintenance rather than planting. (modern suggestion)",
+      "evidence": [
+        "historically_documented",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.kapiolani-oahu-days",
+          "locator": "TC05-011"
+        }
+      ],
+      "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-07"
+    },
+    {
+      "key": "oceania.hawaiian.oahu-lunar-nights.night-10.batch05",
+      "culture_key": "oceania.hawaiian",
+      "system_key": "oceania.hawaiian.oahu-lunar-nights",
+      "activity": "planting",
+      "historical_practice": "Cited as a productive day as the ʻOle period ends.",
+      "modern_interpretation": "Reassess conditions for field work. (modern suggestion)",
+      "evidence": [
+        "historically_documented",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.kapiolani-oahu-days",
+          "locator": "TC05-012"
+        }
+      ],
+      "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-10"
+    },
+    {
+      "key": "oceania.hawaiian.oahu-lunar-nights.night-22.batch05",
+      "culture_key": "oceania.hawaiian",
+      "system_key": "oceania.hawaiian.oahu-lunar-nights",
+      "activity": "planting",
+      "historical_practice": "Kepelino describes a good planting day; Handy and Handy give a conflicting unfavourable assessment.",
+      "modern_interpretation": "Show both interpretations; avoid a definitive recommendation. (modern suggestion)",
+      "evidence": [
+        "historically_documented",
+        "modern_interpretation",
+        "contested"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.kapiolani-oahu-days",
+          "locator": "TC05-013"
+        }
+      ],
+      "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-22",
+      "uncertainty": "Conflicting primary-source traditions; must display disagreement."
+    },
+    {
+      "key": "oceania.hawaiian.oahu-lunar-nights.night-24.batch05",
+      "culture_key": "oceania.hawaiian",
+      "system_key": "oceania.hawaiian.oahu-lunar-nights",
+      "activity": "planting",
+      "historical_practice": "Planting possible but some crops may produce stems rather than fruit quickly.",
+      "modern_interpretation": "Consider crop-specific cautions. (modern suggestion)",
+      "evidence": [
+        "historically_documented",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.kapiolani-oahu-days",
+          "locator": "TC05-014"
+        }
+      ],
+      "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-24"
+    },
+    {
+      "key": "africa.west.akan.adaduanan.akwasidae.batch05",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "activity": "remembrance",
+      "historical_practice": "Ancestral and royal-stool observance, recurring every six weeks.",
+      "modern_interpretation": "Speak with elders or preserve family histories (modern reflection). (modern suggestion)",
+      "evidence": [
+        "ethnographically_documented",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026",
+          "locator": "TC05-015"
+        }
+      ],
+      "cycle_position_key": "africa.west.akan.adaduanan.akwasidae",
+      "uncertainty": "Date appears in Akan dictionary; independent guide describes it as calculated, not officially announced. Verify with Manhyia Palace before presenting as official.",
+      "observance_key": "africa.west.akan.akwasidae"
+    },
+    {
+      "key": "europe.athenian-greek.lunar-month.day-01.batch05",
+      "culture_key": "europe.athenian-greek",
+      "system_key": "europe.athenian-greek.lunar-month",
+      "activity": "ceremony",
+      "historical_practice": "Household deities honoured at start of lunar month.",
+      "modern_interpretation": "Reflect on household wellbeing or start-of-month goals. (modern suggestion)",
+      "evidence": [
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.hellenion-noumenia",
+          "locator": "TC05-016"
+        }
+      ],
+      "lunar_day_key": "europe.athenian-greek.lunar-month.day-01",
+      "uncertainty": "Modern reconstruction page, not itself an ancient primary source; crescent sighting is not astronomical conjunction. From a modern Hellenic reconstruction site, not an ancient text."
+    },
+    {
+      "key": "europe.athenian-greek.lunar-month.day-02.batch05",
+      "culture_key": "europe.athenian-greek",
+      "system_key": "europe.athenian-greek.lunar-month",
+      "activity": "ceremony",
+      "historical_practice": "Good Spirit household observance following Noumenia.",
+      "modern_interpretation": "Reflect on care and stewardship of home. (modern suggestion)",
+      "evidence": [
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.hellenion-agathos-daimon",
+          "locator": "TC05-017"
+        }
+      ],
+      "lunar_day_key": "europe.athenian-greek.lunar-month.day-02",
+      "uncertainty": "From a modern Hellenic reconstruction site, not an ancient text."
+    },
+    {
+      "key": "africa.west.igbo.market-week.cycle.eke.batch05",
+      "culture_key": "africa.west.igbo",
+      "system_key": "africa.west.igbo.market-week",
+      "activity": "trade",
+      "historical_practice": "Eke is one of four traditional market-day names; annual agricultural activities were organized through ritual and seasonal markers.",
+      "modern_interpretation": "Check local market scheduling and community observances; no universal Gregorian alignment. (modern suggestion)",
+      "evidence": [
+        "ethnographically_documented",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.igbo-nkwerre-2022",
+          "locator": "TC05-020"
+        }
+      ],
+      "cycle_position_key": "africa.west.igbo.market-week.cycle.eke",
+      "uncertainty": "Order and alignment vary by community; study describes Nkwerre."
+    },
+    {
+      "key": "africa.west.igbo.market-week.cycle.orie.batch05",
+      "culture_key": "africa.west.igbo",
+      "system_key": "africa.west.igbo.market-week",
+      "activity": "trade",
+      "historical_practice": "Orie is one of four traditional market-day names; annual agricultural activities were organized through ritual and seasonal markers.",
+      "modern_interpretation": "Check local market scheduling and community observances; no universal Gregorian alignment. (modern suggestion)",
+      "evidence": [
+        "ethnographically_documented",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.igbo-nkwerre-2022",
+          "locator": "TC05-021"
+        }
+      ],
+      "cycle_position_key": "africa.west.igbo.market-week.cycle.orie",
+      "uncertainty": "Order and alignment vary by community; study describes Nkwerre."
+    },
+    {
+      "key": "africa.west.igbo.market-week.cycle.afo.batch05",
+      "culture_key": "africa.west.igbo",
+      "system_key": "africa.west.igbo.market-week",
+      "activity": "trade",
+      "historical_practice": "Afọ is one of four traditional market-day names; annual agricultural activities were organized through ritual and seasonal markers.",
+      "modern_interpretation": "Check local market scheduling and community observances; no universal Gregorian alignment. (modern suggestion)",
+      "evidence": [
+        "ethnographically_documented",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.igbo-nkwerre-2022",
+          "locator": "TC05-022"
+        }
+      ],
+      "cycle_position_key": "africa.west.igbo.market-week.cycle.afo",
+      "uncertainty": "Order and alignment vary by community; study describes Nkwerre."
+    },
+    {
+      "key": "africa.west.igbo.market-week.cycle.nkwo.batch05",
+      "culture_key": "africa.west.igbo",
+      "system_key": "africa.west.igbo.market-week",
+      "activity": "trade",
+      "historical_practice": "Nkwọ is one of four traditional market-day names; annual agricultural activities were organized through ritual and seasonal markers.",
+      "modern_interpretation": "Check local market scheduling and community observances; no universal Gregorian alignment. (modern suggestion)",
+      "evidence": [
+        "ethnographically_documented",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.igbo-nkwerre-2022",
+          "locator": "TC05-023"
+        }
+      ],
+      "cycle_position_key": "africa.west.igbo.market-week.cycle.nkwo",
+      "uncertainty": "Order and alignment vary by community; study describes Nkwerre."
+    }
+  ],
+  "date_correspondences": [
+    {
+      "key": "africa.west.akan.akwasidae.2026-02-01",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-02-01",
+      "gregorian_to": "2026-02-01",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.exploreghanaguide-akwasidae",
+          "relation": "context"
+        }
+      ],
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+    },
+    {
+      "key": "africa.west.akan.akwasidae.2026-03-15",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-03-15",
+      "gregorian_to": "2026-03-15",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.exploreghanaguide-akwasidae",
+          "relation": "context"
+        }
+      ],
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+    },
+    {
+      "key": "africa.west.akan.akwasidae.2026-04-26",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-04-26",
+      "gregorian_to": "2026-04-26",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.exploreghanaguide-akwasidae",
+          "relation": "context"
+        }
+      ],
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+    },
+    {
+      "key": "africa.west.akan.akwasidae.2026-06-07",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-06-07",
+      "gregorian_to": "2026-06-07",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.exploreghanaguide-akwasidae",
+          "relation": "context"
+        }
+      ],
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+    },
+    {
+      "key": "africa.west.akan.akwasidae.2026-07-19",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-07-19",
+      "gregorian_to": "2026-07-19",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.exploreghanaguide-akwasidae",
+          "relation": "context"
+        }
+      ],
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+    },
+    {
+      "key": "africa.west.akan.akwasidae.2026-08-30",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-08-30",
+      "gregorian_to": "2026-08-30",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.exploreghanaguide-akwasidae",
+          "relation": "context"
+        }
+      ],
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+    },
+    {
+      "key": "africa.west.akan.akwasidae.2026-10-11",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-10-11",
+      "gregorian_to": "2026-10-11",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.exploreghanaguide-akwasidae",
+          "relation": "context"
+        }
+      ],
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+    },
+    {
+      "key": "africa.west.akan.akwasidae.2026-11-22",
+      "culture_key": "africa.west.akan",
+      "system_key": "africa.west.akan.adaduanan",
+      "label": "Akwasidae",
+      "original_date": "Akwasidae",
+      "gregorian_from": "2026-11-22",
+      "gregorian_to": "2026-11-22",
+      "certainty": "exact",
+      "notes": "Published community date; confirmation with community authorities recommended.",
+      "evidence": [
+        "unverified_lead"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.akandictionary-akwasidae-2026"
+        },
+        {
+          "source": "src.exploreghanaguide-akwasidae",
+          "relation": "context"
+        }
+      ],
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+    }
+  ]
+}

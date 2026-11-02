@@ -11,7 +11,7 @@ import { moonDays } from "../astronomy";
 // the acceptance test for "Next advice from the past".
 function publishedBundle(): ResearchBundle {
   const b: ResearchBundle = { ...EMPTY_BUNDLE, cultures: [], systems: [], cycles: [], positions: [], observances: [], meanings: [], recommendations: [], correspondences: [], notes: [], lunarDays: [], sources: [], citations: [] };
-  for (const n of ["01", "02", "03", "04"]) {
+  for (const n of ["01", "02", "03", "04", "05"]) {
     const { file } = parseImport(JSON.parse(readFileSync(new URL(`../../../../docs/true-calendar/research/batch-${n}.v1.json`, import.meta.url), "utf8")));
     assert.ok(file, `batch ${n} parses`);
     const add = <T extends { key: string }>(list: T[], rows: T[]) => {
@@ -50,6 +50,8 @@ test("next advice: Akwasidae on its published date, Whiro and the Kū nights und
   assert.equal(akwasidae.status, "published");
   assert.ok(akwasidae.sources.some((s) => s.key === "src.nyamedua-akwasidae-2026"));
   assert.ok(akwasidae.sources.some((s) => s.key === "src.akandictionary-akwasidae-2026"));
+  // Batch 05's caveat: a secondary listing, not a Manhyia announcement.
+  assert.match(akwasidae.caution ?? "", /Manhyia/);
 
   const whiro = undated.filter((i) => i.name === "Whiro");
   assert.ok(whiro.length >= 1 && whiro.every((i) => i.date === null && i.cultureKey === "oceania.maori"));
@@ -59,6 +61,9 @@ test("next advice: Akwasidae on its published date, Whiro and the Kū nights und
     assert.equal(night.status, "undated");
     assert.ok(night.sources.length > 0, `${name} cites a source`);
   }
+  // Conflicting Hawaiian accounts are both shown, never collapsed.
+  const night22 = undated.find((i) => i.id === "night|oceania.hawaiian.oahu-lunar-nights.night-22");
+  assert.ok(night22 && night22.says.length >= 2 && night22.evidence.includes("contested"));
 
   const cultures = new Set([...dated, ...undated].map((i) => i.cultureKey));
   assert.ok(cultures.size >= 3);

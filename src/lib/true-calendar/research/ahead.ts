@@ -180,7 +180,14 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
     }
     const firstPublished = published[0] ? parseIsoDate(published[0].gregorian_from!) : null;
     if (firstPublished && (!next || compareDates(firstPublished, next) <= 0)) {
-      dated.push({ ...base, id: `pos|${position.key}`, date: firstPublished, status: "published", sources: sourcesFor([...claims, ["calendar_date_correspondences", published[0].key]]) });
+      dated.push({
+        ...base,
+        id: `pos|${position.key}`,
+        date: firstPublished,
+        status: "published",
+        caution: uniq([published[0].uncertainty, base.caution]).join(" ") || null,
+        sources: sourcesFor([...claims, ["calendar_date_correspondences", published[0].key]]),
+      });
     } else if (next) {
       const confirmed = published.find((c) => c.gregorian_from === formatIsoDate(next!));
       dated.push({
@@ -188,6 +195,7 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
         id: `pos|${position.key}`,
         date: next,
         status: confirmed ? "published" : "provisional",
+        caution: uniq([confirmed?.uncertainty, base.caution]).join(" ") || null,
         sources: sourcesFor(confirmed ? [...claims, ["calendar_date_correspondences", confirmed.key]] : claims),
       });
     } else {
