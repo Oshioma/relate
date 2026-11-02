@@ -19,7 +19,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "@/components/ui/link";
-import { type CivilDate, GREGORIAN_MONTHS, WEEKDAYS_SHORT, weekdayOf } from "@/lib/true-calendar/dates";
+import { type CivilDate, GREGORIAN_MONTHS, WEEKDAYS_SHORT, addDays, weekdayOf } from "@/lib/true-calendar/dates";
 import { lunarMonthContaining, moonDay, moonDays } from "@/lib/true-calendar/astronomy";
 import type { ResearchBundle } from "@/lib/true-calendar/research/daily";
 import type { ResearchStats } from "@/lib/data/true-calendar";
@@ -28,26 +28,34 @@ import {
   DATE_STATUS_BADGES,
   DATE_STATUS_LABELS,
   type AdviceCategory,
+  type AdviceEntry,
+  type AdviceEvent,
   type AdviceFilter,
   type AdviceItem,
   type DateStatus,
   adviceAhead,
-  adviceList,
+  adviceEvents,
+  filterEvents,
   filterFeed,
 } from "@/lib/true-calendar/research/ahead";
 import { EvidenceChips } from "./history-bits";
 import { MoonGlyph } from "./moon-glyph";
 
-// "Next Advice From the Past": one list of what the published research says is
-// coming up. Every card has a date where one can be worked out:
-// a listed date, a calculated Moon phase, or a lunar night counted from the
-// calculated new Moon (the card's details say which rule was used). Only
-// cycles with no known anchor (the Igbo market week) stay undated, at the end.
-// The tradition's own words are kept apart from modern readings, and every
-// card links its sources. Nothing here is generated to fill a gap.
+// "Next Advice From the Past": the events ahead of the selected date, in
+// strict date order. Every New Moon, First Quarter, Full Moon and Last Quarter
+// is one card with the research that falls on that date underneath, grouped by
+// culture. Māori and Hawaiian nights are counted from the calculated new Moon,
+// so they say "Approximate lunar alignment" and are never presented as a
+// historical observance on that date. Runs of nights with the same kind of
+// practical guidance become activity windows. Each interpretation shows the
+// tradition's own meaning, the modern application kept apart, its source and
+// the culture's History page. Traditions with no date rule are listed
+// separately below. Nothing here is generated to fill a gap.
 
-const FIRST = 5;
+const FIRST = 10;
 const MORE = 10;
+const RANGES = [7, 30, 90] as const;
+type Range = (typeof RANGES)[number];
 
 const CATEGORY_UI: Record<AdviceCategory, { short: string; icon: LucideIcon; tint: string }> = {
   farming: { short: "Farming", icon: Sprout, tint: "from-emerald-200 to-lime-100 text-emerald-800 dark:from-emerald-900 dark:to-emerald-950 dark:text-emerald-200" },
@@ -66,17 +74,20 @@ const BADGE_STYLE: Record<DateStatus, string> = {
   secondary: "border-emerald-600/40 bg-emerald-50 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
   astronomical: "border-amber-600/40 bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
   provisional: "border-amber-600/40 bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
-  counted: "border-[var(--tc-line)] bg-[var(--tc-panel)] text-[var(--tc-ink)]",
+  counted: "border-sky-700/30 bg-sky-50 text-sky-900 dark:bg-sky-950 dark:text-sky-200",
   lunar_pending: "border-[var(--tc-line)] bg-[var(--tc-panel)] text-[var(--tc-muted)]",
   recurring: "border-[var(--tc-line)] bg-[var(--tc-panel)] text-[var(--tc-ink)]",
   disputed: "border-rose-600/40 bg-rose-50 text-rose-900 dark:bg-rose-950 dark:text-rose-200",
 };
 
+const shortDate = (d: CivilDate) => `${d.day} ${GREGORIAN_MONTHS[d.month - 1].slice(0, 3)}`;
+
 export function NextAdvice({ bundle, stats, date, tz, historyPath }: { bundle: ResearchBundle; stats: ResearchStats | null; date: CivilDate; tz: string; historyPath: string }) {
-  const feed = useMemo(
-    () => adviceAhead(bundle, date, moonDays(date, 35, tz), { monthStart: lunarMonthContaining(date, tz).month.start }),
-    [bundle, date, tz],
-  );
+  const [range, setRange] = useState<Range>(30);
+  // The Moon for the longest range plus a month, so every counted night and
+  // every quarter in range is known. Always from the selected date.
+  const moons = useMemo(() => moonDays(date, 90 + 31, tz), [date, tz]);
+  const feed = useMemo(() => adviceAhead(bundle, date, moons, { monthStart: lunarMonthContaining(date, tz).month.start }), [bundle, date, moons, tz]);
   // "See related advice" on a History page links here with ?advice=<culture>.
   // The calendar renders only in the browser (it waits for the local date), so
   // reading the address here is safe.
@@ -89,15 +100,19 @@ export function NextAdvice({ bundle, stats, date, tz, historyPath }: { bundle: R
     if (linkedCulture) sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [linkedCulture]);
 
-  const everything = useMemo(() => [...feed.dated, ...feed.lunar, ...feed.seasonal], [feed]);
-  // One list: listed dates, the Moon, then each tradition in turn; undated last.
-  const items = useMemo(() => adviceList(filterFeed(feed, filter)), [feed, filter]);
+  const events = useMemo(() => filterEvents(adviceEvents(feed, moons, date, range), filter), [feed, moons, date, range, filter]);
+  const undated = useMemo(() => {
+    const f = filterFeed(feed, filter);
+    return [...f.dated, ...f.lunar, ...f.seasonal].filter((i) => !i.date);
+  }, [feed, filter]);
+  const everything = [...feed.dated, ...feed.lunar, ...feed.seasonal];
   const cultureName = filter.culture === "all" ? null : (everything.find((i) => i.cultureKey === filter.culture)?.cultureName ?? filter.culture);
 
   const set = (patch: Partial<AdviceFilter>) => {
     setFilter((f) => ({ ...f, ...patch }));
     setShown(FIRST);
   };
+  const last = addDays(date, range - 1);
 
   return (
     <section
@@ -109,54 +124,77 @@ export function NextAdvice({ bundle, stats, date, tz, historyPath }: { bundle: R
       <h2 id="tc-next-advice-heading" className="font-serif text-3xl font-semibold sm:text-4xl">Next Advice From the Past</h2>
       <p className="mt-1 text-lg text-[var(--tc-muted)]">Traditional knowledge to use in the days and weeks ahead.</p>
 
-      <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Filter by kind of knowledge">
-        <Chip active={filter.category === "all"} onClick={() => set({ category: "all" })}>All</Chip>
-        {ADVICE_CATEGORIES.map((c) => {
-          const ui = CATEGORY_UI[c.key];
-          const Icon = ui.icon;
-          return (
-            <Chip key={c.key} active={filter.category === c.key} onClick={() => set({ category: c.key })} title={c.label}>
-              <Icon aria-hidden className="size-4" />
-              {ui.short}
-            </Chip>
-          );
-        })}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by kind of knowledge">
+          <Chip active={filter.category === "all"} onClick={() => set({ category: "all" })}>All</Chip>
+          {ADVICE_CATEGORIES.map((c) => {
+            const ui = CATEGORY_UI[c.key];
+            const Icon = ui.icon;
+            return (
+              <Chip key={c.key} active={filter.category === c.key} onClick={() => set({ category: c.key })} title={c.label}>
+                <Icon aria-hidden className="size-4" />
+                {ui.short}
+              </Chip>
+            );
+          })}
+        </div>
+        <div className="inline-flex overflow-hidden rounded-full border border-[var(--tc-line)]" role="group" aria-label="How far ahead">
+          {RANGES.map((r) => (
+            <button
+              key={r}
+              type="button"
+              aria-pressed={range === r}
+              onClick={() => {
+                setRange(r);
+                setShown(FIRST);
+              }}
+              className={`px-3 py-1.5 text-sm ${range === r ? "bg-emerald-900 font-medium text-white dark:bg-emerald-300 dark:text-emerald-950" : "hover:bg-[var(--tc-hover)]"}`}
+            >
+              Next {r} days
+            </button>
+          ))}
+        </div>
       </div>
-      {cultureName ? (
-        <p className="mt-2 text-sm text-[var(--tc-muted)]">
-          Showing {cultureName} only.{" "}
-          <button type="button" onClick={() => set({ culture: "all" })} className="inline-flex items-center gap-1 underline underline-offset-2 hover:text-[var(--tc-ink)]">
-            <X aria-hidden className="size-3.5" /> Show every culture
-          </button>
-        </p>
-      ) : null}
+      <p className="mt-2 text-sm text-[var(--tc-muted)]">
+        From {WEEKDAYS_SHORT[weekdayOf(date)]} {shortDate(date)} {date.year} to {shortDate(last)} {last.year}, in date order.
+        {cultureName ? (
+          <>
+            {" "}Showing {cultureName} only.{" "}
+            <button type="button" onClick={() => set({ culture: "all" })} className="inline-flex items-center gap-1 underline underline-offset-2 hover:text-[var(--tc-ink)]">
+              <X aria-hidden className="size-3.5" /> Show every culture
+            </button>
+          </>
+        ) : null}
+      </p>
 
       {everything.length === 0 ? (
         <p className="mt-5 text-base text-[var(--tc-muted)]">
           No research has been published yet. Knowledge appears here as soon as a reviewer publishes it.{" "}
           <Link href={historyPath} className="underline underline-offset-2 hover:text-[var(--tc-ink)]">Browse the traditions in History</Link>.
         </p>
-      ) : items.length === 0 ? (
-        <p className="mt-5 text-base text-[var(--tc-muted)]">Nothing of this kind yet.</p>
+      ) : events.length === 0 ? (
+        <p className="mt-5 text-base text-[var(--tc-muted)]">Nothing of this kind in the next {range} days.</p>
       ) : (
         <ul className="mt-5 space-y-3">
-          {items.slice(0, shown).map((item, i) => (
-            <AdviceCard key={item.id} item={item} tz={tz} historyPath={historyPath} highlight={i === 0 && ["official", "verified", "secondary"].includes(item.status)} />
+          {events.slice(0, shown).map((e) => (
+            <EventCard key={e.id} event={e} tz={tz} historyPath={historyPath} />
           ))}
         </ul>
       )}
 
-      {items.length > shown ? (
+      {events.length > shown ? (
         <div className="mt-5 flex justify-center">
           <button
             type="button"
             onClick={() => setShown((n) => n + MORE)}
             className="inline-flex items-center gap-2 rounded-full bg-[var(--tc-hover)] px-6 py-3 text-lg font-medium hover:brightness-95"
           >
-            See more ancient wisdom <ArrowRight aria-hidden className="size-5" />
+            See more ancient wisdom ({events.length - shown} more) <ArrowRight aria-hidden className="size-5" />
           </button>
         </div>
       ) : null}
+
+      {undated.length > 0 ? <UndatedTraditions items={undated} historyPath={historyPath} /> : null}
 
       {stats && stats.records > 0 ? (
         <p className="mt-4 text-center text-sm text-[var(--tc-muted)]">
@@ -186,168 +224,245 @@ function Chip({ active, onClick, title, children }: { active: boolean; onClick: 
   );
 }
 
-function DateTile({ item }: { item: AdviceItem }) {
-  if (item.date) {
-    const d = item.date;
-    return (
-      <div className="flex flex-col items-center justify-center px-1 text-center leading-tight">
-        <div className="text-base text-[var(--tc-muted)] sm:text-lg">{WEEKDAYS_SHORT[weekdayOf(d)]}</div>
-        <div className="font-serif text-4xl font-semibold sm:text-5xl">{d.day}</div>
-        <div className="text-sm sm:text-base">{GREGORIAN_MONTHS[d.month - 1].slice(0, 3)} {d.year}</div>
-        {item.status === "counted" || item.status === "provisional" ? (
-          <div className="mt-1 rounded-full border border-[var(--tc-line)] px-2 text-xs text-[var(--tc-muted)]" title="Worked out by us, not a verified traditional date">Approx.</div>
-        ) : null}
-      </div>
-    );
-  }
-  const recurring = item.status === "recurring";
-  const Icon = recurring ? RefreshCw : CalendarDays;
+function DateTile({ date, end, approximate }: { date: CivilDate; end: CivilDate | null; approximate: boolean }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1 px-1 text-center leading-tight">
-      <Icon aria-hidden className="size-8 text-[var(--tc-muted)]" />
-      <div className="text-sm font-medium sm:text-base">{recurring ? "Recurring" : "Date pending"}</div>
-      {item.position ? <div className="text-xs text-[var(--tc-muted)] sm:text-sm">{item.position}</div> : null}
+    <div className="flex flex-col items-center justify-start px-1 pt-1 text-center leading-tight">
+      <div className="text-base text-[var(--tc-muted)] sm:text-lg">{end ? "From" : WEEKDAYS_SHORT[weekdayOf(date)]}</div>
+      <div className="font-serif text-4xl font-semibold sm:text-5xl">{date.day}</div>
+      <div className="text-sm sm:text-base">{GREGORIAN_MONTHS[date.month - 1].slice(0, 3)} {date.year}</div>
+      {end ? <div className="mt-0.5 text-xs text-[var(--tc-muted)] sm:text-sm">to {shortDate(end)}</div> : null}
+      {approximate ? (
+        <div className="mt-1 rounded-full border border-[var(--tc-line)] px-2 text-xs text-[var(--tc-muted)]" title="Approximate lunar alignment, not a verified traditional date">Approx.</div>
+      ) : null}
     </div>
   );
 }
 
-function PictureTile({ item, tz }: { item: AdviceItem; tz: string }) {
-  if (item.cultureKey === "sky" && item.date) {
-    const moon = moonDay(item.date, tz);
+function PictureTile({ event, tz }: { event: AdviceEvent; tz: string }) {
+  if (event.kind === "moon") {
+    const moon = moonDay(event.date, tz);
     return (
-      <div className="flex h-full min-h-24 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-950">
-        <MoonGlyph illumination={moon.state.illumination} waxing={moon.state.waxing} size={64} title={item.name} />
+      <div className="flex h-24 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-950">
+        <MoonGlyph illumination={moon.state.illumination} waxing={moon.state.waxing} size={64} title={event.title} />
       </div>
     );
   }
-  const cat = item.categories[0];
+  const cat = event.categories[0];
   const ui = cat ? CATEGORY_UI[cat] : null;
-  const Icon = ui?.icon ?? (item.group === "lunar" ? Moon : Sparkles);
+  const Icon = ui?.icon ?? Sparkles;
   return (
-    <div className={`flex h-full min-h-24 items-center justify-center rounded-xl bg-gradient-to-br ${ui?.tint ?? PLAIN_TINT}`}>
+    <div className={`flex h-24 items-center justify-center rounded-xl bg-gradient-to-br ${ui?.tint ?? PLAIN_TINT}`}>
       <Icon aria-hidden className="size-12 opacity-80" strokeWidth={1.5} />
     </div>
   );
 }
 
-function Badge({ item }: { item: AdviceItem }) {
-  const cat = item.categories[0];
+function Badge({ status, category }: { status: DateStatus; category?: AdviceCategory }) {
   const Icon =
-    item.status === "official" || item.status === "verified" || item.status === "secondary"
+    status === "official" || status === "verified" || status === "secondary"
       ? CircleCheck
-      : item.status === "astronomical"
+      : status === "astronomical"
         ? Moon
-        : item.status === "recurring"
+        : status === "recurring"
           ? RefreshCw
-          : cat
-            ? CATEGORY_UI[cat].icon
+          : category
+            ? CATEGORY_UI[category].icon
             : Moon;
   return (
     <span
-      title={DATE_STATUS_LABELS[item.status]}
-      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-sm font-medium ${BADGE_STYLE[item.status]}`}
+      title={DATE_STATUS_LABELS[status]}
+      className={`inline-flex max-w-full items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium sm:shrink-0 sm:whitespace-nowrap ${BADGE_STYLE[status]}`}
     >
       <Icon aria-hidden className="size-4" />
-      {DATE_STATUS_BADGES[item.status]}
+      {DATE_STATUS_BADGES[status]}
     </span>
   );
 }
 
-function AdviceCard({ item, tz, historyPath, highlight }: { item: AdviceItem; tz: string; historyPath: string; highlight: boolean }) {
+function EventCard({ event, tz, historyPath }: { event: AdviceEvent; tz: string; historyPath: string }) {
   const [open, setOpen] = useState(false);
-  const href = item.cultureKey === "sky" ? null : `${historyPath}/${item.cultureKey}`;
-  const practical = item.modern[0] ?? null;
-  const traditionally = !practical && item.says.length > 1 ? item.says[1] : null;
-  const detailsId = `tc-advice-${item.id.replace(/[^a-zA-Z0-9-]/g, "-")}`;
+  const approximate = event.entries.some((e) => e.item.status === "counted");
+  const highlight = ["official", "verified", "secondary"].includes(event.status);
+  const detailsId = `tc-event-${event.id.replace(/[^a-zA-Z0-9-]/g, "-")}`;
+  // Interpretations grouped by culture, practice first (already sorted).
+  const groups = new Map<string, AdviceEntry[]>();
+  for (const e of event.entries) groups.set(e.item.cultureKey, [...(groups.get(e.item.cultureKey) ?? []), e]);
+  const cautions = [...new Set(event.entries.map((e) => e.item.caution).filter(Boolean) as string[])];
+  const cat = event.categories[0];
+  const summary =
+    event.kind === "moon"
+      ? event.entries.length > 0
+        ? `What ${groups.size === 1 ? "one tradition" : `${groups.size} traditions`} in our research say${groups.size === 1 ? "s" : ""} about this date.`
+        : "No imported research is counted to this date yet."
+      : event.kind === "window"
+        ? `${event.entries.length} nights in a row with ${cat ? CATEGORY_UI[cat].short.toLowerCase() : "practical"} guidance in this calendar.`
+        : null;
 
   return (
     <li className={`overflow-hidden rounded-2xl border border-[var(--tc-line)] shadow-sm ${highlight ? "bg-amber-50/70 dark:bg-amber-950/30" : "bg-[var(--tc-bg)]"}`}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-controls={detailsId}
-        className="grid w-full grid-cols-[4.5rem_1fr_auto] items-stretch gap-3 p-3 text-left hover:bg-[var(--tc-hover)] sm:grid-cols-[5.5rem_7rem_1fr_auto] sm:gap-4"
-      >
-        <DateTile item={item} />
-        <div className="hidden sm:block">
-          <PictureTile item={item} tz={tz} />
+      <div className="grid grid-cols-[4.5rem_1fr] gap-x-3 gap-y-1 p-3 sm:grid-cols-[5.5rem_7rem_1fr] sm:gap-x-4">
+        <div className="sm:row-span-2">
+          <DateTile date={event.date} end={event.end} approximate={approximate && event.kind !== "moon"} />
+        </div>
+        <div className="hidden sm:row-span-2 sm:block">
+          <PictureTile event={event} tz={tz} />
         </div>
         <div className="min-w-0 py-1">
           <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
             <div className="min-w-0">
-              <span className="font-serif text-2xl font-semibold leading-tight sm:text-3xl">{item.name}</span>
+              <span className="font-serif text-2xl font-semibold leading-tight sm:text-3xl">{event.title}</span>
               <span className="ml-2 text-base text-[var(--tc-muted)]">
-                {item.cultureName}
-                {item.region ? ` · ${item.region}` : null}
+                {event.cultureName}
+                {event.region ? ` · ${event.region}` : null}
               </span>
             </div>
-            <Badge item={item} />
+            <Badge status={event.status} category={cat} />
           </div>
-          <p className="mt-1.5 text-base leading-snug sm:text-lg">{item.says[0]}</p>
-          {practical ? (
-            <p className="mt-1 text-base leading-snug sm:text-lg">
-              <span className="font-semibold text-emerald-800 dark:text-emerald-300">Practical today:</span> {practical}
-            </p>
-          ) : traditionally ? (
-            <p className="mt-1 text-base leading-snug sm:text-lg">
-              <span className="font-semibold text-emerald-800 dark:text-emerald-300">Traditionally:</span> {traditionally}
-            </p>
-          ) : null}
-          {item.conflicts.length > 0 ? <p className="mt-1 text-sm font-medium text-amber-800 dark:text-amber-300">Historical interpretations differ. Open to see each account.</p> : null}
+          {summary ? <p className="mt-1 text-base text-[var(--tc-muted)]">{summary}</p> : null}
         </div>
-        <ChevronRight aria-hidden className={`size-6 self-center text-[var(--tc-muted)] transition-transform ${open ? "rotate-90" : ""}`} />
-      </button>
+        {/* On a phone the research runs the full width under the date. */}
+        <div className="col-span-2 min-w-0 sm:col-span-1 sm:col-start-3">
+          {event.entries.length > 0 ? (
+            <div className="mt-2 space-y-3">
+              {[...groups].map(([cultureKey, entries]) => (
+                <div key={cultureKey}>
+                  {event.kind === "moon" || groups.size > 1 ? (
+                    <p className="flex flex-wrap items-baseline gap-x-2 text-sm font-semibold uppercase tracking-wider text-[var(--tc-muted)]">
+                      {entries[0].item.cultureName}
+                      {event.kind === "moon" ? <span className="font-normal normal-case tracking-normal text-sky-800 dark:text-sky-300">Approximate lunar alignment</span> : null}
+                    </p>
+                  ) : null}
+                  <ul className="mt-1 space-y-2">
+                    {entries.map((e) => (
+                      <Interpretation key={`${e.item.id}|${e.date.day}`} entry={e} showDate={event.kind === "window"} historyPath={historyPath} />
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          ) : null}
 
-      {open ? (
-        <div id={detailsId} className="space-y-2 border-t border-[var(--tc-line)] px-4 py-3 text-base sm:pl-[13.5rem]">
-          {item.says.length > 1 ? (
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wider text-[var(--tc-muted)]">What the tradition says</p>
-              <ul className="mt-1 list-disc space-y-0.5 pl-5">
-                {item.says.map((t, i) => (
-                  <li key={i}>{t}</li>
-                ))}
-              </ul>
+          {cautions.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              aria-expanded={open}
+              aria-controls={detailsId}
+              className="mt-2 inline-flex items-center gap-1 text-sm text-[var(--tc-muted)] underline-offset-2 hover:text-[var(--tc-ink)] hover:underline"
+            >
+              <ChevronRight aria-hidden className={`size-4 transition-transform ${open ? "rotate-90" : ""}`} />
+              {approximate ? "Why these dates are estimates" : "Cautions"}
+            </button>
+          ) : null}
+          {open ? (
+            <div id={detailsId} className="mt-1 space-y-1 border-l-2 border-amber-600/40 pl-3 text-sm text-amber-800 dark:text-amber-300">
+              {cautions.map((c, i) => (
+                <p key={i}>{c}</p>
+              ))}
             </div>
           ) : null}
-          {item.modern.length > 0 ? (
-            <p>
-              <span className="text-[var(--tc-muted)]">Modern reading (optional, not historical): </span>
-              {item.modern.join(" ")}
-            </p>
-          ) : null}
-          {item.conflicts.length > 0 ? (
-            <div>
-              <p className="font-medium text-amber-800 dark:text-amber-300">Historical interpretations differ</p>
-              <ul className="mt-1 space-y-1 border-l-2 border-amber-600/40 pl-3">
-                {item.conflicts.map((c, i) => (
-                  <li key={i}>
-                    {c.text} <SourceLinks sources={c.sources} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          <p className="text-sm text-[var(--tc-muted)]">
-            <span className="font-medium text-[var(--tc-ink)]">How this date is known: </span>
-            {DATE_STATUS_LABELS[item.status]}.{item.cycle ? ` ${item.cycle}.` : null}
-          </p>
-          {item.caution ? <p className="text-sm text-amber-800 dark:text-amber-300">{item.caution}</p> : null}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--tc-muted)]">
-            <EvidenceChips tags={item.evidence} />
-            {item.sources.length > 0 ? (
-              <span>
-                Source: <SourceLinks sources={item.sources} />
-              </span>
-            ) : null}
-            {href ? (
-              <Link href={href} className="text-[var(--tc-gold)] underline-offset-2 hover:underline">More about the {item.cultureName} in History</Link>
-            ) : null}
-          </div>
         </div>
-      ) : null}
+      </div>
     </li>
+  );
+}
+
+function Interpretation({ entry, showDate, historyPath }: { entry: AdviceEntry; showDate: boolean; historyPath: string }) {
+  const { item } = entry;
+  const href = `${historyPath}/${item.cultureKey}`;
+  const label = item.night !== undefined && !item.name.startsWith("Unnamed") ? `${item.name} (night ${item.night})` : item.name;
+  return (
+    <li className="text-base leading-snug">
+      <p>
+        {showDate ? <span className="mr-1 text-sm text-[var(--tc-muted)]">{WEEKDAYS_SHORT[weekdayOf(entry.date)]} {shortDate(entry.date)}:</span> : null}
+        <span className="font-semibold">{label}</span>
+        <span className="text-[var(--tc-muted)]"> · traditional meaning: </span>
+        {item.says[0]}
+      </p>
+      {item.says.length > 1 ? (
+        <details className="mt-0.5 text-sm">
+          <summary className="cursor-pointer text-[var(--tc-muted)]">Other accounts ({item.says.length - 1})</summary>
+          <ul className="mt-1 list-disc space-y-0.5 pl-5">
+            {item.says.slice(1).map((t, i) => (
+              <li key={i}>{t}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+      {item.modern.length > 0 ? (
+        <p className="mt-0.5">
+          <span className="font-semibold text-emerald-800 dark:text-emerald-300">Practical today (modern, optional):</span> {item.modern[0]}
+        </p>
+      ) : null}
+      {item.conflicts.length > 0 ? (
+        <details className="mt-0.5 text-sm">
+          <summary className="cursor-pointer font-medium text-amber-800 dark:text-amber-300">Historical interpretations differ</summary>
+          <ul className="mt-1 space-y-1 border-l-2 border-amber-600/40 pl-3">
+            {item.conflicts.map((c, i) => (
+              <li key={i}>
+                {c.text} <SourceLinks sources={c.sources} />
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+      <p className="mt-0.5 text-sm text-[var(--tc-muted)]">
+        {item.sources.length > 0 ? (
+          <>
+            Source: <SourceLinks sources={item.sources} />
+            {" · "}
+          </>
+        ) : null}
+        <Link href={href} className="text-[var(--tc-gold)] underline-offset-2 hover:underline">{item.cultureName} in History</Link>
+      </p>
+    </li>
+  );
+}
+
+/** Traditions with no date rule: Greek month days, market cycles, seasons and months. */
+function UndatedTraditions({ items, historyPath }: { items: AdviceItem[]; historyPath: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-6 border-t border-[var(--tc-line)] pt-4">
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="inline-flex items-center gap-2 text-lg font-medium">
+        <ChevronRight aria-hidden className={`size-5 transition-transform ${open ? "rotate-90" : ""}`} />
+        Traditions without a date ({items.length})
+      </button>
+      <p className="mt-1 text-sm text-[var(--tc-muted)]">
+        Ancient Greek month days, market cycles, seasons and months. Their place in today&apos;s calendar has not been worked out, so they are not given dates.
+      </p>
+      {open ? (
+        <ul className="mt-3 space-y-2">
+          {items.map((item) => (
+            <li key={item.id} className="grid grid-cols-[4.5rem_1fr] gap-3 rounded-xl border border-[var(--tc-line)] bg-[var(--tc-bg)] p-3">
+              <div className="flex flex-col items-center justify-center gap-1 text-center leading-tight">
+                {item.status === "recurring" ? <RefreshCw aria-hidden className="size-6 text-[var(--tc-muted)]" /> : <CalendarDays aria-hidden className="size-6 text-[var(--tc-muted)]" />}
+                <div className="text-xs text-[var(--tc-muted)]">{item.position || (item.status === "recurring" ? "Recurring" : "No date")}</div>
+              </div>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                  <span>
+                    <span className="font-serif text-xl font-semibold">{item.name}</span>
+                    <span className="ml-2 text-sm text-[var(--tc-muted)]">
+                      {item.cultureName}
+                      {item.region ? ` · ${item.region}` : null}
+                    </span>
+                  </span>
+                  <Badge status={item.status} category={item.categories[0]} />
+                </div>
+                <ul className="mt-1">
+                  <Interpretation entry={{ item, date: item.date ?? { year: 0, month: 1, day: 1 } }} showDate={false} historyPath={historyPath} />
+                </ul>
+                {item.caution ? <p className="mt-1 text-sm text-amber-800 dark:text-amber-300">{item.caution}</p> : null}
+                <div className="mt-1">
+                  <EvidenceChips tags={item.evidence} />
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
   );
 }
 
@@ -355,7 +470,7 @@ function SourceLinks({ sources }: { sources: AdviceItem["sources"] }) {
   return (
     <>
       {sources.map((s, i) => (
-        <span key={s.key} className="text-sm text-[var(--tc-muted)]">
+        <span key={s.key}>
           {i > 0 ? "; " : null}
           {s.url ? (
             <a href={s.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[var(--tc-ink)]">{s.title}</a>
