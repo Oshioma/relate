@@ -1,0 +1,1749 @@
+{
+ "format": "true-calendar/v1",
+ "sources": [
+  {
+   "key": "src.csmc-hemerologies",
+   "title": "Every day has its own activity (Mesopotamian Bulletins)",
+   "publisher": "Centre for the Study of Manuscript Cultures, University of Hamburg",
+   "published": "2025-02-26",
+   "url": "https://www.csmc.uni-hamburg.de/publications/mesopotamia/2025-02-26.html",
+   "accessed_on": "2026-11-02",
+   "source_type": "academic",
+   "notes": "A short scholarly summary of Mesopotamian hemerologies (calendars of favourable and unfavourable days) and menologies, quoting the tablets.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-babylonian-calendar",
+   "title": "Babylonian calendar",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Babylonian_calendar",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "Encyclopedia overview: month names, month start at the first crescent, the 7th/14th/21st/28th days and the full-Moon day šapattu. Use with its cited scholarship.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.jewish-encyclopedia-sabbath",
+   "title": "Sabbath",
+   "author": "Emil G. Hirsch and others",
+   "publisher": "Jewish Encyclopedia (1906)",
+   "url": "https://www.jewishencyclopedia.com/articles/12962-sabbath",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "Older scholarship (1906) on the Assyro-Babylonian days of abstinence in the month Elul (Ulūlu).",
+   "review_status": "draft"
+  }
+ ],
+ "cultures": [
+  {
+   "key": "middle-east.babylonian",
+   "name": "Babylonian (Mesopotamia)",
+   "alt_names": [
+    "Assyro-Babylonian",
+    "Mesopotamian"
+   ],
+   "continent": "Middle East",
+   "region": "Mesopotamia (Iraq)",
+   "countries": [
+    "Iraq"
+   ],
+   "continues_today": "partly",
+   "people": "Babylonians and Assyrians; the month names live on in the Hebrew and Levantine calendars",
+   "overview": "A lunisolar calendar: each month began when the new crescent was first seen at sunset. Scholars at court kept hemerologies, lists of days favourable or unfavourable for particular activities.",
+   "research_status": "in_progress",
+   "sort_order": 30,
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar"
+    },
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "systems": [
+  {
+   "key": "middle-east.babylonian.lunisolar",
+   "culture_key": "middle-east.babylonian",
+   "name": "Babylonian lunisolar calendar",
+   "original_name": "Araḫ (month)",
+   "kind": "lunisolar",
+   "description": "Twelve lunar months, with an extra month inserted when needed to keep the year in step with the seasons.",
+   "month_rule": "Each month began when a new crescent moon was first sighted low on the western horizon at sunset. A month had 29 or 30 days.",
+   "year_rule": "The year began with Nisānu, in spring. The first day of the first month could be up to about 20 days from the spring equinox.",
+   "intercalation": "An extra month (usually a second Addaru) was inserted, at first by decree and later by the 19-year Metonic cycle.",
+   "uncertainty": "Weather could delay the sighting of the crescent, and in the Neo-Assyrian period the start of a month was sometimes shifted back a day afterwards.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "months": [
+  {
+   "key": "middle-east.babylonian.lunisolar.month-01",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "ordinal": 1,
+   "name": "Nisānu",
+   "original_name": "Araḫ Nisānu",
+   "translation": "Month [the proxies of the gods are] placed beside the throne",
+   "season": "Roughly Mar/Apr",
+   "description": "The Sumerian name means \"Month [the proxies of the gods are] placed beside the throne\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Gregorian equivalents are rough: the month followed the Moon, and the year was kept near the seasons by inserting an extra month.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Civil calendar table"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.month-02",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "ordinal": 2,
+   "name": "Āru (Ayyaru)",
+   "original_name": "Araḫ Āru",
+   "translation": "Month the horned oxen marched forth",
+   "season": "Roughly Apr/May",
+   "description": "The Sumerian name means \"Month the horned oxen marched forth\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Gregorian equivalents are rough: the month followed the Moon, and the year was kept near the seasons by inserting an extra month.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Civil calendar table"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.month-03",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "ordinal": 3,
+   "name": "Simanu",
+   "original_name": "Araḫ Simanu",
+   "translation": "Month the brick is placed in the mould",
+   "season": "Roughly May/Jun",
+   "description": "The Sumerian name means \"Month the brick is placed in the mould\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Gregorian equivalents are rough: the month followed the Moon, and the year was kept near the seasons by inserting an extra month.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Civil calendar table"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.month-04",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "ordinal": 4,
+   "name": "Dumuzu (Tammuz)",
+   "original_name": "Araḫ Dumuzu",
+   "translation": "Month of preparing for seed, festival",
+   "season": "Roughly Jun/Jul",
+   "description": "The Sumerian name means \"Month of preparing for seed, festival\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Gregorian equivalents are rough: the month followed the Moon, and the year was kept near the seasons by inserting an extra month.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Civil calendar table"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.month-05",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "ordinal": 5,
+   "name": "Abu",
+   "original_name": "Araḫ Abu",
+   "translation": "Month when the braziers are lit",
+   "season": "Roughly Jul/Aug",
+   "description": "The Sumerian name means \"Month when the braziers are lit\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Gregorian equivalents are rough: the month followed the Moon, and the year was kept near the seasons by inserting an extra month.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Civil calendar table"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.month-06",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "ordinal": 6,
+   "name": "Ulūlu",
+   "original_name": "Araḫ Ulūlu",
+   "translation": "Month of the rectification of Inanna",
+   "season": "Roughly Aug/Sep",
+   "description": "The Sumerian name means \"Month of the rectification of Inanna\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Gregorian equivalents are rough: the month followed the Moon, and the year was kept near the seasons by inserting an extra month.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Civil calendar table"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.month-07",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "ordinal": 7,
+   "name": "Tišritum",
+   "original_name": "Araḫ Tišritum",
+   "translation": "Month of beginning (the start of the second half-year)",
+   "season": "Roughly Sep/Oct",
+   "description": "The Sumerian name means \"Month of beginning (the start of the second half-year)\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Gregorian equivalents are rough: the month followed the Moon, and the year was kept near the seasons by inserting an extra month.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Civil calendar table"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.month-08",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "ordinal": 8,
+   "name": "Araḫsamnu",
+   "original_name": "Araḫ Araḫsamnu",
+   "translation": "Month the plough is let go",
+   "season": "Roughly Oct/Nov",
+   "description": "The Sumerian name means \"Month the plough is let go\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Gregorian equivalents are rough: the month followed the Moon, and the year was kept near the seasons by inserting an extra month.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Civil calendar table"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.month-09",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "ordinal": 9,
+   "name": "Kislimu",
+   "original_name": "Araḫ Kislimu",
+   "translation": "Month when the clouds(?) come out",
+   "season": "Roughly Nov/Dec",
+   "description": "The Sumerian name means \"Month when the clouds(?) come out\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Gregorian equivalents are rough: the month followed the Moon, and the year was kept near the seasons by inserting an extra month.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Civil calendar table"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.month-10",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "ordinal": 10,
+   "name": "Ṭebētum",
+   "original_name": "Araḫ Ṭebētum",
+   "translation": "Month of the father; muddy month",
+   "season": "Roughly Dec/Jan",
+   "description": "The Sumerian name means \"Month of the father; muddy month\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Gregorian equivalents are rough: the month followed the Moon, and the year was kept near the seasons by inserting an extra month.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Civil calendar table"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.month-11",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "ordinal": 11,
+   "name": "Šabaṭu",
+   "original_name": "Araḫ Šabaṭu",
+   "translation": "Month for emmer",
+   "season": "Roughly Jan/Feb",
+   "description": "The Sumerian name means \"Month for emmer\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Gregorian equivalents are rough: the month followed the Moon, and the year was kept near the seasons by inserting an extra month.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Civil calendar table"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.month-12",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "ordinal": 12,
+   "name": "Addaru",
+   "original_name": "Araḫ Addaru",
+   "translation": "Month of the cutting of corn, harvest month",
+   "season": "Roughly Feb/Mar",
+   "description": "The Sumerian name means \"Month of the cutting of corn, harvest month\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Gregorian equivalents are rough: the month followed the Moon, and the year was kept near the seasons by inserting an extra month.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Civil calendar table"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.month-13",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "ordinal": 13,
+   "name": "Addaru II",
+   "original_name": "Araḫ Addaru",
+   "translation": "Additional harvest month (inserted only in some years)",
+   "season": "Roughly Mar",
+   "description": "The Sumerian name means \"Additional harvest month (inserted only in some years)\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Gregorian equivalents are rough: the month followed the Moon, and the year was kept near the seasons by inserting an extra month.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Civil calendar table"
+    }
+   ]
+  }
+ ],
+ "lunar_days": [
+  {
+   "key": "middle-east.babylonian.lunisolar.day-01",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 1,
+   "name": "First crescent",
+   "meaning": "A new month began on the evening the new crescent was first sighted low in the west at sunset.",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Hemerologies varied between copies, months and periods; this is a general pattern, not a rule for every month. Modern dates come from an illustrative model of the Babylonian month (first crescent seen in Babylon), not an ancient listing.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Civil calendar"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-07",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 7,
+   "name": "Day 7",
+   "meaning": "One of the days that fell on the Moon's phases (7th, 14th, 21st, 28th), which seem to have been systematically unfavourable. Offerings were made to Marduk and Ishtar, apparently at nightfall.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Hemerologies varied between copies, months and periods; this is a general pattern, not a rule for every month. Modern dates come from an illustrative model of the Babylonian month (first crescent seen in Babylon), not an ancient listing.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    },
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Seven-day week and Sabbath"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-14",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 14,
+   "name": "Day 14",
+   "meaning": "One of the days that fell on the Moon's phases (7th, 14th, 21st, 28th), which seem to have been systematically unfavourable. Offerings were made to Ninlil and Nergal, apparently at nightfall.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Hemerologies varied between copies, months and periods; this is a general pattern, not a rule for every month. Modern dates come from an illustrative model of the Babylonian month (first crescent seen in Babylon), not an ancient listing.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    },
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Seven-day week and Sabbath"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-21",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 21,
+   "name": "Day 21",
+   "meaning": "One of the days that fell on the Moon's phases (7th, 14th, 21st, 28th), which seem to have been systematically unfavourable. Offerings were made to Sin and Shamash, apparently at nightfall.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Hemerologies varied between copies, months and periods; this is a general pattern, not a rule for every month. Modern dates come from an illustrative model of the Babylonian month (first crescent seen in Babylon), not an ancient listing.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    },
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Seven-day week and Sabbath"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-28",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 28,
+   "name": "Day 28",
+   "meaning": "One of the days that fell on the Moon's phases (7th, 14th, 21st, 28th), which seem to have been systematically unfavourable. Offerings were made to Enki and Mah, apparently at nightfall. At least the 28th was known as a rest day.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Hemerologies varied between copies, months and periods; this is a general pattern, not a rule for every month. Modern dates come from an illustrative model of the Babylonian month (first crescent seen in Babylon), not an ancient listing.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    },
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Seven-day week and Sabbath"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-15",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 15,
+   "name": "Šapattu (full Moon)",
+   "meaning": "The full-Moon day, šapattu: \"day of mid-repose\" (ūm nūḫ libbi), in the middle of the month.",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Hemerologies varied between copies, months and periods; this is a general pattern, not a rule for every month. Modern dates come from an illustrative model of the Babylonian month (first crescent seen in Babylon), not an ancient listing.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Seven-day week and Sabbath"
+    },
+    {
+     "source": "src.jewish-encyclopedia-sabbath"
+    }
+   ],
+   "original_name": "Šapattu",
+   "translation": "Day of mid-repose (ūm nūḫ libbi)"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-19",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 19,
+   "name": "Day 19",
+   "meaning": "Listed with the 7th, 14th, 21st and 28th as a day of abstinence in the month Ulūlu (Elul). Older scholarship notes it is the 49th day (7 × 7) from the start of the previous month.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "1906 scholarship for one month (Ulūlu); not every month. Illustrative modern date.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.jewish-encyclopedia-sabbath"
+    }
+   ]
+  }
+ ],
+ "observances": [
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-02-food",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "No fish or leeks",
+   "kind": "other",
+   "timing": "Day 2 of Nisānu",
+   "month_key": "middle-east.babylonian.lunisolar.month-01",
+   "lunar_day": 2,
+   "description": "Nisānu, day 2: fish and leeks should not be eaten.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-03-food",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "No fish or leeks; a day to marry",
+   "kind": "other",
+   "timing": "Day 3 of Nisānu",
+   "month_key": "middle-east.babylonian.lunisolar.month-01",
+   "lunar_day": 3,
+   "description": "Nisānu, day 3: \"he shall take a wife, this man will be in good health and his heart will be well. This man will live to a ripe old age\". Fish and leeks should not be eaten.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-04-half",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Half favourable",
+   "kind": "other",
+   "timing": "Day 4 of Nisānu",
+   "month_key": "middle-east.babylonian.lunisolar.month-01",
+   "lunar_day": 4,
+   "description": "Nisānu, day 4: half of the day is favourable.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-05-charges",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "No lawsuits",
+   "kind": "other",
+   "timing": "Day 5 of Nisānu",
+   "month_key": "middle-east.babylonian.lunisolar.month-01",
+   "lunar_day": 5,
+   "description": "Nisānu, day 5: \"he shall not lay charges against someone, lest he suffer harm\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-15-oath",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "No oath-taking",
+   "kind": "royal",
+   "timing": "Day 15 of Nisānu",
+   "month_key": "middle-east.babylonian.lunisolar.month-01",
+   "lunar_day": 15,
+   "description": "Nisānu, day 15: \"He must not take an oath on the 15th day, for the god will seize him\". A court astrologer advised drafting a treaty on the 15th and concluding it on the 16th.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-07-sick",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Dangerous day for the sick",
+   "kind": "other",
+   "timing": "Day 7 of Nisānu",
+   "month_key": "middle-east.babylonian.lunisolar.month-01",
+   "lunar_day": 7,
+   "description": "Nisānu: \"dangerous days, moaning for the sick, the doctor shall not lay hands on the sick\" (days 7, 9, 14, 19, 21, 28, 29 and 30).",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-09-sick",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Dangerous day for the sick",
+   "kind": "other",
+   "timing": "Day 9 of Nisānu",
+   "month_key": "middle-east.babylonian.lunisolar.month-01",
+   "lunar_day": 9,
+   "description": "Nisānu: \"dangerous days, moaning for the sick, the doctor shall not lay hands on the sick\" (days 7, 9, 14, 19, 21, 28, 29 and 30).",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-14-sick",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Dangerous day for the sick",
+   "kind": "other",
+   "timing": "Day 14 of Nisānu",
+   "month_key": "middle-east.babylonian.lunisolar.month-01",
+   "lunar_day": 14,
+   "description": "Nisānu: \"dangerous days, moaning for the sick, the doctor shall not lay hands on the sick\" (days 7, 9, 14, 19, 21, 28, 29 and 30).",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-19-sick",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Dangerous day for the sick",
+   "kind": "other",
+   "timing": "Day 19 of Nisānu",
+   "month_key": "middle-east.babylonian.lunisolar.month-01",
+   "lunar_day": 19,
+   "description": "Nisānu: \"dangerous days, moaning for the sick, the doctor shall not lay hands on the sick\" (days 7, 9, 14, 19, 21, 28, 29 and 30).",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-21-sick",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Dangerous day for the sick",
+   "kind": "other",
+   "timing": "Day 21 of Nisānu",
+   "month_key": "middle-east.babylonian.lunisolar.month-01",
+   "lunar_day": 21,
+   "description": "Nisānu: \"dangerous days, moaning for the sick, the doctor shall not lay hands on the sick\" (days 7, 9, 14, 19, 21, 28, 29 and 30).",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-28-sick",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Dangerous day for the sick",
+   "kind": "other",
+   "timing": "Day 28 of Nisānu",
+   "month_key": "middle-east.babylonian.lunisolar.month-01",
+   "lunar_day": 28,
+   "description": "Nisānu: \"dangerous days, moaning for the sick, the doctor shall not lay hands on the sick\" (days 7, 9, 14, 19, 21, 28, 29 and 30).",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-29-sick",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Dangerous day for the sick",
+   "kind": "other",
+   "timing": "Day 29 of Nisānu",
+   "month_key": "middle-east.babylonian.lunisolar.month-01",
+   "lunar_day": 29,
+   "description": "Nisānu: \"dangerous days, moaning for the sick, the doctor shall not lay hands on the sick\" (days 7, 9, 14, 19, 21, 28, 29 and 30).",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-30-sick",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Dangerous day for the sick",
+   "kind": "other",
+   "timing": "Day 30 of Nisānu",
+   "month_key": "middle-east.babylonian.lunisolar.month-01",
+   "lunar_day": 30,
+   "description": "Nisānu: \"dangerous days, moaning for the sick, the doctor shall not lay hands on the sick\" (days 7, 9, 14, 19, 21, 28, 29 and 30).",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.aru-07-no-marriage",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Not a day to marry",
+   "kind": "other",
+   "timing": "Day 7 of Āru (Ayyaru)",
+   "month_key": "middle-east.babylonian.lunisolar.month-02",
+   "lunar_day": 7,
+   "description": "Āru (Ayyaru), day 7: \"he shall not take a wife, lest distress fall upon him\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.aru-08-marriage",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "A day to marry",
+   "kind": "other",
+   "timing": "Day 8 of Āru (Ayyaru)",
+   "month_key": "middle-east.babylonian.lunisolar.month-02",
+   "lunar_day": 8,
+   "description": "Āru (Ayyaru), day 8: \"he may take a wife and his heart will be well\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.simanu-04-wealth",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Barley and money",
+   "kind": "other",
+   "timing": "Day 4 of Simanu",
+   "month_key": "middle-east.babylonian.lunisolar.month-03",
+   "lunar_day": 4,
+   "description": "Simanu, day 4: \"he shall have barley and money\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.simanu-10-favourable",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Entirely favourable",
+   "kind": "other",
+   "timing": "Day 10 of Simanu",
+   "month_key": "middle-east.babylonian.lunisolar.month-03",
+   "lunar_day": 10,
+   "description": "Simanu, day 10: the whole day is favourable.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.simanu-13-street",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Favourable in the street",
+   "kind": "other",
+   "timing": "Day 13 of Simanu",
+   "month_key": "middle-east.babylonian.lunisolar.month-03",
+   "lunar_day": 13,
+   "description": "Simanu, day 13: \"in the street is favourable\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.simanu-23-boat",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "No boat journeys",
+   "kind": "other",
+   "timing": "Day 23 of Simanu",
+   "month_key": "middle-east.babylonian.lunisolar.month-03",
+   "lunar_day": 23,
+   "description": "Simanu, day 23: \"he shall not go out in a boat, or the boat will sink, and he will suffer harm\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.dumuzu-04-road",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "No road journeys",
+   "kind": "other",
+   "timing": "Day 4 of Dumuzu (Tammuz)",
+   "month_key": "middle-east.babylonian.lunisolar.month-04",
+   "lunar_day": 4,
+   "description": "Dumuzu (Tammuz), day 4: \"he shall not go out on the road, lest he suffer loss, for a lion will leap upon him\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.tisritum-02-food",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Foods to avoid",
+   "kind": "other",
+   "timing": "Day 2 of Tišritum",
+   "month_key": "middle-east.babylonian.lunisolar.month-07",
+   "lunar_day": 2,
+   "description": "Tišritum, day 2: \"man shall not eat onions ... he shall not eat fennel or cress, lest there be hostility towards him; he shall not eat cooked meat, lest he be covered with leprosy\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.tisritum-07-food",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "No pigeons, fish or leeks",
+   "kind": "other",
+   "timing": "Day 7 of Tišritum",
+   "month_key": "middle-east.babylonian.lunisolar.month-07",
+   "lunar_day": 7,
+   "description": "Tišritum, day 7: \"he shall not eat pigeons, lest he fall ill\"; \"he shall not eat fish or leeks, lest a scorpion sting him\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.tisritum-28-pork",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "No pork",
+   "kind": "other",
+   "timing": "Day 28 of Tišritum",
+   "month_key": "middle-east.babylonian.lunisolar.month-07",
+   "lunar_day": 28,
+   "description": "Tišritum, day 28: \"he shall not eat pork\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.arahsamnu-10-dates",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "No dates",
+   "kind": "other",
+   "timing": "Day 10 of Araḫsamnu",
+   "month_key": "middle-east.babylonian.lunisolar.month-08",
+   "lunar_day": 10,
+   "description": "Araḫsamnu, day 10: \"he shall not eat dates, lest his teeth rattle\".",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.ululu-07-abstinence",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Day of abstinence",
+   "kind": "ritual",
+   "timing": "Day 7 of Ulūlu",
+   "month_key": "middle-east.babylonian.lunisolar.month-06",
+   "lunar_day": 7,
+   "description": "Ulūlu (Elul): the 7th, 14th, 19th, 21st and 28th were days of abstinence or propitiation.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "1906 scholarship (Jewish Encyclopedia); the exact restrictions are not given in this source. Illustrative modern date.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.jewish-encyclopedia-sabbath"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.ululu-14-abstinence",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Day of abstinence",
+   "kind": "ritual",
+   "timing": "Day 14 of Ulūlu",
+   "month_key": "middle-east.babylonian.lunisolar.month-06",
+   "lunar_day": 14,
+   "description": "Ulūlu (Elul): the 7th, 14th, 19th, 21st and 28th were days of abstinence or propitiation.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "1906 scholarship (Jewish Encyclopedia); the exact restrictions are not given in this source. Illustrative modern date.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.jewish-encyclopedia-sabbath"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.ululu-19-abstinence",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Day of abstinence",
+   "kind": "ritual",
+   "timing": "Day 19 of Ulūlu",
+   "month_key": "middle-east.babylonian.lunisolar.month-06",
+   "lunar_day": 19,
+   "description": "Ulūlu (Elul): the 7th, 14th, 19th, 21st and 28th were days of abstinence or propitiation.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "1906 scholarship (Jewish Encyclopedia); the exact restrictions are not given in this source. Illustrative modern date.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.jewish-encyclopedia-sabbath"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.ululu-21-abstinence",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Day of abstinence",
+   "kind": "ritual",
+   "timing": "Day 21 of Ulūlu",
+   "month_key": "middle-east.babylonian.lunisolar.month-06",
+   "lunar_day": 21,
+   "description": "Ulūlu (Elul): the 7th, 14th, 19th, 21st and 28th were days of abstinence or propitiation.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "1906 scholarship (Jewish Encyclopedia); the exact restrictions are not given in this source. Illustrative modern date.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.jewish-encyclopedia-sabbath"
+    }
+   ]
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.ululu-28-abstinence",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "name": "Day of abstinence",
+   "kind": "ritual",
+   "timing": "Day 28 of Ulūlu",
+   "month_key": "middle-east.babylonian.lunisolar.month-06",
+   "lunar_day": 28,
+   "description": "Ulūlu (Elul): the 7th, 14th, 19th, 21st and 28th were days of abstinence or propitiation.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "1906 scholarship (Jewish Encyclopedia); the exact restrictions are not given in this source. Illustrative modern date.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.jewish-encyclopedia-sabbath"
+    }
+   ]
+  }
+ ],
+ "recommendations": [
+  {
+   "key": "middle-east.babylonian.lunisolar.day-07.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "ceremony",
+   "historical_practice": "An \"evil day\" (unsuitable for prohibited activities): officials were barred from various activities and ordinary people were forbidden to \"make a wish\"; offerings to Marduk and Ishtar.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "Hemerologies varied between copies, months and periods; this is a general pattern, not a rule for every month. Modern dates come from an illustrative model of the Babylonian month (first crescent seen in Babylon), not an ancient listing.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Seven-day week and Sabbath"
+    },
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-07",
+   "modern_interpretation": "Treat it as a quiet day: hold back from big decisions or new undertakings (modern suggestion)."
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-14.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "ceremony",
+   "historical_practice": "An \"evil day\" (unsuitable for prohibited activities): officials were barred from various activities and ordinary people were forbidden to \"make a wish\"; offerings to Ninlil and Nergal.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "Hemerologies varied between copies, months and periods; this is a general pattern, not a rule for every month. Modern dates come from an illustrative model of the Babylonian month (first crescent seen in Babylon), not an ancient listing.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Seven-day week and Sabbath"
+    },
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-14",
+   "modern_interpretation": "Treat it as a quiet day: hold back from big decisions or new undertakings (modern suggestion)."
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-21.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "ceremony",
+   "historical_practice": "An \"evil day\" (unsuitable for prohibited activities): officials were barred from various activities and ordinary people were forbidden to \"make a wish\"; offerings to Sin and Shamash.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "Hemerologies varied between copies, months and periods; this is a general pattern, not a rule for every month. Modern dates come from an illustrative model of the Babylonian month (first crescent seen in Babylon), not an ancient listing.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Seven-day week and Sabbath"
+    },
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-21",
+   "modern_interpretation": "Treat it as a quiet day: hold back from big decisions or new undertakings (modern suggestion)."
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-28.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "rest",
+   "historical_practice": "An \"evil day\" (unsuitable for prohibited activities): officials were barred from various activities and ordinary people were forbidden to \"make a wish\"; offerings to Enki and Mah.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "Hemerologies varied between copies, months and periods; this is a general pattern, not a rule for every month. Modern dates come from an illustrative model of the Babylonian month (first crescent seen in Babylon), not an ancient listing.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.wikipedia-babylonian-calendar",
+     "locator": "Seven-day week and Sabbath"
+    },
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-28",
+   "modern_interpretation": "Treat it as a quiet day: hold back from big decisions or new undertakings (modern suggestion)."
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-02-food.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "Do not eat fish or leeks.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.nisanu-02-food"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-03-food.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "community",
+   "historical_practice": "A good day to marry; avoid eating fish and leeks.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.nisanu-03-food"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-04-half.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "Half of the day is favourable.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.nisanu-04-half"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-05-charges.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "trade",
+   "historical_practice": "Do not bring charges against anyone.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.nisanu-05-charges"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-15-oath.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "trade",
+   "historical_practice": "Draft agreements, but do not swear or conclude them until the 16th.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.nisanu-15-oath"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-07-sick.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "The doctor shall not lay hands on the sick.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.nisanu-07-sick"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-09-sick.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "The doctor shall not lay hands on the sick.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.nisanu-09-sick"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-14-sick.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "The doctor shall not lay hands on the sick.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.nisanu-14-sick"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-19-sick.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "The doctor shall not lay hands on the sick.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.nisanu-19-sick"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-21-sick.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "The doctor shall not lay hands on the sick.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.nisanu-21-sick"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-28-sick.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "The doctor shall not lay hands on the sick.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.nisanu-28-sick"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-29-sick.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "The doctor shall not lay hands on the sick.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.nisanu-29-sick"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.nisanu-30-sick.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "The doctor shall not lay hands on the sick.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.nisanu-30-sick"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.aru-07-no-marriage.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "community",
+   "historical_practice": "Do not marry today.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.aru-07-no-marriage"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.aru-08-marriage.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "community",
+   "historical_practice": "A good day to marry.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.aru-08-marriage"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.simanu-04-wealth.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "trade",
+   "historical_practice": "A day of gain: barley and money.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.simanu-04-wealth"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.simanu-10-favourable.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "An entirely favourable day.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.simanu-10-favourable"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.simanu-13-street.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "community",
+   "historical_practice": "Favourable for what is done out in the street.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.simanu-13-street"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.simanu-23-boat.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "travel",
+   "historical_practice": "Do not travel by boat.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.simanu-23-boat"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.dumuzu-04-road.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "travel",
+   "historical_practice": "Do not set out on the road.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.dumuzu-04-road"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.tisritum-02-food.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "Avoid onions, fennel, cress and cooked meat.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.tisritum-02-food"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.tisritum-07-food.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "Avoid eating pigeons, fish and leeks.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.tisritum-07-food"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.tisritum-28-pork.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "Do not eat pork.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.tisritum-28-pork"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.arahsamnu-10-dates.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "other",
+   "historical_practice": "Do not eat dates.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one hemerology as summarised by the University of Hamburg's CSMC. Applies to this one month of the Babylonian year; the modern date is an illustrative reconstruction.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.csmc-hemerologies"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.arahsamnu-10-dates"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.ululu-07-abstinence.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "rest",
+   "historical_practice": "A day of abstinence: restraint and propitiation.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "1906 scholarship (Jewish Encyclopedia); the exact restrictions are not given in this source. Illustrative modern date.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.jewish-encyclopedia-sabbath"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.ululu-07-abstinence"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.ululu-14-abstinence.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "rest",
+   "historical_practice": "A day of abstinence: restraint and propitiation.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "1906 scholarship (Jewish Encyclopedia); the exact restrictions are not given in this source. Illustrative modern date.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.jewish-encyclopedia-sabbath"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.ululu-14-abstinence"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.ululu-19-abstinence.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "rest",
+   "historical_practice": "A day of abstinence: restraint and propitiation.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "1906 scholarship (Jewish Encyclopedia); the exact restrictions are not given in this source. Illustrative modern date.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.jewish-encyclopedia-sabbath"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.ululu-19-abstinence"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.ululu-21-abstinence.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "rest",
+   "historical_practice": "A day of abstinence: restraint and propitiation.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "1906 scholarship (Jewish Encyclopedia); the exact restrictions are not given in this source. Illustrative modern date.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.jewish-encyclopedia-sabbath"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.ululu-21-abstinence"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.ululu-28-abstinence.practice",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "activity": "rest",
+   "historical_practice": "A day of abstinence: restraint and propitiation.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "1906 scholarship (Jewish Encyclopedia); the exact restrictions are not given in this source. Illustrative modern date.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.jewish-encyclopedia-sabbath"
+    }
+   ],
+   "observance_key": "middle-east.babylonian.lunisolar.ululu-28-abstinence"
+  }
+ ]
+}

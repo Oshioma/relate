@@ -20,7 +20,7 @@
 // Pure functions; the profiles are reviewed code, versioned with the repo.
 
 import { type CivilDate, addDays, civilDateAt, compareDates, daysFromCivil, startOfDayIn } from "../dates";
-import { type QuarterKind, quartersBetween } from "../astronomy";
+import { type QuarterKind, quartersBetween, seasonsOf } from "../astronomy";
 
 export type MappingLevel = "A" | "B" | "C";
 export const MAPPING_LEVELS: Record<MappingLevel, { name: string; short: string; explain: string }> = {
@@ -79,7 +79,22 @@ export interface MappingProfile {
   assumption: string;
   /** Advice that does not travel (seasonal farming from another climate). */
   climateNote?: string;
+  /** Named months of the year: which lunar month is month 1. */
+  yearStart?: YearStart;
+  /** For a months-only profile: the lunar profile whose months it names. */
+  monthsFrom?: string;
 }
+
+/** How a tradition's year picks its first month. */
+export type YearStart =
+  /** Month 1 is the lunar month whose first day is nearest the March equinox (in the profile's timezone). */
+  | { kind: "nearest_equinox" }
+  /**
+   * Month 1 is the lunar month whose night `night` falls nearest a listed
+   * date of that year (e.g. the Matariki public holiday, set by the "Tangaroa
+   * of Pipiri" method). Years with no listed date are not named.
+   */
+  | { kind: "listed"; night: number; dates: Record<number, string>; sourceKey: string; label: string; url: string };
 
 const MAORI_SYSTEMS = /^oceania\.maori\.(maramataka|tepapa-sequence|kahungunu-maramataka)$/;
 
@@ -317,28 +332,65 @@ export const MAPPING_PROFILES: MappingProfile[] = [
     assumption: "Not dated: no sourced rule says which modern lunar month each name falls on.",
   },
   {
-    key: "maori.tuhoe-months-unmapped",
+    key: "maori.tuhoe-months-matariki",
     group: "tuhoe-months",
     isDefault: true,
-    label: "Tūhoe months",
+    label: "Tūhoe months, Pipiri at Matariki",
     cultureKey: "oceania.maori",
-    community: "Tūhoe (Te Ara)",
+    community: "Tūhoe (Te Ara), aligned to the national Matariki dates",
     systems: /^oceania\.maori\.tuhoe-months$/,
     calendarSystem: "Tūhoe months",
     cycleType: "seasonal_month",
-    cycleLength: null,
-    anchor: { kind: "none", needs: "a sourced rule for the month that opens the Tūhoe year" },
-    monthBoundary: "Named months of the year, tied to Aotearoa's seasons.",
+    cycleLength: 29.53,
+    anchor: { kind: "conjunction", offsetDays: 0 },
+    monthBoundary: "Each month runs from Whiro (the new Moon) to the night before the next Whiro. Pipiri, the first month, is the month of Matariki.",
     region: "Aotearoa New Zealand",
     timezone: "Pacific/Auckland",
-    adjustment: "Southern-hemisphere seasons; not transferable to Zanzibar.",
-    sourceKeys: ["src.teara-maramataka"],
-    level: "C",
-    historicalPeriod: "Documented 19th century",
+    adjustment: "Southern-hemisphere seasons; not transferable to Zanzibar. A 13th lunation before the next Pipiri is left unnamed: this list has 12 months and our sources do not say how Tūhoe handled the extra one.",
+    sourceKeys: ["src.teara-maramataka", "calc.matariki-dates"],
+    level: "B",
+    historicalPeriod: "Documented 19th century; Matariki dates 2022 to 2032",
+    validFrom: "2022-01-01",
+    validTo: "2033-06-30",
+    assumption:
+      "Pipiri (month 1) is taken as the lunar month (Whiro to Whiro, New Zealand time) whose Tangaroa nights fall nearest the Matariki public holiday. The holiday is set each year by the Matariki Advisory Group's \"Tangaroa of Pipiri\" method; the other months follow in order. Tūhoe's own reckoning may differ.",
+    monthsFrom: "maori.whiro-new-moon",
+    yearStart: {
+      kind: "listed",
+      night: 24,
+      dates: { 2022: "2022-06-24", 2023: "2023-07-14", 2024: "2024-06-28", 2025: "2025-06-20", 2026: "2026-07-10", 2027: "2027-06-25", 2028: "2028-07-14", 2029: "2029-07-06", 2030: "2030-06-21", 2031: "2031-07-11", 2032: "2032-07-02" },
+      sourceKey: "calc.matariki-dates",
+      label: "Matariki dates 2022 to 2052 (Matariki Advisory Group, published by MBIE)",
+      url: "https://www.mbie.govt.nz/assets/matariki-dates-2022-to-2052-matariki-advisory-group.pdf",
+    },
+  },
+  {
+    key: "babylonian.first-crescent-illustrative",
+    group: "babylonian-month",
+    isDefault: true,
+    label: "Babylonian month (illustrative model)",
+    cultureKey: "middle-east.babylonian",
+    community: "Babylon and Assyria (hemerologies of the 2nd and 1st millennia BCE)",
+    systems: /^middle-east\.babylonian\./,
+    calendarSystem: "Babylonian lunisolar calendar",
+    cycleType: "synodic_lunar",
+    cycleLength: 29.53,
+    anchor: { kind: "first_crescent", minAgeHours: 24, eveningHour: 18 },
+    monthBoundary: "A month began on the evening the new crescent was first seen at sunset; 29 or 30 days.",
+    region: "Babylon (Iraq)",
+    timezone: "Asia/Baghdad",
+    adjustment: "Weather could delay the sighting, and the year was kept in step by inserting an extra month by decree or by the 19-year cycle. Exact ancient dates are not established.",
+    sourceKeys: ["src.wikipedia-babylonian-calendar", "src.csmc-hemerologies"],
+    level: "B",
+    illustrative: true,
+    historicalPeriod: "2nd and 1st millennia BCE",
     validFrom: null,
     validTo: null,
-    assumption: "Not dated: no sourced rule for which new Moon opens which month.",
+    assumption:
+      "An illustrative reconstruction: day 1 is the first evening (6 pm Babylon time) when the Moon is at least a day past the calculated new Moon, and Nisānu (month 1) is the month that begins nearest the March equinox; a 13th month in a year is the inserted Addaru II. It shows where the days would fall if the calendar were kept today; it is not an ancient listing.",
+    yearStart: { kind: "nearest_equinox" },
   },
+
 ];
 
 /** Which alternative each group uses: the defaults unless the reader picks another. */
@@ -414,4 +466,62 @@ export function dayCycleDates(anchor: CivilDate, anchorPosition: number, length:
   const out: CivilDate[] = [];
   for (let d = base + k * length; d <= daysFromCivil(to); d += length) out.push(addDays(anchor, d - daysFromCivil(anchor)));
   return out;
+}
+
+export interface MonthSpan {
+  /** 1 = the tradition's first month; above 12 an extra month (e.g. Addaru II). Null when the year start is unknown. */
+  ordinal: number | null;
+  /** First and last local dates of the month. */
+  start: CivilDate;
+  end: CivilDate;
+}
+
+/**
+ * The tradition's named months overlapping [from, to], each a lunar month of
+ * the profile (or of `monthsFrom`). Empty when the profile cannot place months.
+ */
+export function monthSpans(profile: MappingProfile, from: CivilDate, to: CivilDate): MonthSpan[] {
+  if (!profile.yearStart || profile.level === "C") return [];
+  const lunar = profile.monthsFrom ? MAPPING_PROFILES.find((p) => p.key === profile.monthsFrom) : profile;
+  if (!lunar) return [];
+  const a = lunar.anchor;
+  const offset = a.kind === "conjunction" || a.kind === "full_moon" ? a.offsetDays : 0;
+  // Far enough back to find the start of the current year.
+  const firsts = anchorDates(lunar, addDays(from, -420), addDays(to, 40)).map((d) => addDays(d, offset));
+  if (firsts.length < 2) return [];
+  const ys = profile.yearStart;
+  const starts = new Set<number>();
+  for (let y = from.year - 2; y <= to.year + 1; y++) {
+    let target: CivilDate | null = null;
+    if (ys.kind === "nearest_equinox") {
+      const eq = seasonsOf(y).find((e) => e.kind === "march-equinox");
+      target = eq ? civilDateAt(eq.instant, lunar.timezone) : null;
+    } else {
+      const listed = ys.dates[y];
+      target = listed ? addDays(civilFromIso(listed), -(ys.night - 1)) : null;
+    }
+    if (!target) continue;
+    let best = -1;
+    for (let i = 0; i < firsts.length - 1; i++) {
+      if (best < 0 || Math.abs(daysFromCivil(firsts[i]) - daysFromCivil(target)) < Math.abs(daysFromCivil(firsts[best]) - daysFromCivil(target))) best = i;
+    }
+    // Only a month the anchors actually cover (not the window's edge).
+    if (best >= 0 && Math.abs(daysFromCivil(firsts[best]) - daysFromCivil(target)) <= 20) starts.add(best);
+  }
+  const out: MonthSpan[] = [];
+  let since: number | null = null;
+  for (let i = 0; i < firsts.length - 1; i++) {
+    if (starts.has(i)) since = i;
+    const start = firsts[i];
+    const end = addDays(firsts[i + 1], -1);
+    if (compareDates(end, from) < 0 || compareDates(start, to) > 0) continue;
+    const n = since === null ? null : i - since + 1;
+    out.push({ ordinal: n !== null && n <= 13 ? n : null, start, end });
+  }
+  return out;
+}
+
+function civilFromIso(iso: string): CivilDate {
+  const [year, month, day] = iso.split("-").map(Number);
+  return { year, month, day };
 }

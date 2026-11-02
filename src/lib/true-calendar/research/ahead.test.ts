@@ -46,7 +46,8 @@ test("acceptance: Whiro and Rākaunui appear once each, dated by a stated count 
 
 test("every lunar night gets a date; Hawaiian nights start at the first crescent", () => {
   const { lunar } = feedWithMonth();
-  const greek = (i: { cultureKey: string }) => /^europe\.(athenian|hesiodic)-greek$/.test(i.cultureKey);
+  // Greek and Babylonian days: illustrative models of ancient calendars.
+  const greek = (i: { cultureKey: string }) => /^(europe\.(athenian|hesiodic)-greek|middle-east\.babylonian)$/.test(i.cultureKey);
   const bad = lunar.filter((i) => !greek(i) && i.cultureKey !== "sky" && !(i.date !== null && i.status === "counted"));
   assert.deepEqual(bad.map((i) => `${i.id} ${i.status}`), [], "every non-Greek lunar night is dated, approximately");
   // Greek days: an illustrative model only, never presented as a historical date.
@@ -127,7 +128,7 @@ test("importing the same batch twice writes nothing the second time", () => {
   assert.ok(plan.sections.every((s) => s.insert.length === 0 && s.update.length === 0));
 });
 
-test("batch 06: Ngāti Kahungunu nights dated approximately, Tūhoe months never dated", () => {
+test("batch 06: Ngāti Kahungunu nights dated approximately; Tūhoe months dated from Matariki", () => {
   const feed = feedWithMonth();
   const kiokio = feed.lunar.find((i) => i.name === "Tangaroa-kiokio");
   assert.ok(kiokio && kiokio.date && kiokio.status === "counted" && kiokio.categories.includes("fishing"));
@@ -136,9 +137,13 @@ test("batch 06: Ngāti Kahungunu nights dated approximately, Tūhoe months never
   const whiro = feed.lunar.filter((i) => i.name === "Whiro");
   assert.equal(whiro.length, 1);
   assert.ok(whiro[0].sources.some((s) => s.key === "src.teara-maramataka") && whiro[0].sources.some((s) => s.key === "src.tepapa-maramataka"));
-  const months = feed.seasonal.filter((i) => i.id.startsWith("month|oceania.maori.tuhoe-months"));
+  const months = [...feed.lunar, ...feed.seasonal].filter((i) => i.id.startsWith("month|oceania.maori.tuhoe-months"));
   assert.equal(months.length, 12);
-  assert.ok(months.every((m) => m.date === null && m.status === "recurring" && /Zanzibar/.test(m.caution ?? "")));
+  assert.ok(months.every((m) => /Zanzibar/.test(m.caution ?? "") && m.recurrence === "Once a year, for a whole month"));
+  // The months the window reaches are placed (approximately), with their span; the rest wait.
+  const placed = months.filter((m) => m.date);
+  assert.ok(placed.length >= 1 && placed.every((m) => m.status === "counted" && m.periods?.length && /Matariki/.test(m.caution ?? "")));
+  assert.ok(months.filter((m) => !m.date).every((m) => m.status === "recurring"));
 });
 
 test("batch 07: Hesiod's days only by the illustrative model; Egyptian lucky days and Hawaiian months recurring", () => {

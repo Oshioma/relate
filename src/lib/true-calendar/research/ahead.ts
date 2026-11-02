@@ -19,11 +19,12 @@
 // Nothing is promoted: an item's status says exactly how its date is known.
 // Every item comes from an imported, published record. Pure functions.
 
-import { type CivilDate, addDays, compareDates, daysFromCivil, formatIsoDate, parseIsoDate } from "../dates";
+import { type CivilDate, addDays, civilDateAt, compareDates, daysFromCivil, formatIsoDate, parseIsoDate } from "../dates";
 import type { DayMoon, QuarterKind } from "../astronomy";
 import { type ResearchBundle, cyclePositionOn, isAnchored, phaseKeysFor } from "./daily";
 import type { Activity, CorrespondenceRecord, DateStatusKey, EvidenceTag, MoonPhaseKey } from "./model";
-import { type MappingChoice, type MappingLevel, type MappingProfile, anchorDates, lunarNightDates, profileFor } from "./mapping";
+import { type MappingChoice, type MappingLevel, type MappingProfile, type MonthSpan, anchorDates, lunarNightDates, monthSpans, profileFor } from "./mapping";
+import { MERCURY_NOTES, retrogradePeriods } from "../mercury";
 
 type Row<R> = Omit<R, "sources">;
 
@@ -35,6 +36,10 @@ export const ADVICE_CATEGORIES = [
   { key: "ceremony", label: "Spirituality and ceremonies" },
   { key: "conservation", label: "Conservation and environmental stewardship" },
   { key: "trade", label: "Trade and markets" },
+  { key: "travel", label: "Travel and journeys" },
+  { key: "communication", label: "Communication, agreements and messages" },
+  { key: "health", label: "Health and the sick" },
+  { key: "rest", label: "Rest and restraint" },
 ] as const;
 export type AdviceCategory = (typeof ADVICE_CATEGORIES)[number]["key"];
 
@@ -153,6 +158,14 @@ export interface AdviceItem {
   phase?: MoonPhaseKey;
   /** The mapping profile that dated (or declined to date) it. */
   profileKey?: string;
+  /** How often it comes round: "Monthly", "Every 42 days", "Once a year"… */
+  recurrence: string;
+  /** Spans of days it covers (a named month, a retrograde period): "you are in it" on each day. */
+  periods?: { start: CivilDate; end: CivilDate; label: string }[];
+  /** A night that belongs to a run of same-named nights: "Kāloa nights, 2 of 3". */
+  nightGroup?: { label: string; index: number; count: number };
+  /** A ready plain-words line, when the record's own words don't give one. */
+  plain?: string;
 }
 
 const ACTIVITY_CATEGORY: Partial<Record<Activity, AdviceCategory>> = {
@@ -163,6 +176,8 @@ const ACTIVITY_CATEGORY: Partial<Record<Activity, AdviceCategory>> = {
   remembrance: "community",
   trade: "trade",
   ceremony: "ceremony",
+  travel: "travel",
+  rest: "rest",
 };
 const OBSERVANCE_CATEGORY: Record<string, AdviceCategory> = {
   festival: "ceremony",
@@ -181,13 +196,23 @@ const WORD_CATEGORY: [RegExp, AdviceCategory][] = [
   [/\b(family|ancestor|elder|lineage|household|community|visit|naming|personal name)/i, "community"],
   [/\b(ceremon|ritual|offering|sacred|god|deity|deities|spirit|shrine|stool|festival|prayer|temple|orisha|kapu|feast)/i, "ceremony"],
   [/\b(recover|conserv|kapu|undisturbed|let resources|scarce|steward|abundance)/i, "conservation"],
-  [/\b(market|trade|sell|buy)/i, "trade"],
+  [/\b(market|trade|sell|buy|money|barley and money|bank|lawsuit|charges against)/i, "trade"],
+  [/\b(journey|voyag|travel|canoe|boat|on the road|go out on the road|sail)/i, "travel"],
+  [/\b(message|letter|speech|speak|oath|treaty|contract|agreement|negotiat|communicat|news)/i, "communication"],
+  [/\b(sick|heal|health|doctor|illness|ill\b|disease|medicin|leprosy|fall ill|teeth)/i, "health"],
+  [/\b(rest(s|ed|ing)?\b|rest day|abstinence|abstain|quiet|idle|repose|no work)/i, "rest"],
 ];
 
 function categoriesFrom(texts: (string | null | undefined)[], extra: (AdviceCategory | undefined)[]): AdviceCategory[] {
   const out = new Set<AdviceCategory>();
   for (const c of extra) if (c) out.add(c);
-  for (const t of texts) if (t) for (const [re, c] of WORD_CATEGORY) if (re.test(t)) out.add(c);
+  for (const t of texts) {
+    if (!t) continue;
+    // "Fish and leeks should not be eaten" is food, not fishing.
+    const eating = /\b(eat|eaten|eating)\b/i.test(t);
+    for (const [re, c] of WORD_CATEGORY) if (re.test(t) && !(eating && c === "fishing")) out.add(c);
+    if (eating) out.add("food");
+  }
   return ADVICE_CATEGORIES.map((c) => c.key).filter((k) => out.has(k));
 }
 
@@ -237,7 +262,7 @@ export interface AdviceFeed {
  * Everything ahead from `from` (inclusive). `moons` is the calculated Moon for
  * consecutive days starting at `from` (about 35 days covers every phase).
  */
-export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayMoon[], opts: { monthStart?: CivilDate; choice?: MappingChoice } = {}): AdviceFeed {
+export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayMoon[], opts: { monthStart?: CivilDate; choice?: MappingChoice; tz?: string } = {}): AdviceFeed {
   const cultures = new Map(bundle.cultures.map((c) => [c.key, c]));
   const systems = new Map(bundle.systems.map((s) => [s.key, s]));
   const sourceByKey = new Map(bundle.sources.map((s) => [s.key, s]));
@@ -321,6 +346,7 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       systemKey: system.key,
       hasPractice: recs.length > 0,
       profileKey: profile?.key,
+      recurrence: `Every ${cycle.length_days} days`,
     };
     const listed = bundle.correspondences
       .filter((c) => c.culture_key === culture.cultureKey && (!c.system_key || c.system_key === cycle.system_key) && c.gregorian_from && c.gregorian_from >= today)
@@ -408,6 +434,7 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       order: daysFromCivil(date),
       systemKey: c.system_key ?? null,
       hasPractice: false,
+      recurrence: "On listed dates",
     };
     seenLabel.set(label, item);
     dated.push(item);
@@ -476,6 +503,7 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       order: date ? daysFromCivil(date) : Number.MAX_SAFE_INTEGER,
       systemKey: null,
       hasPractice: s.recs.length > 0,
+      recurrence: "Monthly (every Moon)",
     });
   }
 
@@ -490,17 +518,24 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
     const dates = lunarNightDates(profile, n, from, horizon, anchorsByProfile.get(profile.key));
     return dates.length > 0 ? { date: dates[0], dates } : null;
   };
+  const spansByProfile = new Map<string, MonthSpan[]>();
+  const spansFor = (profile: MappingProfile): MonthSpan[] => {
+    if (!spansByProfile.has(profile.key)) spansByProfile.set(profile.key, monthSpans(profile, from, horizon));
+    return spansByProfile.get(profile.key)!;
+  };
   const statusFor = (profile: MappingProfile | null): DateStatus => (profile?.illustrative ? "illustrative" : "counted");
   const ruleText = (profile: MappingProfile) =>
     `${profile.illustrative ? "Illustrative reconstruction" : "Approximate lunar alignment"} (${profile.label}): ${profile.assumption}`;
   const usedObservances = new Set<string>();
+  const nightGroups = nightGroupsOf(bundle.lunarDays);
   const nights: (AdviceItem & { exact: boolean })[] = [];
   for (const day of bundle.lunarDays) {
     const system = systems.get(day.system_key);
     const culture = system ? cultureBits(system.culture_key) : null;
     if (!system || !culture) continue;
     const recs = bundle.recommendations.filter((r) => r.lunar_day_key === day.key);
-    const observances = bundle.observances.filter((o) => o.system_key === system.key && o.lunar_day === day.day_number && !o.cycle_position_key);
+    // A day of one named month (o.month_key) is its own once-a-year item, not part of the monthly night.
+    const observances = bundle.observances.filter((o) => o.system_key === system.key && o.lunar_day === day.day_number && !o.cycle_position_key && !o.month_key);
     for (const o of observances) usedObservances.add(o.key);
     const says = uniq([day.meaning, ...observances.map((o) => o.description), ...recs.map((r) => r.historical_practice)]);
     if (says.length === 0) continue;
@@ -542,6 +577,8 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       order: counted ? daysFromCivil(counted.date) : day.day_number,
       systemKey: system.key,
       hasPractice: recs.length > 0,
+      recurrence: "Monthly (every lunar month)",
+      nightGroup: nightGroups.get(day.key),
     });
   }
   // The same named night recorded in two calendars of one culture (Whiro in
@@ -591,7 +628,14 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
     // A lunar observance on a stated night: "the last day of the lunar month"
     // is the day before night 1; a lunar_day is counted like a night.
     const profile = system ? profileFor(system.key, opts.choice) : null;
-    const counted = isLunar && nightNo !== null ? countNight(nightNo, profile) : null;
+    let counted = isLunar && nightNo !== null ? countNight(nightNo, profile) : null;
+    // A day of one named month: only that month's occurrence counts.
+    const month = o.month_key ? bundle.months.find((m) => m.key === o.month_key) : undefined;
+    if (counted && month && profile) {
+      const spans = spansFor(profile).filter((sp) => sp.ordinal === month.ordinal);
+      const inMonth = counted.dates.filter((d) => spans.some((sp) => compareDates(d, sp.start) >= 0 && compareDates(d, sp.end) <= 0));
+      counted = inMonth.length > 0 ? { date: inMonth[0], dates: inMonth } : null;
+    } else if (month) counted = null;
     const item: AdviceItem = {
       ...culture,
       id: `obs|${o.key}`,
@@ -601,6 +645,7 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       status: counted ? statusFor(profile) : isLunar ? "lunar_pending" : "recurring",
       profileKey: profile?.key,
       position: o.lunar_day ? `No. ${o.lunar_day}` : "Recurring",
+      recurrence: month ? `Once a year (${month.name.split(" (")[0]})` : isLunar ? "Monthly (every lunar month)" : "Recurring",
       name: o.original_name ?? o.name,
       cycle: [o.timing, system?.name].filter(Boolean).join(" · "),
       says: says.length ? says : [o.name],
@@ -611,7 +656,7 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       sources: sourcesFor([["calendar_observances", o.key], ...recs.map((r) => ["calendar_recommendations", r.key] as [string, string])]),
       caution:
         uniq([
-          counted && profile ? `${ruleText(profile)}${nightNo === 0 ? " The last day of the month is the day before night 1." : ""}` : null,
+          counted && profile ? `${ruleText(profile)}${nightNo === 0 ? " The last day of the month is the day before night 1." : ""}${month ? ` Month: ${month.name}, by the same model.` : ""}` : null,
           o.uncertainty,
           system?.month_rule,
         ]).join(" ") || null,
@@ -654,6 +699,7 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
         order: daysFromCivil(m.date) - 0.5, // first on its day
         systemKey: null,
         hasPractice: false,
+        recurrence: "Monthly",
       });
     }
   }
@@ -666,12 +712,24 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
     const says = uniq([m.description, m.season]);
     if (says.length === 0) continue;
     const evidence = m.evidence as EvidenceTag[];
-    seasonal.push({
+    // A tradition whose year can be placed: the month is dated, and every day in it says so.
+    const profile = profileFor(system.key, opts.choice);
+    const spans = profile && profile.level !== "C" ? spansFor(profile).filter((sp) => sp.ordinal === m.ordinal) : [];
+    const listedYear = profile?.yearStart?.kind === "listed" ? profile.yearStart : null;
+    const placed = spans.length > 0 && profile;
+    const calendar = profile ? profile.calendarSystem.replace(/ (months|lunisolar calendar)$/, "") : system.name;
+    const label = `${m.name} (${calendar} month ${m.ordinal})`;
+    const item: AdviceItem = {
       ...culture,
       id: `month|${m.key}`,
-      group: "seasonal",
-      date: null,
-      status: "recurring",
+      group: placed ? "lunar" : "seasonal",
+      date: placed ? spans[0].start : null,
+      // The row sits on the month's first day; the days inside show it as a period.
+      dates: placed ? spans.map((sp) => sp.start) : undefined,
+      periods: placed ? spans.map((sp) => ({ start: sp.start, end: sp.end, label })) : undefined,
+      status: placed ? statusFor(profile) : "recurring",
+      profileKey: profile?.key,
+      recurrence: "Once a year, for a whole month",
       position: `Month ${m.ordinal}`,
       name: m.original_name ?? m.name,
       cycle: `Month ${m.ordinal} · ${system.name}`,
@@ -680,18 +738,20 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       categories: categoriesFrom([...says, m.translation], []),
       evidence,
       tiers: tiersFrom(evidence),
-      sources: sourcesFor([["calendar_months", m.key]]),
+      sources: [...sourcesFor([["calendar_months", m.key]]), ...(placed && listedYear ? [{ key: listedYear.sourceKey, title: listedYear.label, url: listedYear.url }] : [])],
       caution:
         uniq([
+          placed && profile ? ruleText(profile) : null,
           m.uncertainty,
           system.uncertainty,
-          culture.region ? `These months belong to ${culture.region}'s seasons. They don't carry over to another region's seasons, Zanzibar's included.` : null,
+          culture.region && !/Zanzibar/.test(`${m.uncertainty} ${system.uncertainty}`) ? `These months belong to ${culture.region}'s seasons. They don't carry over to another region's seasons, Zanzibar's included.` : null,
         ]).join(" ") || null,
       conflicts: [],
-      order: 100 + m.ordinal,
+      order: placed ? daysFromCivil(spans[0].start) : 100 + m.ordinal,
       systemKey: system.key,
       hasPractice: false,
-    });
+    };
+    (placed ? lunar : seasonal).push(item);
   }
 
   // --- Seasons of a tradition's own region ---
@@ -721,15 +781,105 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       order: 0,
       systemKey: system.key,
       hasPractice: false,
+      recurrence: "Every year",
     });
   }
 
+  dated.push(...mercuryAdvice(from, horizon, opts.tz ?? "UTC"));
   dated.sort((a, b) => a.order - b.order || a.cultureName.localeCompare(b.cultureName));
   // Lunar: calculated dates first in date order; then pending nights, those
   // with practical guidance first, taking turns between traditions so one long
   // calendar does not crowd out the rest.
   const lunarDated = lunar.filter((i) => i.date).sort((a, b) => a.order - b.order || Number(b.hasPractice) - Number(a.hasPractice) || a.cultureName.localeCompare(b.cultureName));
   return { dated, lunar: [...lunarDated, ...takeTurns(lunar.filter((i) => !i.date))], seasonal: takeTurns(seasonal) };
+}
+
+/**
+ * Runs of consecutive nights sharing a name (Kū, ʻOle, Kāloa, Lāʻau;
+ * Tangaroa, Korekore…) in one calendar: the sources' own names, grouped.
+ */
+export function nightGroupsOf(days: ResearchBundle["lunarDays"]): Map<string, { label: string; index: number; count: number }> {
+  const out = new Map<string, { label: string; index: number; count: number }>();
+  const bySystem = new Map<string, ResearchBundle["lunarDays"]>();
+  for (const d of days) {
+    // Te Papa's list is a display order, not a night count: no runs.
+    if (/tepapa-sequence$/.test(d.system_key)) continue;
+    bySystem.set(d.system_key, [...(bySystem.get(d.system_key) ?? []), d]);
+  }
+  for (const list of bySystem.values()) {
+    const sorted = [...list].sort((a, b) => a.day_number - b.day_number);
+    let run: typeof sorted = [];
+    const flush = () => {
+      if (run.length >= 2) run.forEach((d, i) => out.set(d.key, { label: `${nightStem(run[0])} nights`, index: i + 1, count: run.length }));
+      run = [];
+    };
+    for (const d of sorted) {
+      const prev = run[run.length - 1];
+      if (prev && (d.day_number !== prev.day_number + 1 || nightStem(d) === null || nightStem(d) !== nightStem(prev))) flush();
+      if (nightStem(d) !== null) run.push(d);
+      else flush();
+    }
+    flush();
+  }
+  return out;
+}
+
+function nightStem(d: { name?: string | null; original_name?: string | null }): string | null {
+  const name = (d.original_name ?? d.name ?? "").trim();
+  if (!name || /^(day|no\.|unnamed)/i.test(name)) return null;
+  const first = name.split(/[-\s]/)[0];
+  // Hawaiian counted nights: Kūkahi, ʻOlekūlua, Kāloapau → Kū, ʻOle, Kāloa.
+  const stripped = first.replace(/(k[ūu])?(kahi|lua|kolu|pau)$/i, "");
+  return stripped.length >= 2 ? stripped : first.replace(/(kahi|lua|kolu|pau)$/i, "") || first;
+}
+
+const MERCURY_SOURCES: AdviceSource[] = [
+  { key: "calc.mercury", title: "Stations calculated with Astronomy Engine (Don Cross)", url: "https://github.com/cosinekitty/astronomy" },
+  { key: "src.ptolemy-tetrabiblos-4", title: "Ptolemy, Tetrabiblos IV.4, \"Of the Quality of Action\" (Robbins, Loeb 1940, on LacusCurtius)", url: "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Ptolemy/Tetrabiblos/4A*.html" },
+  ...MERCURY_NOTES.sources.map((x) => ({ key: x.url, title: x.title, url: x.url })),
+];
+
+/** Mercury retrograde periods in [from, to]: a row on each day, under Trade, Communication and Travel. */
+export function mercuryAdvice(from: CivilDate, to: CivilDate, tz: string): AdviceItem[] {
+  const out: AdviceItem[] = [];
+  for (const p of retrogradePeriods(from.year, to.year)) {
+    const start = civilDateAt(p.start, tz);
+    const end = civilDateAt(p.end, tz);
+    if (compareDates(end, from) < 0 || compareDates(start, to) > 0) continue;
+    const dates: CivilDate[] = [];
+    for (let d = compareDates(start, from) < 0 ? from : start; compareDates(d, end) <= 0 && compareDates(d, to) <= 0; d = addDays(d, 1)) dates.push(d);
+    out.push({
+      id: `mercury|${formatIsoDate(start)}`,
+      group: "dated",
+      date: dates[0],
+      dates,
+      periods: [{ start, end, label: "Mercury retrograde" }],
+      status: "astronomical",
+      position: "",
+      cultureKey: "astrology.western",
+      cultureName: "Western astrology",
+      region: null,
+      name: "Mercury retrograde",
+      cycle: `${formatIsoDate(start)} to ${formatIsoDate(end)}`,
+      says: [
+        "In Western astrology Mercury governs communication, travel, contracts and trade, so a retrograde period is read as a time to review and finish rather than start (a modern reading, spread by 20th-century horoscopes).",
+        "Ptolemy (2nd century CE) linked Mercury with \"scribes, men of business, calculators, teachers, merchants, bankers\" and \"those who perform their functions by means of documents, interpretation, and giving and taking\".",
+      ],
+      modern: [MERCURY_NOTES.science],
+      plain: "Double-check messages, bookings and agreements; finish things rather than start new ones (modern astrology).",
+      categories: ["trade", "communication", "travel"],
+      evidence: ["astronomically_calculated", "historically_documented", "modern_interpretation"],
+      tiers: ["documented"],
+      sources: MERCURY_SOURCES,
+      caution: "The dates are calculated astronomy. The meaning is astrology: Ptolemy wrote about Mercury in general, and the idea that its retrograde periods bring mix-ups is modern. No study has shown an effect on events.",
+      conflicts: [],
+      order: daysFromCivil(dates[0]),
+      systemKey: null,
+      hasPractice: true,
+      recurrence: "About 3 times a year, for 3 weeks",
+    });
+  }
+  return out;
 }
 
 function takeTurns(items: AdviceItem[]): AdviceItem[] {
@@ -803,6 +953,18 @@ export interface AdviceDay {
   /** All rows, in display order (cultures in turn). */
   rows: DayRow[];
   categories: AdviceCategory[];
+  /** Periods this day falls inside: a named month, Mercury retrograde. */
+  periods: PeriodTag[];
+}
+
+export interface PeriodTag {
+  item: AdviceItem;
+  label: string;
+  /** Day N of `length`. */
+  day: number;
+  length: number;
+  start: CivilDate;
+  end: CivilDate;
 }
 
 export const QUARTER_TITLES: Record<QuarterKind, string> = { new: "New Moon", first: "First Quarter", full: "Full Moon", last: "Last Quarter" };
@@ -839,10 +1001,18 @@ export function adviceDays(feed: AdviceFeed, moons: DayMoon[], from: CivilDate, 
   const last = first + days - 1;
   const moonOn = new Map(moons.map((m) => [daysFromCivil(m.date), m]));
   const rowsOn = new Map<number, DayRow[]>();
+  const periodsOn = new Map<number, PeriodTag[]>();
   const seen = new Set<string>();
   for (const item of [...feed.dated, ...feed.lunar, ...feed.seasonal]) {
     if (item.cultureKey === "sky") continue; // the Moon is the card's own header
     if (filter && !matchesFilter(item, filter)) continue;
+    for (const p of item.periods ?? []) {
+      const a = daysFromCivil(p.start);
+      const b = daysFromCivil(p.end);
+      for (let serial = Math.max(a, first); serial <= Math.min(b, last); serial++) {
+        periodsOn.set(serial, [...(periodsOn.get(serial) ?? []), { item, label: p.label, day: serial - a + 1, length: b - a + 1, start: p.start, end: p.end }]);
+      }
+    }
     const kind = rowKind(item);
     for (const d of datesOf(item)) {
       const serial = daysFromCivil(d);
@@ -880,6 +1050,7 @@ export function adviceDays(feed: AdviceFeed, moons: DayMoon[], from: CivilDate, 
       cultures,
       rows: cultures.flatMap((c) => c.rows),
       categories: ADVICE_CATEGORIES.map((c) => c.key).filter((k) => rows.some((r) => r.item.categories.includes(k))),
+      periods: (periodsOn.get(serial) ?? []).sort((a, b) => a.item.cultureName.localeCompare(b.item.cultureName)),
     });
   }
   return out.sort((a, b) => a.serial - b.serial);

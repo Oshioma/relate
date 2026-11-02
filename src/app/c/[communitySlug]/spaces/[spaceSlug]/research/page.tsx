@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import { loadTrueCalendarSpace } from "@/lib/data/true-calendar-space";
 import { getBundledResearchStatus, getRecentImportRuns, getResearchBundle, getReviewQueue } from "@/lib/data/true-calendar";
-import { mappingCoverage } from "@/lib/true-calendar/research/coverage";
+import { dailyCoverage, mappingCoverage } from "@/lib/true-calendar/research/coverage";
+import { todayIn } from "@/lib/true-calendar/dates";
 import { MappingCoveragePanel } from "@/components/true-calendar/mapping-coverage";
 import { TrueCalendarFrame } from "@/components/true-calendar/true-calendar-frame";
 import { ImportPanel, ReadyToImport, ResearchStart, ReviewQueue } from "@/components/true-calendar/research-desk";
 
 export const metadata: Metadata = { title: "Research · The True Calendar" };
+
+// Day-by-day coverage is counted in the community's home timezone.
+const COVERAGE_TZ = "Africa/Dar_es_Salaam";
 
 // The research desk, for calendar researchers and reviewers only (super
 // admins are reviewers). Everyone else sees a short note.
@@ -41,7 +45,7 @@ export default async function TrueCalendarResearchPage({ params }: { params: Pro
           drafts={items.filter((i) => i.status !== "published" && i.status !== "rejected" && i.table !== "calendar_sources").length}
           isReviewer={researcherRole === "reviewer"}
         />
-        <MappingCoveragePanel coverage={mappingCoverage(published)} />
+        <MappingCoveragePanel coverage={mappingCoverage(published)} daily={dailyCoverage(published, todayIn(COVERAGE_TZ), 90, COVERAGE_TZ)} />
         <details className="rounded-lg border border-[var(--tc-line)] px-4 py-3">
           <summary className="cursor-pointer text-base font-medium">More: research files one by one, paste a file, review record by record</summary>
           <div className="mt-3 space-y-5">

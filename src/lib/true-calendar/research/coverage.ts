@@ -4,6 +4,9 @@
 
 import type { ResearchBundle } from "./daily";
 import { type MappingLevel, type MappingProfile, MAPPING_PROFILES, profileFor } from "./mapping";
+import { type CivilDate, formatIsoDate } from "../dates";
+import { moonDays } from "../astronomy";
+import { adviceAhead, adviceDays } from "./ahead";
 
 export interface ProfileCoverage {
   profile: MappingProfile;
@@ -25,6 +28,8 @@ export interface MappingCoverage {
   culturesMappedNames: string[];
   /** Disagreements a reviewer should look at. */
   conflicts: number;
+  /** Published records with no supporting source attached. */
+  unsourced: number;
   profiles: ProfileCoverage[];
 }
 
@@ -74,8 +79,11 @@ export function mappingCoverage(bundle: ResearchBundle): MappingCoverage {
   }
   // Knowledge tied to a Moon phase.
   for (const m of bundle.meanings) if (m.subject === "moon_phase" && m.moon_phase) add("A", null, m.culture_key);
-  // Named months: no profile dates them yet.
-  for (const m of bundle.months) add("C", profileFor(m.system_key), null);
+  // Named months: dated where the profile can place the tradition's year.
+  for (const m of bundle.months) {
+    const p = profileFor(m.system_key);
+    add(p?.yearStart && p.level !== "C" ? "B" : "C", p, systems.get(m.system_key)?.culture_key ?? null);
+  }
   // Published date listings.
   for (const c of bundle.correspondences) {
     const status = c.date_status ?? "published_secondary";
@@ -86,6 +94,20 @@ export function mappingCoverage(bundle: ResearchBundle): MappingCoverage {
   for (const r of bundle.recommendations) if (r.conflict_group) conflictGroups.set(r.conflict_group, (conflictGroups.get(r.conflict_group) ?? 0) + 1);
   const conflicts =
     [...conflictGroups.values()].filter((n) => n > 1).length + bundle.correspondences.filter((c) => c.date_status === "unknown_disputed").length;
+
+  const cited = new Set(bundle.citations.map((c) => `${c.claim_table}|${c.claim_key}`));
+  const tables: [string, { key: string }[]][] = [
+    ["calendar_systems", bundle.systems],
+    ["calendar_cycles", bundle.cycles],
+    ["calendar_cycle_positions", bundle.positions],
+    ["calendar_months", bundle.months],
+    ["calendar_lunar_days", bundle.lunarDays],
+    ["calendar_observances", bundle.observances],
+    ["calendar_meanings", bundle.meanings],
+    ["calendar_recommendations", bundle.recommendations],
+    ["calendar_date_correspondences", bundle.correspondences],
+  ];
+  const unsourced = tables.reduce((n, [table, rows]) => n + rows.filter((r) => !cited.has(`${table}|${r.key}`)).length, 0);
 
   const cultureNames = new Map(bundle.cultures.map((c) => [c.key, c.name]));
   const total =
@@ -107,6 +129,60 @@ export function mappingCoverage(bundle: ResearchBundle): MappingCoverage {
     culturesMapped: mappedCultures.size,
     culturesMappedNames: [...mappedCultures].map((k) => cultureNames.get(k) ?? k).sort(),
     conflicts,
+    unsourced,
     profiles: MAPPING_PROFILES.map((profile) => ({ profile, records: perProfile.get(profile.key) ?? 0 })),
+  };
+}
+
+export interface DailyCoverage {
+  from: CivilDate;
+  days: number;
+  timezone: string;
+  /** Dates with at least one dated tradition. */
+  datesWithAdvice: number;
+  /** Over all days in the range. */
+  avgCultures: number;
+  avgInterpretations: number;
+  /** Interpretations with practical guidance (a practice record), per day. */
+  avgActionable: number;
+  /** Days with no dated traditional knowledge: research gaps. */
+  emptyDays: string[];
+  /** Cultures on each day, for the busiest and quietest days. */
+  perDay: { date: string; cultures: number; interpretations: number }[];
+}
+
+/** What a reader actually sees, day by day, over the next `days` days. */
+export function dailyCoverage(bundle: ResearchBundle, from: CivilDate, days: number, timezone: string): DailyCoverage {
+  const moons = moonDays(from, days + 31, timezone);
+  const feed = adviceAhead(bundle, from, moons, { tz: timezone });
+  const shown = adviceDays(feed, moons, from, days);
+  const byDate = new Map(shown.map((d) => [d.id, d]));
+  const perDay: DailyCoverage["perDay"] = [];
+  const emptyDays: string[] = [];
+  let cultures = 0;
+  let interpretations = 0;
+  let actionable = 0;
+  for (const m of moons.slice(0, days)) {
+    const id = formatIsoDate(m.date);
+    const d = byDate.get(id);
+    const n = d?.rows.length ?? 0;
+    const c = d?.cultures.length ?? 0;
+    if (n === 0) emptyDays.push(id);
+    cultures += c;
+    interpretations += n;
+    actionable += d?.rows.filter((r) => r.item.hasPractice).length ?? 0;
+    perDay.push({ date: id, cultures: c, interpretations: n });
+  }
+  const round = (x: number) => Math.round((x / Math.max(days, 1)) * 10) / 10;
+  return {
+    from,
+    days,
+    timezone,
+    datesWithAdvice: days - emptyDays.length,
+    avgCultures: round(cultures),
+    avgInterpretations: round(interpretations),
+    avgActionable: round(actionable),
+    emptyDays,
+    perDay,
   };
 }

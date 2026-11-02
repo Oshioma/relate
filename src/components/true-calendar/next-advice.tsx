@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight, Fish, Leaf, type LucideIcon, Sparkles, Sprout, Store, Users, Utensils, X } from "lucide-react";
+import { ArrowRight, BedDouble, ChevronLeft, ChevronRight, Fish, HeartPulse, Leaf, type LucideIcon, MessageCircle, Route, Sparkles, Sprout, Store, Users, Utensils, X } from "lucide-react";
 import Link from "@/components/ui/link";
 import { type CivilDate, GREGORIAN_MONTHS, WEEKDAYS_SHORT, addDays, compareDates, daysFromCivil, weekdayOf } from "@/lib/true-calendar/dates";
 import { lunarMonthContaining, moonDays } from "@/lib/true-calendar/astronomy";
+import { formatFixedDate, gregorianToFixed } from "@/lib/true-calendar/fixed";
 import type { ResearchBundle } from "@/lib/true-calendar/research/daily";
 import type { ResearchStats } from "@/lib/data/true-calendar";
 import {
@@ -17,6 +18,7 @@ import {
   type AdviceFilter,
   type AdviceItem,
   type DayRow,
+  type PeriodTag,
   adviceAhead,
   adviceDays,
   filterFeed,
@@ -52,6 +54,10 @@ const CATEGORY_UI: Record<AdviceCategory, { short: string; icon: LucideIcon }> =
   ceremony: { short: "Spirituality", icon: Sparkles },
   conservation: { short: "Conservation", icon: Leaf },
   trade: { short: "Trade", icon: Store },
+  travel: { short: "Travel", icon: Route },
+  communication: { short: "Communication", icon: MessageCircle },
+  health: { short: "Health", icon: HeartPulse },
+  rest: { short: "Rest", icon: BedDouble },
 };
 
 const monthShort = (d: CivilDate) => GREGORIAN_MONTHS[d.month - 1].slice(0, 3);
@@ -67,7 +73,7 @@ export function NextAdvice({ bundle, stats, date, tz, historyPath }: { bundle: R
   // Which start-of-month model each tradition with alternatives uses.
   const [choice, setChoice] = useState<MappingChoice>({});
   const feed = useMemo(
-    () => adviceAhead(bundle, start, moons, { monthStart: lunarMonthContaining(start, tz).month.start, choice }),
+    () => adviceAhead(bundle, start, moons, { monthStart: lunarMonthContaining(start, tz).month.start, choice, tz }),
     [bundle, start, moons, tz, choice]
   );
   // "See related advice" on a History page links here with ?advice=<culture>.
@@ -256,15 +262,18 @@ function Chip({ active, onClick, title, children }: { active: boolean; onClick: 
 }
 
 /** One date: the date and its Moon on the left, the cultures on the right. */
-function DayCard({ day, tz, historyPath }: { day: AdviceDay; tz: string; historyPath: string }) {
-  const [more, setMore] = useState(false);
+export function DayCard({ day, tz, historyPath, expanded = false, as: Tag = "li" }: { day: AdviceDay; tz: string; historyPath: string; expanded?: boolean; as?: "li" | "div" }) {
+  const [more, setMore] = useState(expanded);
   const { date, moon, quarter } = day;
   const lit = Math.round(moon.state.illumination * 100);
   const rows = more ? day.rows : day.rows.slice(0, ROWS_SHOWN);
   const hidden = day.rows.slice(ROWS_SHOWN);
   const hiddenCultures = new Set(hidden.map((r) => r.item.cultureKey)).size;
+  // Periods whose own row isn't on this card: "you are in…".
+  const inside = day.periods.filter((p) => !day.rows.some((r) => r.item.id === p.item.id));
+  const fixed = formatFixedDate(gregorianToFixed(date)).replace(/ \d+$/, "").replace(/ -?\d+$/, "");
   return (
-    <li className={`rounded-2xl border border-[var(--tc-line)] shadow-sm ${quarter ? "bg-amber-50/70 dark:bg-amber-950/30" : "bg-[var(--tc-bg)]"}`}>
+    <Tag className={`block rounded-2xl border border-[var(--tc-line)] shadow-sm ${quarter ? "bg-amber-50/70 dark:bg-amber-950/30" : "bg-[var(--tc-bg)]"}`}>
       <div className="grid grid-cols-[4.75rem_1fr] gap-3 p-3 sm:grid-cols-[6rem_1fr] sm:gap-4">
         <div className="flex flex-col items-center text-center leading-tight sm:row-span-2">
           <div className="text-sm text-[var(--tc-muted)] sm:text-base">{WEEKDAYS_SHORT[weekdayOf(date)]}</div>
@@ -272,9 +281,11 @@ function DayCard({ day, tz, historyPath }: { day: AdviceDay; tz: string; history
           <div className="text-sm sm:text-base">
             {monthShort(date)} {date.year}
           </div>
+          <div className="mt-1 text-xs text-[var(--tc-muted)]" title="International Fixed Calendar">Fixed: {fixed}</div>
           <div className="mt-2 rounded-full bg-slate-900 p-1.5">
             <MoonGlyph illumination={moon.state.illumination} waxing={moon.state.waxing} size={30} title={`${moon.name}, ${lit}% lit`} />
           </div>
+          <div className="mt-1 text-xs text-[var(--tc-muted)]">Moon age {moon.state.ageDays.toFixed(1)} d</div>
         </div>
         <div className="min-w-0">
           <p className="flex flex-wrap items-baseline gap-x-2">
@@ -282,38 +293,72 @@ function DayCard({ day, tz, historyPath }: { day: AdviceDay; tz: string; history
             <span className="text-sm text-[var(--tc-muted)]">{lit}% lit · calculated</span>
           </p>
           <MercuryLine date={date} tz={tz} />
+          {inside.length > 0 ? <PeriodLine periods={inside} /> : null}
+          {day.categories.length > 0 ? (
+            <p className="mt-1 flex flex-wrap gap-1.5" aria-label="Kinds of advice on this day">
+              {day.categories.map((c) => {
+                const Icon = CATEGORY_UI[c].icon;
+                return (
+                  <span key={c} title={CATEGORY_UI[c].short} className="inline-flex items-center gap-1 rounded-full bg-[var(--tc-hover)] px-2 py-0.5 text-xs">
+                    <Icon aria-hidden className="size-3.5" />
+                    {CATEGORY_UI[c].short}
+                  </span>
+                );
+              })}
+            </p>
+          ) : null}
         </div>
         {/* On a phone the cultures run the full width under the date. */}
         <div className="col-span-2 min-w-0 sm:col-span-1 sm:col-start-2">
           {day.rows.length === 0 ? (
-            <p className="mt-1 text-sm text-[var(--tc-muted)]">No imported tradition is dated to this day yet.</p>
+            <p className="mt-1 text-sm text-[var(--tc-muted)]">No imported tradition is dated to this day yet: a research gap, not an empty day.</p>
           ) : (
             <ul className="mt-2 divide-y divide-[var(--tc-line)]">
               {rows.map((r) => (
-                <Row key={r.item.id} row={r} historyPath={historyPath} />
+                <Row key={r.item.id} row={r} historyPath={historyPath} date={date} />
               ))}
             </ul>
           )}
-          {hidden.length > 0 ? (
+          {hidden.length > 0 && !expanded ? (
             <button
               type="button"
               onClick={() => setMore((m) => !m)}
               aria-expanded={more}
               className="mt-1 text-sm font-medium text-[var(--tc-gold)] underline-offset-2 hover:underline"
             >
-              {more ? "− Show fewer" : `+ Show more cultures (${hidden.length} more${hiddenCultures > 1 ? ` from ${hiddenCultures} cultures` : ""})`}
+              {more ? "− Show fewer" : `+ Show all cultures (${hidden.length} more${hiddenCultures > 1 ? ` from ${hiddenCultures} cultures` : ""})`}
             </button>
           ) : null}
         </div>
       </div>
-    </li>
+    </Tag>
+  );
+}
+
+/** "You are in": the months and spans this day falls inside. */
+function PeriodLine({ periods }: { periods: PeriodTag[] }) {
+  return (
+    <p className="mt-1 text-sm">
+      <span className="text-[var(--tc-muted)]">You are in: </span>
+      {periods.map((p, i) => (
+        <span key={`${p.item.id}|${p.label}`}>
+          {i > 0 ? " · " : null}
+          <span className="font-medium">{p.label}</span>
+          <span className="text-[var(--tc-muted)]">
+            , day {p.day} of {p.length}
+            {p.item.status === "illustrative" ? " (illustrative)" : p.item.status === "counted" ? " (approx.)" : ""}
+          </span>
+        </span>
+      ))}
+    </p>
   );
 }
 
 /** A short Mercury line on a retrograde day; the notes open on a station day. */
 function MercuryLine({ date, tz }: { date: CivilDate; tz: string }) {
   const m = mercuryOn(date, tz);
-  if (!m.retrograde) return null;
+  // Every retrograde day has its own Western astrology row; a station day also gets the headline.
+  if (!m.station) return null;
   return (
     <div className="mt-0.5 text-sm">
       <p className="flex items-center gap-2 text-rose-800 dark:text-rose-300">
@@ -352,7 +397,7 @@ function StatusPill({ row }: { row: DayRow }) {
     );
   }
   if (row.kind === "astronomical") {
-    return <span title={DATE_STATUS_LABELS.astronomical} className="rounded-full border border-amber-600/40 bg-amber-50 px-2 text-xs text-amber-900 dark:bg-amber-950 dark:text-amber-200">Moon phase</span>;
+    return <span title={DATE_STATUS_LABELS.astronomical} className="rounded-full border border-amber-600/40 bg-amber-50 px-2 text-xs text-amber-900 dark:bg-amber-950 dark:text-amber-200">{row.item.phase ? "Moon phase" : "Calculated dates"}</span>;
   }
   return null;
 }
@@ -401,10 +446,13 @@ function ModelChoice({ choice, setChoice }: { choice: MappingChoice; setChoice: 
 }
 
 /** One culture's interpretation: what the tradition says, then the modern application. */
-function Row({ row, historyPath }: { row: DayRow; historyPath: string }) {
+function Row({ row, historyPath, date }: { row: DayRow; historyPath: string; date?: CivilDate }) {
   const { item } = row;
   const [open, setOpen] = useState(false);
-  const plain = plainAdvice(item);
+  const plain = item.plain ?? plainAdvice(item);
+  const span = date ? item.periods?.find((p) => compareDates(date, p.start) >= 0 && compareDates(date, p.end) <= 0) : undefined;
+  // A long period (Mercury retrograde) repeats day after day: after its first card, say it briefly.
+  const brief = !open && item.id.startsWith("mercury|") && Boolean(date && item.dates && compareDates(date, item.dates[0]) !== 0);
   const terms = termsIn(item);
   // Always: the date-mapping note lives here.
   const hasDetail = true;
@@ -417,11 +465,26 @@ function Row({ row, historyPath }: { row: DayRow; historyPath: string }) {
           <span className="font-semibold">{rowName(item)}</span>
         </span>
         <StatusPill row={row} />
+        <span title="How often this comes round" className="rounded-full border border-[var(--tc-line)] px-2 text-xs text-[var(--tc-muted)]">
+          {item.recurrence}
+        </span>
+        {item.categories.map((c) => {
+          const Icon = CATEGORY_UI[c].icon;
+          return <Icon key={c} aria-label={CATEGORY_UI[c].short} className="size-3.5 self-center text-[var(--tc-muted)]" />;
+        })}
       </p>
-      <p className="mt-0.5">
-        <span className="text-[var(--tc-muted)]">What the tradition says: </span>
-        {item.says[0]}
-      </p>
+      {item.nightGroup || span ? (
+        <p className="text-sm text-[var(--tc-muted)]">
+          {item.nightGroup ? `${item.nightGroup.label}, ${item.nightGroup.index} of ${item.nightGroup.count}` : null}
+          {span ? `Day ${daysFromCivil(date!) - daysFromCivil(span.start) + 1} of ${daysFromCivil(span.end) - daysFromCivil(span.start) + 1} (${shortDate(span.start)} to ${shortDate(span.end)} ${span.end.year})` : null}
+        </p>
+      ) : null}
+      {brief ? null : (
+        <p className="mt-0.5">
+          <span className="text-[var(--tc-muted)]">What the tradition says: </span>
+          {item.says[0]}
+        </p>
+      )}
       {plain ? (
         <p className="mt-0.5">
           <span className="text-emerald-800 dark:text-emerald-300">What you could do: </span>
@@ -472,14 +535,16 @@ function Row({ row, historyPath }: { row: DayRow; historyPath: string }) {
         </div>
       ) : null}
       <p className="mt-0.5 flex flex-wrap gap-x-2 text-sm text-[var(--tc-muted)]">
-        {item.sources.length > 0 ? (
+        {item.sources.length > 0 && !brief ? (
           <span>
             Source: <SourceLinks sources={item.sources} />
           </span>
         ) : null}
-        <Link href={`${historyPath}/${item.cultureKey}`} className="text-[var(--tc-gold)] underline-offset-2 hover:underline">
-          {item.cultureName} in History
-        </Link>
+        {item.cultureKey.startsWith("astrology.") ? null : (
+          <Link href={`${historyPath}/${item.cultureKey}`} className="text-[var(--tc-gold)] underline-offset-2 hover:underline">
+            {item.cultureName} in History
+          </Link>
+        )}
         {hasDetail ? (
           <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="underline-offset-2 hover:text-[var(--tc-ink)] hover:underline">
             {open ? "Less" : "More detail"}
