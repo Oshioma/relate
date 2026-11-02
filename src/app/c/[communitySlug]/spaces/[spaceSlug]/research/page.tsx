@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { loadTrueCalendarSpace } from "@/lib/data/true-calendar-space";
-import { getRecentImportRuns, getReviewQueue } from "@/lib/data/true-calendar";
+import { getBundledResearchStatus, getRecentImportRuns, getReviewQueue } from "@/lib/data/true-calendar";
 import { TrueCalendarFrame } from "@/components/true-calendar/true-calendar-frame";
-import { ImportPanel, ReviewQueue } from "@/components/true-calendar/research-desk";
+import { ImportPanel, ReadyToImport, ReviewQueue } from "@/components/true-calendar/research-desk";
 
 export const metadata: Metadata = { title: "Research · The True Calendar" };
 
@@ -21,13 +21,14 @@ export default async function TrueCalendarResearchPage({ params }: { params: Pro
     );
   }
 
-  const [{ items, cultureNames }, runs] = await Promise.all([getReviewQueue(supabase), getRecentImportRuns(supabase)]);
+  const [{ items, cultureNames }, runs, bundled] = await Promise.all([getReviewQueue(supabase), getRecentImportRuns(supabase), getBundledResearchStatus(supabase)]);
   return (
     <TrueCalendarFrame title={space.name} basePath={spacePath} active="research" showResearch>
       <div className="space-y-5">
         <p className="text-base text-[var(--tc-muted)]">
           You are a {researcherRole}. {researcherRole === "reviewer" ? "You can import research and publish it." : "You can import research as drafts and mark it ready; a reviewer publishes it."}
         </p>
+        <ReadyToImport spacePath={spacePath} files={bundled} />
         <ImportPanel spacePath={spacePath} />
         <ReviewQueue spacePath={spacePath} items={items} cultureNames={[...cultureNames]} isReviewer={researcherRole === "reviewer"} />
         {runs.length > 0 ? (

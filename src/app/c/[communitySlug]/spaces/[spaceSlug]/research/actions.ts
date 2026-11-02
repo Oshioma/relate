@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getResearcherRole, getReviewQueue } from "@/lib/data/true-calendar";
 import { runCalendarImport, setReviewStatus, type ImportOutcome } from "@/lib/true-calendar/research/import-apply";
 import { IMPORT_SECTIONS, type CalendarTable } from "@/lib/true-calendar/research/model";
+import { BUNDLED_RESEARCH } from "@/lib/true-calendar/research/bundled";
 
 // The True Calendar's research desk. Every action re-checks the caller's role
 // (researchers import drafts; reviewers also publish); RLS and the publish
@@ -49,6 +50,21 @@ export async function importCalendarResearch(spacePath: string, text: string, dr
   }
   try {
     const outcome = await runCalendarImport(ctx.supabase, ctx.userId, raw, dryRun);
+    if (outcome.written) refresh(spacePath);
+    return outcome;
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "The import failed." };
+  }
+}
+
+/** Imports one of the research files that ship with the app. */
+export async function importBundledResearch(spacePath: string, id: string): Promise<ImportResult> {
+  const ctx = await researcher("researcher");
+  if ("error" in ctx) return { error: ctx.error ?? "Not allowed." };
+  const bundled = BUNDLED_RESEARCH.find((b) => b.id === id);
+  if (!bundled) return { error: "Unknown research file." };
+  try {
+    const outcome = await runCalendarImport(ctx.supabase, ctx.userId, await bundled.load(), false);
     if (outcome.written) refresh(spacePath);
     return outcome;
   } catch (e) {

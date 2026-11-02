@@ -130,3 +130,10 @@ test("sourced dates join the matching cycle entry, or stand alone", () => {
   assert.equal(alone.length, 1);
   assert.equal(alone[0].kind, "dated");
 });
+
+test("re-importing a draft file never unpublishes a reviewed record", () => {
+  const { file: parsed } = parseImport(file);
+  const rows = { calendar_sources: new Map([["test.book", { key: "test.book", title: "An example book", source_type: "academic", review_status: "published" }]]) };
+  const plan = planImport(parsed!, { rows, citedClaims: new Set() });
+  assert.deepEqual(plan.sections.find((s) => s.section === "sources")!.unchanged, ["test.book"]);
+});

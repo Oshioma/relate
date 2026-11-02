@@ -194,3 +194,25 @@ export async function getRecentImportRuns(supabase: Client, limit = 10) {
   const { data } = await supabase.from("calendar_import_runs").select("*").order("created_at", { ascending: false }).limit(limit);
   return data ?? [];
 }
+
+/** For each research file that ships with the app: how much of it is not yet in the database. */
+export async function getBundledResearchStatus(supabase: Client) {
+  const { BUNDLED_RESEARCH } = await import("@/lib/true-calendar/research/bundled");
+  const { parseImport, planImport, keysMentioned } = await import("@/lib/true-calendar/research/import-plan");
+  return Promise.all(
+    BUNDLED_RESEARCH.map(async (b) => {
+      const { file, errors } = parseImport(await b.load());
+      if (!file) return { id: b.id, title: b.title, description: b.description, ok: false, problems: errors.length, toWrite: 0, total: 0 };
+      try {
+        const plan = planImport(file, await getExistingForImport(supabase, keysMentioned(file)));
+        const toWrite = plan.sections.reduce((n, s) => n + s.insert.length + s.update.length, 0);
+        const total = plan.sections.reduce((n, s) => n + s.insert.length + s.update.length + s.unchanged.length, 0);
+        return { id: b.id, title: b.title, description: b.description, ok: plan.ok, problems: plan.errors.length, toWrite, total };
+      } catch {
+        return { id: b.id, title: b.title, description: b.description, ok: false, problems: 1, toWrite: 0, total: 0 };
+      }
+    })
+  );
+}
+
+export type BundledResearchStatus = Awaited<ReturnType<typeof getBundledResearchStatus>>[number];

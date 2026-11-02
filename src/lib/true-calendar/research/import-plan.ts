@@ -86,8 +86,11 @@ function sameValue(a: unknown, b: unknown): boolean {
   return (a ?? null) === (b ?? null);
 }
 
+// A record already in the database keeps its review status: publishing and
+// rejecting are a reviewer's decisions, so re-importing a file (whose records
+// say "draft") must not quietly unpublish what was reviewed.
 function changed(record: Record<string, unknown>, stored: Record<string, unknown>): boolean {
-  return Object.entries(rowOf(record)).some(([field, value]) => !sameValue(value, stored[field]));
+  return Object.entries(rowOf(record)).some(([field, value]) => field !== "review_status" && !sameValue(value, stored[field]));
 }
 
 // A claim that says something about the past must cite a source before it can
