@@ -164,6 +164,8 @@ export interface AdviceItem {
   dates?: CivilDate[];
   /** The kind of activity the night's practice record names. */
   practice?: AdviceCategory;
+  /** For knowledge tied to a Moon phase: the phase (it recurs every month). */
+  phase?: MoonPhaseKey;
 }
 
 const ACTIVITY_CATEGORY: Partial<Record<Activity, AdviceCategory>> = {
@@ -291,6 +293,8 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
   };
 
   const today = formatIsoDate(from);
+  // The last day the Moon window covers: dates stop there.
+  const horizon = moons.length > 0 ? moons[moons.length - 1].date : from;
   const dated: AdviceItem[] = [];
   const lunar: AdviceItem[] = [];
   const seasonal: AdviceItem[] = [];
@@ -344,11 +348,18 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       for (const o of observances) placedLabels.add(`${culture.cultureKey}|${o.name}`);
       placedLabels.add(`${culture.cultureKey}|${position.name}`);
       const date = listedOn ? parseIsoDate(listedOn.gregorian_from!)! : next!;
+      // Every later occurrence the window covers: further listed dates, or the
+      // anchor counted forward one cycle at a time.
+      const dates: CivilDate[] = listedOn
+        ? listed.map((c) => parseIsoDate(c.gregorian_from!)!).filter((d) => compareDates(d, horizon) <= 0)
+        : [];
+      if (!listedOn) for (let d = next!; compareDates(d, horizon) <= 0; d = addDays(d, cycle.length_days)) dates.push(d);
       dated.push({
         ...base,
         id: `pos|${position.key}`,
         group: "dated",
         date,
+        dates: dates.length > 0 ? dates : [date],
         status: listedOn ? statusOfListedDate(listedOn) : "provisional",
         position: "",
         caution: uniq([listedOn?.uncertainty, ...cautions]).join(" ") || null,
@@ -371,21 +382,27 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
   }
 
   // --- Listed dates that no cycle covers (next one per observance) ---
-  const seenLabel = new Set<string>();
+  const seenLabel = new Map<string, AdviceItem>();
   for (const c of [...bundle.correspondences].sort((a, b) => (a.gregorian_from ?? "").localeCompare(b.gregorian_from ?? ""))) {
     if (!c.gregorian_from || c.gregorian_from < today) continue;
     const culture = cultureBits(c.culture_key);
     const label = `${c.culture_key}|${c.label}`;
-    if (!culture || placedLabels.has(label) || seenLabel.has(label)) continue;
-    seenLabel.add(label);
+    if (!culture || placedLabels.has(label)) continue;
     const date = parseIsoDate(c.gregorian_from)!;
+    const earlier = seenLabel.get(label);
+    if (earlier) {
+      // A later listing of the same observance: another date for the same card.
+      if (compareDates(date, horizon) <= 0) earlier.dates = [...(earlier.dates ?? []), date];
+      continue;
+    }
     const evidence = c.evidence as EvidenceTag[];
     const says = uniq([c.notes]);
-    dated.push({
+    const item: AdviceItem = {
       ...culture,
       id: `cor|${c.key}`,
       group: "dated",
       date,
+      dates: [date],
       status: statusOfListedDate(c),
       position: "",
       name: c.original_date ?? c.label,
@@ -401,7 +418,9 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       order: daysFromCivil(date),
       systemKey: c.system_key ?? null,
       hasPractice: false,
-    });
+    };
+    seenLabel.set(label, item);
+    dated.push(item);
   }
 
   // --- Moon-phase knowledge: the next calculated day of that phase ---
@@ -450,6 +469,8 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       id: `moon|${s.culture}|${s.phase}`,
       group: "lunar",
       date,
+      phase: s.phase,
+      dates: moons.filter((m) => phaseKeysFor(m).includes(s.phase)).map((m) => m.date),
       status: date ? "astronomical" : "lunar_pending",
       position: PHASE_LABEL[s.phase],
       name: s.name ?? PHASE_LABEL[s.phase],
@@ -474,8 +495,6 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
   const newMoons = [...(opts.monthStart ? [opts.monthStart] : []), ...moons.filter((m) => m.quarter?.kind === "new").map((m) => m.date)]
     .filter((d, i, list) => list.findIndex((x) => compareDates(x, d) === 0) === i)
     .sort(compareDates);
-  // The last day the Moon window covers: counted nights stop there.
-  const horizon = moons.length > 0 ? moons[moons.length - 1].date : from;
   const countAll = (n: number, offset: number) =>
     newMoons.map((nm) => addDays(nm, offset + n - 1)).filter((d) => compareDates(d, from) >= 0 && compareDates(d, horizon) <= 0);
   const countNight = (n: number, offset: number) => {
@@ -716,28 +735,6 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
   return { dated, lunar: [...lunarDated, ...takeTurns(lunar.filter((i) => !i.date))], seasonal: takeTurns(seasonal) };
 }
 
-/**
- * The feed as one list, the way the page shows it: listed observances first,
- * then the calculated New and Full Moons, then each tradition's next nights in
- * turn (so one long calendar doesn't fill the first screen), each round in
- * date order; undated cycles last.
- */
-export function adviceList(feed: AdviceFeed): AdviceItem[] {
-  const all = [...feed.dated, ...feed.lunar, ...feed.seasonal];
-  const byDate = (a: AdviceItem, b: AdviceItem) => a.order - b.order || Number(b.hasPractice) - Number(a.hasPractice) || a.cultureName.localeCompare(b.cultureName);
-  const listed = feed.dated.filter((i) => i.date).sort(byDate);
-  const sky = all.filter((i) => i.cultureKey === "sky").sort(byDate);
-  const rest = all.filter((i) => i.date && i.group !== "dated" && i.cultureKey !== "sky");
-  const byCulture = new Map<string, AdviceItem[]>();
-  for (const i of [...rest].sort((a, b) => Number(a.name.startsWith("Unnamed")) - Number(b.name.startsWith("Unnamed")) || byDate(a, b))) {
-    byCulture.set(i.cultureKey, [...(byCulture.get(i.cultureKey) ?? []), i]);
-  }
-  const rounds: AdviceItem[] = [];
-  const lists = [...byCulture.values()];
-  for (let r = 0; lists.some((l) => r < l.length); r++) rounds.push(...lists.flatMap((l) => (r < l.length ? [l[r]] : [])).sort(byDate));
-  return [...listed, ...sky, ...rounds, ...all.filter((i) => !i.date)];
-}
-
 function takeTurns(items: AdviceItem[]): AdviceItem[] {
   const out: AdviceItem[] = [];
   for (const practice of [true, false]) {
@@ -765,215 +762,123 @@ export function filterFeed(feed: AdviceFeed, f: AdviceFilter): AdviceFeed {
   return { dated: feed.dated.filter((i) => matchesFilter(i, f)), lunar: feed.lunar.filter((i) => matchesFilter(i, f)), seasonal: feed.seasonal.filter((i) => matchesFilter(i, f)) };
 }
 
-// --- Events: what the page lists ----------------------------------------------
+// --- Days: what the page lists -----------------------------------------------
 //
-// The feed's items, regrouped into dated events in strict date order:
-//   • every New Moon, First Quarter, Full Moon and Last Quarter in the range,
-//     with the research that falls on that date underneath, grouped by culture
-//     (one card per Moon event, however many cultures speak to it);
-//   • activity windows: runs of consecutive counted nights in one lunar
-//     calendar that share a kind of practical guidance (Kūkahi to Kūpau for
-//     planting, the Tangaroa nights for fishing);
-//   • single nights with practical guidance that fall in no window and on no
-//     Moon event;
-//   • observances with a listed or anchored date (Akwasidae).
-// Lunar-night dates are counted, so those events say "Approximate lunar
-// alignment" and never present the date as a historical observance.
+// One chronological calendar of traditional knowledge. Dates are the primary
+// structure: each Gregorian date in the range that has at least one sourced
+// record gets ONE card, with the calculated Moon for that date and every
+// culture's interpretation grouped beneath it. Every New, First Quarter, Full
+// and Last Quarter Moon gets its card too. Nothing is generated to fill an
+// empty date, and undated research is never attached to a date.
+//
+// Sorting is by the date's day number (never a formatted string). Within a
+// date the rows go: dated observances (official, verified, published,
+// provisional), then astronomical (knowledge tied to the calculated phase),
+// then approximate lunar alignments (counted nights), then anything else;
+// practical guidance first inside each rank. That never changes date order.
 
-export type EventKind = "moon" | "window" | "night" | "observance";
+export type RowKind = "observance" | "astronomical" | "approximate" | "other";
 
-export interface AdviceEntry {
+export interface DayRow {
   item: AdviceItem;
-  date: CivilDate;
+  kind: RowKind;
+  /** The date is our estimate (a counted night), not a listing or a calculation. */
+  approximate: boolean;
 }
 
-export interface AdviceEvent {
-  id: string;
-  kind: EventKind;
-  date: CivilDate;
-  /** Last day of a window. */
-  end: CivilDate | null;
-  title: string;
-  /** For a Moon event: which quarter. */
-  quarter: QuarterKind | null;
-  /** Culture name, or "Astronomical". */
-  cultureName: string;
+export interface CultureRows {
   cultureKey: string;
+  cultureName: string;
   region: string | null;
-  status: DateStatus;
-  /** The research under the event, practice first. */
-  entries: AdviceEntry[];
+  rows: DayRow[];
+}
+
+export interface AdviceDay {
+  /** "2026-11-09": the key, unique per card. */
+  id: string;
+  date: CivilDate;
+  /** Day number, the sort key. */
+  serial: number;
+  moon: DayMoon;
+  /** A principal phase on this date. */
+  quarter: QuarterKind | null;
+  cultures: CultureRows[];
+  /** All rows, in display order (cultures in turn). */
+  rows: DayRow[];
   categories: AdviceCategory[];
-  hasPractice: boolean;
 }
 
 export const QUARTER_TITLES: Record<QuarterKind, string> = { new: "New Moon", first: "First Quarter", full: "Full Moon", last: "Last Quarter" };
 
-/** The kind of practical guidance a night is mostly about, in priority order. */
-const PRIORITY: AdviceCategory[] = ["farming", "fishing", "food", "conservation", "trade", "ceremony", "community"];
-function mainCategory(item: AdviceItem): AdviceCategory | null {
-  return item.practice ?? PRIORITY.find((c) => item.categories.includes(c)) ?? null;
+const ROW_RANK: Record<RowKind, number> = { observance: 0, astronomical: 1, approximate: 2, other: 3 };
+function rowKind(item: AdviceItem): RowKind {
+  if (item.status === "counted") return "approximate";
+  if (item.phase || item.status === "astronomical") return "astronomical";
+  if (item.status === "official" || item.status === "verified" || item.status === "secondary" || item.status === "provisional") return "observance";
+  return "other";
 }
-/** A window is at most a week of nights. */
-const WINDOW_MAX = 7;
+const byRow = (a: DayRow, b: DayRow) =>
+  ROW_RANK[a.kind] - ROW_RANK[b.kind] ||
+  Number(b.item.hasPractice) - Number(a.item.hasPractice) ||
+  Number(a.item.name.startsWith("Unnamed")) - Number(b.item.name.startsWith("Unnamed")) ||
+  a.item.cultureName.localeCompare(b.item.cultureName) ||
+  (a.item.night ?? 0) - (b.item.night ?? 0);
 
 function datesOf(item: AdviceItem): CivilDate[] {
   return item.dates && item.dates.length > 0 ? item.dates : item.date ? [item.date] : [];
 }
 
-const byPractice = (a: AdviceEntry, b: AdviceEntry) =>
-  Number(b.item.hasPractice) - Number(a.item.hasPractice) || a.item.cultureName.localeCompare(b.item.cultureName) || (a.item.night ?? 0) - (b.item.night ?? 0);
-
 /**
- * Dated events from `from` for `days` days (inclusive of `from`), in date order.
- * `moons` must cover the range.
+ * One card per date from `from` for `days` days (inclusive), in date order.
+ * `moons` must be the calculated Moon for consecutive days starting at `from`
+ * and cover the range. `filter` narrows the rows; the Moon stays.
  */
-export function adviceEvents(feed: AdviceFeed, moons: DayMoon[], from: CivilDate, days: number): AdviceEvent[] {
-  const last = addDays(from, days - 1);
-  const inRange = (d: CivilDate) => compareDates(d, from) >= 0 && compareDates(d, last) <= 0;
-  const all = [...feed.dated, ...feed.lunar, ...feed.seasonal].filter((i) => i.cultureKey !== "sky");
-  const events: AdviceEvent[] = [];
-  const used = new Set<string>(); // `${item.id}|${iso}` already placed
-
-  // Every dated occurrence of a counted lunar night.
-  const nightDates: AdviceEntry[] = all.filter((i) => i.status === "counted").flatMap((item) => datesOf(item).filter(inRange).map((date) => ({ item, date })));
-
-  // 1. Moon events, with the research on that date.
-  for (const m of moons) {
-    const q = m.quarter?.kind;
-    if (!q || !inRange(m.date)) continue;
-    const iso = formatIsoDate(m.date);
-    const entries = nightDates.filter((e) => formatIsoDate(e.date) === iso).sort(byPractice);
-    // Research tied to the phase itself (calculated, so never approximate).
-    const phase = all.filter((i) => i.id.startsWith("moon|") && i.date && formatIsoDate(i.date) === iso).map((item) => ({ item, date: m.date }));
-    const list = [...phase, ...entries];
-    for (const e of list) used.add(`${e.item.id}|${iso}`);
-    events.push({
-      id: `moon|${q}|${iso}`,
-      kind: "moon",
-      date: m.date,
-      end: null,
-      title: QUARTER_TITLES[q],
-      quarter: q,
-      cultureName: "Astronomical",
-      cultureKey: "sky",
-      region: "Global",
-      status: "astronomical",
-      entries: list,
-      categories: [...new Set(list.flatMap((e) => e.item.categories))],
-      hasPractice: list.some((e) => e.item.hasPractice),
-    });
-  }
-
-  // 2. Activity windows: consecutive counted nights of one calendar with
-  // practical guidance of the same main kind.
-  const bySystem = new Map<string, AdviceEntry[]>();
-  for (const e of nightDates) {
-    if (!e.item.hasPractice || e.item.night === undefined) continue;
-    const sys = (e.item.systemKey ?? "").split("+")[0];
-    // Only calendars whose numbers are real night counts make windows.
-    if (!nightOneRule(sys).exact) continue;
-    bySystem.set(sys, [...(bySystem.get(sys) ?? []), e]);
-  }
-  for (const list of bySystem.values()) {
-    list.sort((a, b) => compareDates(a.date, b.date));
-    let run: AdviceEntry[] = [];
-    const flush = () => {
-      if (run.length >= 2) {
-        const first = run[0];
-        const lastEntry = run[run.length - 1];
-        const cat = mainCategory(first.item)!;
-        events.push({
-          id: `window|${first.item.id}|${formatIsoDate(first.date)}`,
-          kind: "window",
-          date: first.date,
-          end: lastEntry.date,
-          title: `${first.item.name} to ${lastEntry.item.name}`,
-          quarter: null,
-          cultureName: first.item.cultureName,
-          cultureKey: first.item.cultureKey,
-          region: first.item.region,
-          status: "counted",
-          entries: run,
-          categories: [cat, ...new Set(run.flatMap((e) => e.item.categories).filter((c) => c !== cat))],
-          hasPractice: true,
-        });
-        for (const e of run) used.add(`${e.item.id}|${formatIsoDate(e.date)}`);
-      }
-      run = [];
-    };
-    for (const e of list) {
-      const prev = run[run.length - 1];
-      const cat = mainCategory(e.item);
-      const continues = prev && cat && run.length < WINDOW_MAX && mainCategory(prev.item) === cat && daysFromCivil(e.date) - daysFromCivil(prev.date) === 1;
-      if (!continues) flush();
-      if (cat) run.push(e);
+export function adviceDays(feed: AdviceFeed, moons: DayMoon[], from: CivilDate, days: number, filter?: AdviceFilter): AdviceDay[] {
+  const first = daysFromCivil(from);
+  const last = first + days - 1;
+  const moonOn = new Map(moons.map((m) => [daysFromCivil(m.date), m]));
+  const rowsOn = new Map<number, DayRow[]>();
+  const seen = new Set<string>();
+  for (const item of [...feed.dated, ...feed.lunar, ...feed.seasonal]) {
+    if (item.cultureKey === "sky") continue; // the Moon is the card's own header
+    if (filter && !matchesFilter(item, filter)) continue;
+    const kind = rowKind(item);
+    for (const d of datesOf(item)) {
+      const serial = daysFromCivil(d);
+      if (serial < first || serial > last) continue;
+      const k = `${item.id}|${serial}`;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      rowsOn.set(serial, [...(rowsOn.get(serial) ?? []), { item, kind, approximate: kind === "approximate" }]);
     }
-    flush();
   }
-
-  // 3. Other nights with practical guidance, one event per culture per date.
-  const singles = new Map<string, AdviceEntry[]>();
-  for (const e of nightDates) {
-    const iso = formatIsoDate(e.date);
-    if (!e.item.hasPractice || used.has(`${e.item.id}|${iso}`)) continue;
-    used.add(`${e.item.id}|${iso}`);
-    const k = `${e.item.cultureKey}|${iso}`;
-    singles.set(k, [...(singles.get(k) ?? []), e]);
-  }
-  for (const [k, list] of singles) {
-    list.sort(byPractice);
-    const first = list[0].item;
-    const named = list.filter((e) => !e.item.name.startsWith("Unnamed")).map((e) => e.item.name);
-    events.push({
-      id: `night|${k}`,
-      kind: "night",
-      date: list[0].date,
-      end: null,
-      title: named.length > 0 ? named.join(" and ") : `${first.cultureName} lunar night`,
-      quarter: null,
-      cultureName: first.cultureName,
-      cultureKey: first.cultureKey,
-      region: first.region,
-      status: "counted",
-      entries: list,
-      categories: [...new Set(list.flatMap((e) => e.item.categories))],
-      hasPractice: true,
+  const out: AdviceDay[] = [];
+  for (let serial = first; serial <= last; serial++) {
+    const moon = moonOn.get(serial);
+    if (!moon) continue;
+    const rows = (rowsOn.get(serial) ?? []).sort(byRow);
+    const quarter = moon.quarter?.kind ?? null;
+    // A date needs a sourced record; a principal phase is shown on its own
+    // only when nothing narrows the list.
+    if (rows.length === 0 && (!quarter || (filter && (filter.category !== "all" || filter.culture !== "all" || filter.tier !== "all")))) continue;
+    const groups = new Map<string, CultureRows>();
+    for (const r of rows) {
+      const g = groups.get(r.item.cultureKey) ?? { cultureKey: r.item.cultureKey, cultureName: r.item.cultureName, region: r.item.region, rows: [] };
+      g.rows.push(r);
+      groups.set(r.item.cultureKey, g);
+    }
+    // Cultures in the order of their best row (rows are already sorted).
+    const cultures = [...groups.values()];
+    out.push({
+      id: formatIsoDate(moon.date),
+      date: moon.date,
+      serial,
+      moon,
+      quarter,
+      cultures,
+      rows: cultures.flatMap((c) => c.rows),
+      categories: ADVICE_CATEGORIES.map((c) => c.key).filter((k) => rows.some((r) => r.item.categories.includes(k))),
     });
   }
-
-  // 4. Observances with a listed or anchored date, and any other dated item.
-  for (const item of all) {
-    if (item.status === "counted" || item.id.startsWith("moon|") || !item.date || !inRange(item.date)) continue;
-    events.push({
-      id: `obs|${item.id}`,
-      kind: "observance",
-      date: item.date,
-      end: null,
-      title: item.name,
-      quarter: null,
-      cultureName: item.cultureName,
-      cultureKey: item.cultureKey,
-      region: item.region,
-      status: item.status,
-      entries: [{ item, date: item.date }],
-      categories: item.categories,
-      hasPractice: item.hasPractice,
-    });
-  }
-
-  // Strict date order. On one date: Moon events, then practical guidance in
-  // priority order, then the rest.
-  const rank = (e: AdviceEvent) => (e.kind === "moon" ? 0 : e.hasPractice ? 1 + PRIORITY.indexOf(e.categories.find((c) => PRIORITY.includes(c)) ?? "community") / 10 : 2);
-  return events.sort((a, b) => compareDates(a.date, b.date) || rank(a) - rank(b) || a.title.localeCompare(b.title));
-}
-
-/** Events narrowed to a kind of knowledge and a culture. A Moon event stays when any of its research matches. */
-export function filterEvents(events: AdviceEvent[], f: AdviceFilter): AdviceEvent[] {
-  if (f.category === "all" && f.culture === "all" && f.tier === "all") return events;
-  return events.flatMap((e) => {
-    const entries = e.entries.filter((x) => matchesFilter(x.item, f));
-    if (entries.length === 0) return [];
-    return [{ ...e, entries }];
-  });
+  return out.sort((a, b) => a.serial - b.serial);
 }
