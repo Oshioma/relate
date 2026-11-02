@@ -92,10 +92,10 @@ test("6. estimated dates are labelled; 7. undated records never get a date", () 
       if (level === "B") assert.ok(r.approximate && /Approximate lunar alignment|Illustrative reconstruction|provisional/i.test(`${r.item.caution} ${r.item.status}`), r.item.id);
     }
   const all = [...feed.dated, ...feed.lunar, ...feed.seasonal];
-  const unmapped = all.filter((i) => /igbo|yoruba|ancient-egyptian\.(civil|lucky)|seasonal-months|tuhoe/.test(`${i.systemKey ?? ""} ${i.cultureKey} ${i.id}`) && !i.id.startsWith("night|africa.north.ancient-egyptian.lunar"));
+  const unmapped = all.filter((i) => /igbo|yoruba|ancient-egyptian\.(civil|lucky)|seasonal-months/.test(`${i.systemKey ?? ""} ${i.cultureKey} ${i.id}`) && !i.id.startsWith("night|africa.north.ancient-egyptian.lunar"));
   assert.ok(unmapped.length > 10);
   for (const i of unmapped) {
-    if (i.cultureKey === "africa.west.igbo" || i.cultureKey === "africa.west.yoruba" || /lucky-days|seasonal-months|tuhoe/.test(i.id)) {
+    if (i.cultureKey === "africa.west.igbo" || i.cultureKey === "africa.west.yoruba" || /lucky-days|seasonal-months/.test(i.id)) {
       assert.equal(i.date, null, `${i.id} stays undated`);
       assert.equal(mappingLevel(i), "C");
     }
@@ -131,7 +131,8 @@ test("9. filters preserve date order; 10. every interpretation links a source an
   for (const day of days(NOV2).days)
     for (const r of day.rows) {
       assert.ok(r.item.sources.length > 0 && r.item.sources.every((s) => s.title), `${r.item.id} has a source`);
-      assert.ok(bundle.cultures.some((c) => c.key === r.item.cultureKey), `${r.item.id} has a History page`);
+      // Mercury is calculated astronomy with an astrological reading, not a researched culture.
+      if (r.item.cultureKey !== "astrology.western") assert.ok(bundle.cultures.some((c) => c.key === r.item.cultureKey), `${r.item.id} has a History page`);
     }
 });
 

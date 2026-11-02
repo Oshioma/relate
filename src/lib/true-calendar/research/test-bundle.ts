@@ -10,7 +10,7 @@ import { IMPORT_SECTIONS } from "./model";
 // the acceptance test for "Next advice from the past".
 export function publishedBundle(): ResearchBundle {
   const b: ResearchBundle = { ...EMPTY_BUNDLE, cultures: [], systems: [], cycles: [], positions: [], observances: [], meanings: [], recommendations: [], correspondences: [], notes: [], lunarDays: [], months: [], sources: [], citations: [] };
-  for (const n of ["01", "02", "03", "04", "05", "06", "07"]) {
+  for (const n of ["01", "02", "03", "04", "05", "06", "07", "08"]) {
     const { file } = parseImport(JSON.parse(readFileSync(new URL(`../../../../docs/true-calendar/research/batch-${n}.v1.json`, import.meta.url), "utf8")));
     assert.ok(file, `batch ${n} parses`);
     const add = <T extends { key: string }>(list: T[], rows: T[]) => {

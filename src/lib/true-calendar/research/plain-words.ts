@@ -19,10 +19,15 @@ const ACTS: [string, RegExp][] = [
   ["eeling", /\beel/i],
   ["fishing", /fish|crayfish|shellfish|seafood|squid|octopus/i],
   ["gathering food", /gather|harvest|food|herb|collect/i],
+  ["marrying", /take a wife|marr(y|iage|ied)/i],
+  ["treating the sick", /doctor|lay hands on the sick/i],
+  ["boat journeys", /\bboat/i],
+  ["road journeys", /on the road|journey/i],
+  ["oaths and lawsuits", /\boath|charges against|treaty/i],
 ];
 const NEG = /\b(not|avoid\w*|discourag\w*|unfavourable|unfavorable|unproductive|poor|bad|ominous|unlucky|disfavou?red|scarce|wary|slips|suffer|unpleasant)\b/i;
 const CARE = /(with reservations|caution|uncertain|possible|in one account|in another)/i;
-const POS = /\b(good|favourable|favorable|productive|excellent|plentiful|fine|desirable|best|abundance|vigorous|suitable)\b/i;
+const POS = /\b(good|favourable|favorable|productive|excellent|plentiful|fine|desirable|best|abundance|vigorous|suitable|will be well|good health)\b/i;
 const SACRED = /\b(kapu|sacred|holy|prayers?|offerings?|temple|ceremon\w*|observance)\b/i;
 const WEATHER = /\b(rough|fog|winds?|storm\w*|mist|bad weather|unpleasant weather)\b/i;
 
@@ -31,6 +36,8 @@ const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
 /** One to three short plain sentences on what the day means you could do, from the record's own words. */
 export function plainAdvice(item: AdviceItem): string | null {
+  // A named month's meaning is a description, not advice for a day.
+  if (item.id.startsWith("month|")) return null;
   const good: string[] = [];
   const care: string[] = [];
   const plain: string[] = [];
@@ -40,10 +47,12 @@ export function plainAdvice(item: AdviceItem): string | null {
   let goodDay = false;
   let badDay = false;
   for (const clause of (item.says[0] ?? "").split(/;|\.\s/)) {
-    const acts = ACTS.filter(([, re]) => re.test(clause)).map(([w]) => w);
+    // "Fish and leeks should not be eaten" is about food, not fishing.
+    const eating = /\b(eat|eaten|eating)\b/i.test(clause);
+    const acts = ACTS.filter(([w, re]) => re.test(clause) && !(eating && w === "fishing")).map(([w]) => w);
     // "Good fishing, not eeling": the part after "not" is held off.
     const notPart = clause.match(/\bnot\s+(.*)$/i)?.[1] ?? "";
-    const notActs = notPart ? ACTS.filter(([, re]) => re.test(notPart)).map(([w]) => w) : [];
+    const notActs = notPart ? ACTS.filter(([w, re]) => re.test(notPart) && !(eating && w === "fishing")).map(([w]) => w) : [];
     const rest = acts.filter((a) => !notActs.includes(a));
     if (SACRED.test(clause)) sacred = true;
     if (notActs.length) hold.push(...notActs);
