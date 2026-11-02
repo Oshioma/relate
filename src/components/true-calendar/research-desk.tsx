@@ -3,7 +3,7 @@
 import { useState, useTransition, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useFormDraft } from "@/lib/use-form-draft";
-import { importBundledResearch, importCalendarResearch, publishReadyForCulture, reviewCalendarRecord, type ImportResult } from "@/app/c/[communitySlug]/spaces/[spaceSlug]/research/actions";
+import { importAndPublishEverything, importBundledResearch, importCalendarResearch, publishReadyForCulture, reviewCalendarRecord, type EverythingResult, type ImportResult } from "@/app/c/[communitySlug]/spaces/[spaceSlug]/research/actions";
 import type { BundledResearchStatus, ReviewItem } from "@/lib/data/true-calendar";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,64 @@ import { cn } from "@/lib/utils";
 // until it is imported or you sign out.
 
 const button = "inline-flex h-10 items-center rounded-md px-4 text-base font-medium disabled:opacity-50";
+
+/** The one-press path at the top of the research page. */
+export function ResearchStart({ spacePath, newFiles, drafts, isReviewer }: { spacePath: string; newFiles: number; drafts: number; isReviewer: boolean }) {
+  const [result, setResult] = useState<EverythingResult | null>(null);
+  const [pending, start] = useTransition();
+  const router = useRouter();
+  const nothingToDo = newFiles === 0 && drafts === 0;
+  const label = isReviewer ? "Import and publish everything" : "Import everything";
+  return (
+    <section aria-labelledby="tc-start-heading" className="rounded-lg border-2 border-[var(--tc-gold)] bg-[var(--tc-panel)] px-4 py-4">
+      <h2 id="tc-start-heading" className="font-serif text-2xl">Research</h2>
+      <p className="mt-1 text-base">
+        {nothingToDo
+          ? "Everything is imported and published. The calendar shows all of it."
+          : [
+              newFiles ? `${newFiles} research file${newFiles === 1 ? " has" : "s have"} new records to import.` : null,
+              drafts ? `${drafts} record${drafts === 1 ? " is" : "s are"} waiting to be published.` : null,
+            ]
+              .filter(Boolean)
+              .join(" ")}
+      </p>
+      {!nothingToDo ? (
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() =>
+            start(async () => {
+              setResult(await importAndPublishEverything(spacePath));
+              router.refresh();
+            })
+          }
+          className={cn(button, "mt-3 h-12 bg-[var(--tc-selected)] px-6 text-lg text-[var(--tc-selected-ink)]")}
+        >
+          {pending ? "Working… this takes a minute" : `${label} (one press)`}
+        </button>
+      ) : null}
+      {result ? (
+        <div role="status" className="mt-3 text-base">
+          {"error" in result ? (
+            <p className="text-red-700 dark:text-red-300">{result.error}</p>
+          ) : (
+            <>
+              <p className="font-medium text-emerald-700 dark:text-emerald-300">
+                Done.{" "}
+                {result.imported.length ? `Imported ${result.imported.join(", ")}. ` : "No new files to import. "}
+                {isReviewer ? `Published ${result.published} record${result.published === 1 ? "" : "s"}.` : "A reviewer can now publish them."}
+              </p>
+              {result.skipped ? <p className="text-sm text-[var(--tc-muted)]">{result.skipped} record{result.skipped === 1 ? "" : "s"} stay as drafts because they don&apos;t cite a source yet.</p> : null}
+              {result.problems.map((p) => (
+                <p key={p} className="text-sm text-red-700 dark:text-red-300">{p}</p>
+              ))}
+            </>
+          )}
+        </div>
+      ) : null}
+    </section>
+  );
+}
 
 export function ReadyToImport({ spacePath, files }: { spacePath: string; files: BundledResearchStatus[] }) {
   const [results, setResults] = useState<Record<string, ImportResult>>({});
@@ -27,7 +85,7 @@ export function ReadyToImport({ spacePath, files }: { spacePath: string; files: 
       <ul className="mt-3 space-y-3">
         {files.map((f) => {
           const result = results[f.id];
-          const done = f.ok && f.toWrite === 0;
+          const done = f.ok && f.newRecords === 0;
           return (
             <li key={f.id} className="flex flex-wrap items-center gap-3 rounded-md border border-[var(--tc-line)] px-3 py-2">
               <div className="min-w-0 flex-1">
@@ -38,7 +96,7 @@ export function ReadyToImport({ spacePath, files }: { spacePath: string; files: 
                     ? `${f.problems} problem${f.problems === 1 ? "" : "s"} in the file; it can't be imported as it is.`
                     : done
                       ? `Imported: all ${f.total} records are in.`
-                      : `${f.toWrite} of ${f.total} records to add or update.`}
+                      : `${f.newRecords} new record${f.newRecords === 1 ? "" : "s"} to import.`}
                 </p>
                 {result ? <ImportReport result={result} dryRun={false} /> : null}
               </div>
@@ -179,11 +237,21 @@ function ImportReport({ result, dryRun }: { result: ImportResult; dryRun: boolea
         </table>
       ) : null}
       {plan.citations ? <p className="text-sm text-[var(--tc-muted)]">{plan.citations} citations</p> : null}
-      {[...plan.errors.map((e) => ({ ...e, kind: "error" })), ...plan.warnings.map((w) => ({ ...w, kind: "warning" }))].slice(0, 100).map((i, n) => (
-        <p key={n} className={cn("text-sm", i.kind === "error" ? "text-red-700 dark:text-red-300" : "text-amber-700 dark:text-amber-300")}>
+      {plan.errors.slice(0, 100).map((i, n) => (
+        <p key={n} className="text-sm text-red-700 dark:text-red-300">
           <code>{i.path}</code>: {i.message}
         </p>
       ))}
+      {plan.warnings.length > 0 ? (
+        <details className="text-sm text-[var(--tc-muted)]">
+          <summary className="cursor-pointer">{plan.warnings.length} note{plan.warnings.length === 1 ? "" : "s"} (new records are saved as drafts until published)</summary>
+          {plan.warnings.slice(0, 200).map((i, n) => (
+            <p key={n} className="text-amber-700 dark:text-amber-300">
+              <code>{i.path}</code>: {i.message}
+            </p>
+          ))}
+        </details>
+      ) : null}
     </div>
   );
 }

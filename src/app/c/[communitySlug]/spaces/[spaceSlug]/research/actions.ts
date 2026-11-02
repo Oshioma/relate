@@ -81,38 +81,109 @@ export async function reviewCalendarRecord(spacePath: string, table: string, key
   return result;
 }
 
-/** Publishes everything for one culture that is ready: each record with a
- * supporting source (and the sources those records cite). Records still
- * missing a source are left as drafts and counted. */
-export async function publishReadyForCulture(spacePath: string, cultureKey: string): Promise<{ error?: string; published?: number; skipped?: number }> {
-  const ctx = await researcher("reviewer");
-  if ("error" in ctx) return { error: ctx.error };
-  const { items } = await getReviewQueue(ctx.supabase);
-  const mine = items.filter((i) => i.cultureKey === cultureKey && i.status !== "rejected");
-  if (mine.length === 0) return { published: 0, skipped: 0 };
+type Ctx = Exclude<Awaited<ReturnType<typeof researcher>>, { error: string }>;
 
-  // Sources first, so a reader never meets a citation to an unpublished source.
+// Publishes the given review items that are ready: each record with a
+// supporting source (and the sources those records cite, first, so a reader
+// never meets a citation to an unpublished source). Records still missing a
+// source stay drafts and are counted as skipped.
+async function publishItems(ctx: Ctx, items: Awaited<ReturnType<typeof getReviewQueue>>["items"], mine: typeof items) {
   const keys = mine.map((i) => i.key);
   const cited = new Set<string>();
   for (let i = 0; i < keys.length; i += 200) {
     const { data } = await ctx.supabase.from("calendar_claim_sources").select("source_key").in("claim_key", keys.slice(i, i + 200));
     for (const c of data ?? []) cited.add(c.source_key);
   }
-  const { data: cycleAnchors } = await ctx.supabase.from("calendar_cycles").select("anchor_source_key").in("key", keys);
-  for (const c of cycleAnchors ?? []) if (c.anchor_source_key) cited.add(c.anchor_source_key);
-  for (const source of items.filter((i) => i.table === "calendar_sources" && cited.has(i.key))) {
+  for (let i = 0; i < keys.length; i += 200) {
+    const { data: cycleAnchors } = await ctx.supabase.from("calendar_cycles").select("anchor_source_key").in("key", keys.slice(i, i + 200));
+    for (const c of cycleAnchors ?? []) if (c.anchor_source_key) cited.add(c.anchor_source_key);
+  }
+  for (const source of items.filter((i) => i.table === "calendar_sources" && i.status !== "rejected" && cited.has(i.key))) {
     const r = await setReviewStatus(ctx.supabase, ctx.userId, "calendar_sources", source.key, "published", "Published with its culture");
     if (r.error) return { error: `${source.key}: ${r.error}` };
   }
-
+  // Then the records, a table at a time in import order (parents first), in
+  // bulk: a record is published only if it cites a supporting source, as
+  // setReviewStatus requires one by one. Cultures go one by one, because a
+  // catalogue-only culture needs no source.
   let published = 0;
   let skipped = 0;
-  const order = new Map<string, number>(IMPORT_SECTIONS.map((s, i) => [s.table, i]));
-  for (const item of [...mine].sort((a, b) => order.get(a.table)! - order.get(b.table)!)) {
-    const r = await setReviewStatus(ctx.supabase, ctx.userId, item.table, item.key, "published", "Published with its culture");
-    if (r.error) skipped += 1;
-    else published += 1;
+  for (const { table } of IMPORT_SECTIONS) {
+    if (table === "calendar_sources") continue;
+    const list = mine.filter((i) => i.table === table);
+    if (list.length === 0) continue;
+    if (table === "calendar_cultures") {
+      for (const item of list) {
+        const r = await setReviewStatus(ctx.supabase, ctx.userId, table, item.key, "published", "Published with its culture");
+        if (r.error) skipped += 1;
+        else published += 1;
+      }
+      continue;
+    }
+    for (let i = 0; i < list.length; i += 200) {
+      const chunk = list.slice(i, i + 200).map((x) => x.key);
+      const { data: cites } = await ctx.supabase.from("calendar_claim_sources").select("claim_key").eq("claim_table", table).eq("relation", "supports").in("claim_key", chunk);
+      const ready = [...new Set((cites ?? []).map((c) => c.claim_key))];
+      skipped += chunk.length - ready.length;
+      if (ready.length === 0) continue;
+      const { error } = await ctx.supabase.from(table).update({ review_status: "published" } as never).in("key", ready);
+      if (error) {
+        skipped += ready.length;
+        continue;
+      }
+      published += ready.length;
+      await ctx.supabase.from("calendar_research_reviews").insert(ready.map((key) => ({ claim_table: table, claim_key: key, status: "published", notes: "Published with its culture", reviewer_id: ctx.userId })) as never);
+    }
   }
-  refresh(spacePath);
   return { published, skipped };
+}
+
+/** Publishes everything for one culture that is ready. */
+export async function publishReadyForCulture(spacePath: string, cultureKey: string): Promise<{ error?: string; published?: number; skipped?: number }> {
+  const ctx = await researcher("reviewer");
+  if ("error" in ctx) return { error: ctx.error };
+  const { items } = await getReviewQueue(ctx.supabase);
+  const mine = items.filter((i) => i.cultureKey === cultureKey && i.status !== "rejected");
+  if (mine.length === 0) return { published: 0, skipped: 0 };
+  const result = await publishItems(ctx, items, mine);
+  refresh(spacePath);
+  return result;
+}
+
+export type EverythingResult = { error: string } | { imported: string[]; published: number; skipped: number; drafts: number; problems: string[] };
+
+/** The one-press path: import every bundled research file that has new
+ * records, in order, then (for a reviewer) publish everything that is ready. */
+export async function importAndPublishEverything(spacePath: string): Promise<EverythingResult> {
+  const ctx = await researcher("researcher");
+  if ("error" in ctx) return { error: ctx.error ?? "Not allowed." };
+  const { getBundledResearchStatus } = await import("@/lib/data/true-calendar");
+  const status = new Map((await getBundledResearchStatus(ctx.supabase)).map((s) => [s.id, s]));
+  const imported: string[] = [];
+  const problems: string[] = [];
+  for (const b of BUNDLED_RESEARCH) {
+    const s = status.get(b.id);
+    if (!s || s.newRecords === 0) continue;
+    try {
+      const outcome = await runCalendarImport(ctx.supabase, ctx.userId, await b.load(), false);
+      if (outcome.written) imported.push(b.title);
+      else problems.push(`${b.title}: ${outcome.writeError ?? `${outcome.plan.errors.length} problem(s) in the file`}`);
+    } catch (e) {
+      problems.push(`${b.title}: ${e instanceof Error ? e.message : "the import failed"}`);
+    }
+  }
+  let published = 0;
+  let skipped = 0;
+  const { items } = await getReviewQueue(ctx.supabase);
+  if (ctx.role === "reviewer") {
+    const mine = items.filter((i) => i.status !== "rejected" && i.table !== "calendar_sources");
+    if (mine.length) {
+      const r = await publishItems(ctx, items, mine);
+      if ("error" in r) problems.push(r.error!);
+      else ({ published, skipped } = r);
+    }
+  }
+  const drafts = ctx.role === "reviewer" ? skipped : items.filter((i) => i.status !== "rejected" && i.status !== "published").length;
+  refresh(spacePath);
+  return { imported, published, skipped, drafts, problems };
 }

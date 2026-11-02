@@ -215,14 +215,18 @@ export async function getBundledResearchStatus(supabase: Client) {
   return Promise.all(
     BUNDLED_RESEARCH.map(async (b) => {
       const { file, errors } = parseImport(await b.load());
-      if (!file) return { id: b.id, title: b.title, description: b.description, ok: false, problems: errors.length, toWrite: 0, total: 0 };
+      if (!file) return { id: b.id, title: b.title, description: b.description, ok: false, problems: errors.length, toWrite: 0, newRecords: 0, total: 0 };
       try {
         const plan = planImport(file, await getExistingForImport(supabase, keysMentioned(file)));
         const toWrite = plan.sections.reduce((n, s) => n + s.insert.length + s.update.length, 0);
         const total = plan.sections.reduce((n, s) => n + s.insert.length + s.update.length + s.unchanged.length, 0);
-        return { id: b.id, title: b.title, description: b.description, ok: plan.ok, problems: plan.errors.length, toWrite, total };
+        // A file is "imported" once all its records exist. Later files can
+        // refine a record an earlier one wrote (a caveat, a source), so an
+        // earlier file can look "changed" forever; that is not new research.
+        const newRecords = plan.sections.reduce((n, s) => n + s.insert.length, 0);
+        return { id: b.id, title: b.title, description: b.description, ok: plan.ok, problems: plan.errors.length, toWrite, newRecords, total };
       } catch {
-        return { id: b.id, title: b.title, description: b.description, ok: false, problems: 1, toWrite: 0, total: 0 };
+        return { id: b.id, title: b.title, description: b.description, ok: false, problems: 1, toWrite: 0, newRecords: 0, total: 0 };
       }
     })
   );
