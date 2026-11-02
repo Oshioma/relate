@@ -1,46 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { parseImport } from "./import-plan";
-import { type ResearchBundle, EMPTY_BUNDLE } from "./daily";
+import { publishedBundle } from "./test-bundle";
 import { adviceAhead, adviceDays, filterFeed } from "./ahead";
-import { planImport } from "./import-plan";
+import { readFileSync } from "node:fs";
+import { parseImport, planImport } from "./import-plan";
 import { IMPORT_SECTIONS } from "./model";
 import { lunarMonthContaining, moonDays } from "../astronomy";
-
-// The real research batches, as if a reviewer had published everything:
-// the acceptance test for "Next advice from the past".
-function publishedBundle(): ResearchBundle {
-  const b: ResearchBundle = { ...EMPTY_BUNDLE, cultures: [], systems: [], cycles: [], positions: [], observances: [], meanings: [], recommendations: [], correspondences: [], notes: [], lunarDays: [], months: [], sources: [], citations: [] };
-  for (const n of ["01", "02", "03", "04", "05", "06", "07"]) {
-    const { file } = parseImport(JSON.parse(readFileSync(new URL(`../../../../docs/true-calendar/research/batch-${n}.v1.json`, import.meta.url), "utf8")));
-    assert.ok(file, `batch ${n} parses`);
-    const add = <T extends { key: string }>(list: T[], rows: T[]) => {
-      for (const r of rows) {
-        const i = list.findIndex((x) => x.key === r.key);
-        if (i >= 0) list[i] = r;
-        else list.push(r);
-      }
-    };
-    add(b.cultures as never[], file.cultures as never[]);
-    add(b.systems as never[], file.systems as never[]);
-    add(b.cycles as never[], file.cycles as never[]);
-    add(b.positions as never[], file.cycle_positions as never[]);
-    add(b.observances as never[], file.observances as never[]);
-    add(b.meanings as never[], file.meanings as never[]);
-    add(b.recommendations as never[], file.recommendations as never[]);
-    add(b.correspondences as never[], file.date_correspondences as never[]);
-    add(b.lunarDays as never[], file.lunar_days as never[]);
-    add(b.months as never[], file.months as never[]);
-    add(b.sources as never[], file.sources as never[]);
-    for (const { section, table } of IMPORT_SECTIONS) {
-      for (const r of file[section] as Array<{ key: string; sources?: { source: string; relation: string }[] }>) {
-        for (const c of r.sources ?? []) if (c.relation === "supports") b.citations.push({ claim_table: table, claim_key: r.key, source_key: c.source });
-      }
-    }
-  }
-  return b;
-}
 
 const from = { year: 2026, month: 11, day: 2 };
 const all = { category: "all", culture: "all", tier: "all" } as const;
@@ -74,16 +39,19 @@ test("acceptance: Whiro and Rākaunui appear once each, dated by a stated count 
     assert.equal(found[0].cultureKey, "oceania.maori");
     assert.deepEqual(found[0].date, expected[name]);
     assert.equal(found[0].status, "counted");
-    assert.match(found[0].caution ?? "", /Approximate lunar alignment, counted by us from the calculated new Moon/);
+    assert.match(found[0].caution ?? "", /Approximate lunar alignment \(Māori: Whiro at the new Moon\)/);
     assert.match(found[0].caution ?? "", /full Moon/); // iwi start months differently
   }
 });
 
-test("every lunar night gets a date; Hawaiian nights start the evening after the new Moon", () => {
+test("every lunar night gets a date; Hawaiian nights start at the first crescent", () => {
   const { lunar } = feedWithMonth();
   const greek = (i: { cultureKey: string }) => /^europe\.(athenian|hesiodic)-greek$/.test(i.cultureKey);
-  assert.ok(lunar.filter((i) => !greek(i)).every((i) => i.date !== null), "every non-Greek lunar item is dated");
-  assert.ok(lunar.filter(greek).every((i) => i.date === null && i.status === "lunar_pending"), "ancient Greek days are never dated");
+  const bad = lunar.filter((i) => !greek(i) && i.cultureKey !== "sky" && !(i.date !== null && i.status === "counted"));
+  assert.deepEqual(bad.map((i) => `${i.id} ${i.status}`), [], "every non-Greek lunar night is dated, approximately");
+  // Greek days: an illustrative model only, never presented as a historical date.
+  assert.ok(lunar.filter(greek).every((i) => i.status === "illustrative" || (i.date === null && i.status === "lunar_pending")));
+  assert.ok(lunar.filter(greek).every((i) => !i.date || /Illustrative reconstruction/.test(i.caution ?? "")));
   const kukahi = lunar.find((i) => i.name === "Kukahi"); // night 3
   assert.deepEqual(kukahi?.date, { year: 2026, month: 11, day: 12 });
   const newMoon = lunar.find((i) => i.id.startsWith("sky|new|"));
@@ -173,11 +141,14 @@ test("batch 06: Ngāti Kahungunu nights dated approximately, Tūhoe months never
   assert.ok(months.every((m) => m.date === null && m.status === "recurring" && /Zanzibar/.test(m.caution ?? "")));
 });
 
-test("batch 07: Hesiod's days undated with their practices; Egyptian lucky days and Hawaiian months recurring", () => {
+test("batch 07: Hesiod's days only by the illustrative model; Egyptian lucky days and Hawaiian months recurring", () => {
   const feed = feedWithMonth();
   const hesiod = feed.lunar.filter((i) => i.cultureKey === "europe.hesiodic-greek");
   assert.equal(hesiod.length, 14);
-  assert.ok(hesiod.every((i) => i.date === null && i.sources.some((s) => s.key === "src.hesiod-works-days-chs")));
+  assert.ok(hesiod.every((i) => i.sources.some((s) => s.key === "src.hesiod-works-days-chs")));
+  // Mapped only by the illustrative model, with the climate warning on farming advice.
+  assert.ok(hesiod.every((i) => !i.date || (i.status === "illustrative" && i.profileKey === "greek.noumenia-illustrative")));
+  assert.match(hesiod.find((i) => i.name === "Day 11")?.caution ?? "", /does not transfer to tropical climates/);
   assert.equal(hesiod.filter((i) => i.hasPractice).length, 9);
   // Omens and birth signs are kept as history, not practices.
   assert.ok(!hesiod.find((i) => i.name === "Day 20")?.hasPractice);
@@ -226,8 +197,8 @@ test("acceptance: from 2 November 2026 one card per date, strictly in date order
     assert.equal(d.rows.length, d.cultures.reduce((n, c) => n + c.rows.length, 0));
     for (const r of d.rows) {
       assert.ok(r.item.sources.length > 0, `${r.item.id} has a source`);
-      assert.equal(r.approximate, r.item.status === "counted");
-      assert.ok(!/greek/.test(r.item.cultureKey), "ancient Greek days are never dated");
+      assert.equal(r.approximate, r.item.status === "counted" || r.item.status === "illustrative");
+      if (/greek/.test(r.item.cultureKey)) assert.equal(r.item.status, "illustrative", "Greek days only by the illustrative model");
     }
     // Cultures in order of their best row: observances, astronomical, approximate, other.
     const ranks = d.cultures.map((c) => ["observance", "astronomical", "approximate", "other"].indexOf(c.rows[0].kind));

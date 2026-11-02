@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { loadTrueCalendarSpace } from "@/lib/data/true-calendar-space";
-import { getBundledResearchStatus, getRecentImportRuns, getReviewQueue } from "@/lib/data/true-calendar";
+import { getBundledResearchStatus, getRecentImportRuns, getResearchBundle, getReviewQueue } from "@/lib/data/true-calendar";
+import { mappingCoverage } from "@/lib/true-calendar/research/coverage";
+import { MappingCoveragePanel } from "@/components/true-calendar/mapping-coverage";
 import { TrueCalendarFrame } from "@/components/true-calendar/true-calendar-frame";
 import { ImportPanel, ReadyToImport, ResearchStart, ReviewQueue } from "@/components/true-calendar/research-desk";
 
@@ -21,7 +23,12 @@ export default async function TrueCalendarResearchPage({ params }: { params: Pro
     );
   }
 
-  const [{ items, cultureNames }, runs, bundled] = await Promise.all([getReviewQueue(supabase), getRecentImportRuns(supabase), getBundledResearchStatus(supabase)]);
+  const [{ items, cultureNames }, runs, bundled, published] = await Promise.all([
+    getReviewQueue(supabase),
+    getRecentImportRuns(supabase),
+    getBundledResearchStatus(supabase),
+    getResearchBundle(supabase),
+  ]);
   return (
     <TrueCalendarFrame title={space.name} basePath={spacePath} active="research" showResearch>
       <div className="space-y-5">
@@ -34,6 +41,7 @@ export default async function TrueCalendarResearchPage({ params }: { params: Pro
           drafts={items.filter((i) => i.status !== "published" && i.status !== "rejected" && i.table !== "calendar_sources").length}
           isReviewer={researcherRole === "reviewer"}
         />
+        <MappingCoveragePanel coverage={mappingCoverage(published)} />
         <details className="rounded-lg border border-[var(--tc-line)] px-4 py-3">
           <summary className="cursor-pointer text-base font-medium">More: research files one by one, paste a file, review record by record</summary>
           <div className="mt-3 space-y-5">

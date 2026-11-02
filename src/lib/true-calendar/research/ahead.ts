@@ -23,6 +23,7 @@ import { type CivilDate, addDays, compareDates, daysFromCivil, formatIsoDate, pa
 import type { DayMoon, QuarterKind } from "../astronomy";
 import { type ResearchBundle, cyclePositionOn, isAnchored, phaseKeysFor } from "./daily";
 import type { Activity, CorrespondenceRecord, DateStatusKey, EvidenceTag, MoonPhaseKey } from "./model";
+import { type MappingChoice, type MappingLevel, type MappingProfile, anchorDates, lunarNightDates, profileFor } from "./mapping";
 
 type Row<R> = Omit<R, "sources">;
 
@@ -46,14 +47,15 @@ export const CONFIDENCE_TIERS = [
 ] as const;
 export type ConfidenceTier = (typeof CONFIDENCE_TIERS)[number]["key"];
 
-export type DateStatus = "official" | "secondary" | "astronomical" | "verified" | "provisional" | "counted" | "lunar_pending" | "recurring" | "disputed";
+export type DateStatus = "official" | "secondary" | "astronomical" | "verified" | "provisional" | "counted" | "illustrative" | "lunar_pending" | "recurring" | "disputed";
 export const DATE_STATUS_LABELS: Record<DateStatus, string> = {
   official: "Officially published date",
   secondary: "Published secondary-source date",
   astronomical: "Astronomically calculated date",
   verified: "Culturally verified conversion",
   provisional: "Provisional conversion",
-  counted: "Approximate lunar alignment (counted from the calculated new Moon; not a verified traditional date)",
+  counted: "Approximate lunar alignment (counted from a calculated Moon event; not a verified traditional date)",
+  illustrative: "Illustrative reconstruction (where the day would fall in a lunar month today; not a historical civic date)",
   lunar_pending: "Lunar date pending verification",
   recurring: "Undated recurring cycle",
   disputed: "Unknown or disputed",
@@ -74,35 +76,18 @@ export const DATE_STATUS_BADGES: Record<DateStatus, string> = {
   verified: "Verified date",
   provisional: "Provisional date",
   counted: "Approximate lunar alignment",
+  illustrative: "Illustrative reconstruction",
   lunar_pending: "Date pending",
   recurring: "Recurring cycle",
   disputed: "Disputed",
 };
 
-// How night 1 of each lunar calendar is placed against the calculated new
-// Moon. Our counting rule, stated on every card it dates; the first match wins.
-// `count: false` keeps a calendar's days undated: Oshi asked (2 Nov 2026,
-// batch 07) that ancient Greek lunar days never get Gregorian dates.
-const NIGHT_ONE: { match: RegExp; offset: number; rule: string; exact: boolean; count?: false }[] = [
-  {
-    match: /^oceania\.hawaiian\./,
-    offset: 1,
-    rule: "night 1 (Hilo) is taken as the first evening after the new Moon, when the first crescent can appear",
-    exact: true,
-  },
-  {
-    match: /\.tepapa-sequence$/,
-    offset: 0,
-    rule: "the first entry (Whiro) is taken as the day of the new Moon and the entries are counted in Te Papa's order, which is not an exact night count, so this date is approximate",
-    exact: false,
-  },
-  { match: /^oceania\.maori\./, offset: 0, rule: "Whiro (night 1) is taken as the day of the new Moon; some iwi begin the month at the full Moon instead", exact: true },
-  { match: /^africa\.north\.ancient-egyptian\./, offset: 0, rule: "day 1 is taken as the day of the new Moon, when the old Moon can no longer be seen", exact: true },
-  { match: /^europe\.(athenian|hesiodic)-greek\./, offset: 1, rule: "ancient Greek month days are not placed on modern dates", exact: true, count: false },
-];
-const DEFAULT_NIGHT_ONE: (typeof NIGHT_ONE)[number] = { match: /./, offset: 0, rule: "day 1 is taken as the day of the new Moon", exact: true };
-export function nightOneRule(systemKey: string) {
-  return NIGHT_ONE.find((r) => r.match.test(systemKey)) ?? DEFAULT_NIGHT_ONE;
+/** The mapping level an item's date has: A verified, B estimated, C unmapped. */
+export function mappingLevel(item: Pick<AdviceItem, "status" | "date">): MappingLevel {
+  if (!item.date) return "C";
+  if (item.status === "official" || item.status === "verified" || item.status === "secondary" || item.status === "astronomical") return "A";
+  if (item.status === "provisional" || item.status === "counted" || item.status === "illustrative") return "B";
+  return "C";
 }
 
 const SKY_SOURCE: AdviceSource = {
@@ -166,6 +151,8 @@ export interface AdviceItem {
   practice?: AdviceCategory;
   /** For knowledge tied to a Moon phase: the phase (it recurs every month). */
   phase?: MoonPhaseKey;
+  /** The mapping profile that dated (or declined to date) it. */
+  profileKey?: string;
 }
 
 const ACTIVITY_CATEGORY: Partial<Record<Activity, AdviceCategory>> = {
@@ -250,7 +237,7 @@ export interface AdviceFeed {
  * Everything ahead from `from` (inclusive). `moons` is the calculated Moon for
  * consecutive days starting at `from` (about 35 days covers every phase).
  */
-export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayMoon[], opts: { monthStart?: CivilDate } = {}): AdviceFeed {
+export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayMoon[], opts: { monthStart?: CivilDate; choice?: MappingChoice } = {}): AdviceFeed {
   const cultures = new Map(bundle.cultures.map((c) => [c.key, c]));
   const systems = new Map(bundle.systems.map((s) => [s.key, s]));
   const sourceByKey = new Map(bundle.sources.map((s) => [s.key, s]));
@@ -307,6 +294,7 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
     const system = systems.get(cycle.system_key);
     const culture = system ? cultureBits(system.culture_key) : null;
     if (!system || !culture) continue;
+    const profile = profileFor(system.key, opts.choice);
     const observances = bundle.observances.filter((o) => o.cycle_position_key === position.key);
     const recs = bundle.recommendations.filter((r) => r.cycle_position_key === position.key || observances.some((o) => o.key === r.observance_key));
     const meanings = bundle.meanings.filter((m) => m.subject === "cycle_position" && m.subject_key === position.key);
@@ -332,13 +320,15 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       conflicts: conflictsFor(recs),
       systemKey: system.key,
       hasPractice: recs.length > 0,
+      profileKey: profile?.key,
     };
     const listed = bundle.correspondences
       .filter((c) => c.culture_key === culture.cultureKey && (!c.system_key || c.system_key === cycle.system_key) && c.gregorian_from && c.gregorian_from >= today)
       .filter((c) => observances.some((o) => o.name === c.label) || c.label === position.name)
       .sort((a, b) => a.gregorian_from!.localeCompare(b.gregorian_from!));
     let next: CivilDate | null = null;
-    if (isAnchored(cycle)) {
+    // Only a profile with a working anchor counts a cycle forward.
+    if (isAnchored(cycle) && profile?.level !== "C") {
       const here = cyclePositionOn(cycle, from)!;
       next = addDays(from, (((position.position - here) % cycle.length_days) + cycle.length_days) % cycle.length_days);
     }
@@ -489,18 +479,20 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
     });
   }
 
-  // --- Lunar nights of particular calendars: counted from the new Moon ---
-  // The local dates of the new Moons around `from`: the one opening the current
-  // lunar month (when given) and every one in the window.
-  const newMoons = [...(opts.monthStart ? [opts.monthStart] : []), ...moons.filter((m) => m.quarter?.kind === "new").map((m) => m.date)]
-    .filter((d, i, list) => list.findIndex((x) => compareDates(x, d) === 0) === i)
-    .sort(compareDates);
-  const countAll = (n: number, offset: number) =>
-    newMoons.map((nm) => addDays(nm, offset + n - 1)).filter((d) => compareDates(d, from) >= 0 && compareDates(d, horizon) <= 0);
-  const countNight = (n: number, offset: number) => {
-    const dates = countAll(n, offset);
+  // --- Lunar nights of particular calendars: mapped by each culture's profile ---
+  // Each profile counts from its own Moon event (conjunction, first crescent
+  // or full Moon) in its home timezone; a profile with no defensible anchor
+  // dates nothing. See mapping.ts.
+  const anchorsByProfile = new Map<string, CivilDate[]>();
+  const countNight = (n: number, profile: MappingProfile | null) => {
+    if (!profile || profile.level === "C") return null;
+    if (!anchorsByProfile.has(profile.key)) anchorsByProfile.set(profile.key, anchorDates(profile, from, horizon));
+    const dates = lunarNightDates(profile, n, from, horizon, anchorsByProfile.get(profile.key));
     return dates.length > 0 ? { date: dates[0], dates } : null;
   };
+  const statusFor = (profile: MappingProfile | null): DateStatus => (profile?.illustrative ? "illustrative" : "counted");
+  const ruleText = (profile: MappingProfile) =>
+    `${profile.illustrative ? "Illustrative reconstruction" : "Approximate lunar alignment"} (${profile.label}): ${profile.assumption}`;
   const usedObservances = new Set<string>();
   const nights: (AdviceItem & { exact: boolean })[] = [];
   for (const day of bundle.lunarDays) {
@@ -513,8 +505,8 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
     const says = uniq([day.meaning, ...observances.map((o) => o.description), ...recs.map((r) => r.historical_practice)]);
     if (says.length === 0) continue;
     const evidence = [...new Set([...day.evidence, ...recs.flatMap((r) => r.evidence), ...observances.flatMap((o) => o.evidence)])] as EvidenceTag[];
-    const rule = nightOneRule(system.key);
-    const counted = rule.count === false ? null : countNight(day.day_number, rule.offset);
+    const profile = profileFor(system.key, opts.choice);
+    const counted = countNight(day.day_number, profile);
     nights.push({
       ...culture,
       id: `night|${day.key}`,
@@ -523,8 +515,9 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       dates: counted?.dates,
       night: day.day_number,
       practice: recs.map((r) => ACTIVITY_CATEGORY[r.activity]).find(Boolean),
-      status: counted ? "counted" : "lunar_pending",
-      exact: rule.exact,
+      status: counted ? statusFor(profile) : "lunar_pending",
+      exact: !profile?.displayOrder && !/tepapa-sequence$/.test(system.key),
+      profileKey: profile?.key,
       position: `No. ${day.day_number}`,
       name: day.original_name ?? day.name ?? `Unnamed night (No. ${day.day_number})`,
       // "No." rather than "Night": some sources list entries in display order,
@@ -538,7 +531,9 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       sources: sourcesFor([["calendar_lunar_days", day.key], ...recs.map((r) => ["calendar_recommendations", r.key] as [string, string])]),
       caution:
         uniq([
-          counted ? `Approximate lunar alignment, counted by us from the calculated new Moon: ${rule.rule}.` : null,
+          counted && profile ? ruleText(profile) : null,
+          counted && /tepapa-sequence$/.test(system.key) ? "Te Papa lists these entries in display order, not as a night count, so the date is looser still." : null,
+          counted && profile?.climateNote && recs.length > 0 ? profile.climateNote : null,
           day.uncertainty,
           ...recs.map((r) => r.uncertainty),
           system.month_rule,
@@ -569,7 +564,8 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       prev.evidence = [...new Set([...prev.evidence, ...n.evidence])];
       prev.tiers = tiersFrom(prev.evidence);
       prev.sources = [...new Map([...prev.sources, ...n.sources].map((s) => [s.key, s])).values()];
-      prev.caution = uniq([prev.caution, n.caution]).join(" ") || null;
+      // Sentence by sentence, so a shared rule is said once.
+      prev.caution = uniq([prev.caution, n.caution].flatMap((c) => (c ?? "").split(/(?<=\.)\s+/))).join(" ") || null;
       prev.conflicts = [...prev.conflicts, ...n.conflicts];
       prev.hasPractice ||= n.hasPractice;
       prev.systemKey = `${prev.systemKey}+${n.systemKey}`;
@@ -594,15 +590,16 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
     const evidence = [...new Set([...o.evidence, ...recs.flatMap((r) => r.evidence)])] as EvidenceTag[];
     // A lunar observance on a stated night: "the last day of the lunar month"
     // is the day before night 1; a lunar_day is counted like a night.
-    const rule = system ? nightOneRule(system.key) : DEFAULT_NIGHT_ONE;
-    const counted = isLunar && nightNo !== null && rule.count !== false ? countNight(nightNo, rule.offset) : null;
+    const profile = system ? profileFor(system.key, opts.choice) : null;
+    const counted = isLunar && nightNo !== null ? countNight(nightNo, profile) : null;
     const item: AdviceItem = {
       ...culture,
       id: `obs|${o.key}`,
       group: isLunar ? "lunar" : "seasonal",
       date: counted?.date ?? null,
       dates: counted?.dates,
-      status: counted ? "counted" : isLunar ? "lunar_pending" : "recurring",
+      status: counted ? statusFor(profile) : isLunar ? "lunar_pending" : "recurring",
+      profileKey: profile?.key,
       position: o.lunar_day ? `No. ${o.lunar_day}` : "Recurring",
       name: o.original_name ?? o.name,
       cycle: [o.timing, system?.name].filter(Boolean).join(" · "),
@@ -614,7 +611,7 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
       sources: sourcesFor([["calendar_observances", o.key], ...recs.map((r) => ["calendar_recommendations", r.key] as [string, string])]),
       caution:
         uniq([
-          counted ? `Approximate lunar alignment, counted by us from the calculated new Moon: ${rule.rule}${nightNo === 0 ? ", and the last day of the month is the day before it" : ""}.` : null,
+          counted && profile ? `${ruleText(profile)}${nightNo === 0 ? " The last day of the month is the day before night 1." : ""}` : null,
           o.uncertainty,
           system?.month_rule,
         ]).join(" ") || null,
@@ -812,9 +809,9 @@ export const QUARTER_TITLES: Record<QuarterKind, string> = { new: "New Moon", fi
 
 const ROW_RANK: Record<RowKind, number> = { observance: 0, astronomical: 1, approximate: 2, other: 3 };
 function rowKind(item: AdviceItem): RowKind {
-  if (item.status === "counted") return "approximate";
+  if (item.status === "counted" || item.status === "illustrative" || item.status === "provisional") return "approximate";
   if (item.phase || item.status === "astronomical") return "astronomical";
-  if (item.status === "official" || item.status === "verified" || item.status === "secondary" || item.status === "provisional") return "observance";
+  if (item.status === "official" || item.status === "verified" || item.status === "secondary") return "observance";
   return "other";
 }
 const byRow = (a: DayRow, b: DayRow) =>
