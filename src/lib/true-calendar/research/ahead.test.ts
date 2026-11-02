@@ -3,16 +3,16 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { parseImport } from "./import-plan";
 import { type ResearchBundle, EMPTY_BUNDLE } from "./daily";
-import { adviceAhead, filterFeed } from "./ahead";
+import { adviceAhead, adviceList, filterFeed } from "./ahead";
 import { planImport } from "./import-plan";
 import { IMPORT_SECTIONS } from "./model";
-import { moonDays } from "../astronomy";
+import { lunarMonthContaining, moonDays } from "../astronomy";
 
 // The real research batches, as if a reviewer had published everything:
 // the acceptance test for "Next advice from the past".
 function publishedBundle(): ResearchBundle {
-  const b: ResearchBundle = { ...EMPTY_BUNDLE, cultures: [], systems: [], cycles: [], positions: [], observances: [], meanings: [], recommendations: [], correspondences: [], notes: [], lunarDays: [], sources: [], citations: [] };
-  for (const n of ["01", "02", "03", "04", "05"]) {
+  const b: ResearchBundle = { ...EMPTY_BUNDLE, cultures: [], systems: [], cycles: [], positions: [], observances: [], meanings: [], recommendations: [], correspondences: [], notes: [], lunarDays: [], months: [], sources: [], citations: [] };
+  for (const n of ["01", "02", "03", "04", "05", "06"]) {
     const { file } = parseImport(JSON.parse(readFileSync(new URL(`../../../../docs/true-calendar/research/batch-${n}.v1.json`, import.meta.url), "utf8")));
     assert.ok(file, `batch ${n} parses`);
     const add = <T extends { key: string }>(list: T[], rows: T[]) => {
@@ -31,6 +31,7 @@ function publishedBundle(): ResearchBundle {
     add(b.recommendations as never[], file.recommendations as never[]);
     add(b.correspondences as never[], file.date_correspondences as never[]);
     add(b.lunarDays as never[], file.lunar_days as never[]);
+    add(b.months as never[], file.months as never[]);
     add(b.sources as never[], file.sources as never[]);
     for (const { section, table } of IMPORT_SECTIONS) {
       for (const r of file[section] as Array<{ key: string; sources?: { source: string; relation: string }[] }>) {
@@ -57,16 +58,36 @@ test("acceptance: Akwasidae dated 22 Nov 2026 with its source-status qualificati
   assert.ok(akwasidae.sources.some((s) => s.key === "src.nyamedua-akwasidae-2026"));
 });
 
-test("acceptance: Whiro and Rākaunui are recurring lunar knowledge, once each, pending verification", () => {
-  const { lunar } = feedFrom();
+function feedWithMonth(day = from, tz = "Africa/Dar_es_Salaam") {
+  return adviceAhead(publishedBundle(), day, moonDays(day, 35, tz), { monthStart: lunarMonthContaining(day, tz).month.start });
+}
+
+test("acceptance: Whiro and Rākaunui appear once each, dated by a stated count from the new Moon", () => {
+  const { lunar } = feedWithMonth();
+  const expected: Record<string, { year: number; month: number; day: number }> = {
+    Whiro: { year: 2026, month: 11, day: 9 }, // the new Moon, 9 Nov 2026 (Zanzibar)
+    Rākaunui: { year: 2026, month: 11, day: 22 }, // batch 01's night 14 (exact) wins over Te Papa's entry 16
+  };
   for (const name of ["Whiro", "Rākaunui"]) {
     const found = lunar.filter((i) => i.name === name);
     assert.equal(found.length, 1, `${name} appears once (merged across batches)`);
     assert.equal(found[0].cultureKey, "oceania.maori");
-    assert.equal(found[0].date, null);
-    assert.equal(found[0].status, "lunar_pending");
+    assert.deepEqual(found[0].date, expected[name]);
+    assert.equal(found[0].status, "counted");
+    assert.match(found[0].caution ?? "", /counted by us from the new Moon/);
     assert.match(found[0].caution ?? "", /full Moon/); // iwi start months differently
   }
+});
+
+test("every lunar night gets a date; Hawaiian nights start the evening after the new Moon", () => {
+  const { lunar } = feedWithMonth();
+  assert.ok(lunar.every((i) => i.date !== null), "no lunar item left undated");
+  const kukahi = lunar.find((i) => i.name === "Kukahi"); // night 3
+  assert.deepEqual(kukahi?.date, { year: 2026, month: 11, day: 12 });
+  const newMoon = lunar.find((i) => i.id.startsWith("sky|new|"));
+  assert.deepEqual(newMoon?.date, { year: 2026, month: 11, day: 9 });
+  const orders = lunar.map((i) => i.order);
+  assert.deepEqual(orders, [...orders].sort((a, b) => a - b));
 });
 
 test("acceptance: Hawaiian Kū planting guidance, with the disagreement shown", () => {
@@ -134,4 +155,28 @@ test("importing the same batch twice writes nothing the second time", () => {
   }
   const plan = planImport(file, { rows: rows as never, citedClaims: new Set() });
   assert.ok(plan.sections.every((s) => s.insert.length === 0 && s.update.length === 0));
+});
+
+test("batch 06: Ngāti Kahungunu nights dated approximately, Tūhoe months never dated", () => {
+  const feed = feedWithMonth();
+  const kiokio = feed.lunar.find((i) => i.name === "Tangaroa-kiokio");
+  assert.ok(kiokio && kiokio.date && kiokio.status === "counted" && kiokio.categories.includes("fishing"));
+  assert.ok(kiokio.sources.some((s) => s.key === "src.teara-maramataka"));
+  // Whiro: one card, with the Te Papa and the Te Ara accounts.
+  const whiro = feed.lunar.filter((i) => i.name === "Whiro");
+  assert.equal(whiro.length, 1);
+  assert.ok(whiro[0].sources.some((s) => s.key === "src.teara-maramataka") && whiro[0].sources.some((s) => s.key === "src.tepapa-maramataka"));
+  const months = feed.seasonal.filter((i) => i.id.startsWith("month|oceania.maori.tuhoe-months"));
+  assert.equal(months.length, 12);
+  assert.ok(months.every((m) => m.date === null && m.status === "recurring" && /Zanzibar/.test(m.caution ?? "")));
+});
+
+test("the page list opens with listed dates and the Moon, then takes turns between traditions", () => {
+  const list = adviceList(feedWithMonth());
+  assert.equal(list[0].name, "Akwasidae");
+  assert.equal(list[1].cultureKey, "sky");
+  const next = list.slice(3, 7).map((i) => i.cultureKey);
+  assert.ok(new Set(next).size >= 3, "different traditions near the top");
+  const firstUndated = list.findIndex((i) => !i.date);
+  assert.ok(firstUndated > 0 && list.slice(firstUndated).every((i) => !i.date));
 });

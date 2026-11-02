@@ -1,0 +1,1108 @@
+{
+ "format": "true-calendar/v1",
+ "sources": [
+  {
+   "key": "src.teara-maramataka",
+   "title": "Maramataka – the lunar calendar",
+   "publisher": "Te Ara – the Encyclopedia of New Zealand",
+   "url": "https://teara.govt.nz/en/maramataka-the-lunar-calendar/print",
+   "source_type": "web",
+   "notes": "Records a Ngāti Kahungunu night sequence and a Ngāi Tūhoe account of the months (Tūtakangahau). Batch 06 paraphrases it; it is not quoted. From Oshi's research batch 06.",
+   "review_status": "draft"
+  }
+ ],
+ "systems": [
+  {
+   "key": "oceania.maori.kahungunu-maramataka",
+   "culture_key": "oceania.maori",
+   "name": "Maramataka (Ngāti Kahungunu, as recorded by Te Ara)",
+   "original_name": "Maramataka",
+   "kind": "lunar",
+   "description": "Thirty named nights of the lunar month in one Ngāti Kahungunu account, with what each night was considered good or bad for.",
+   "month_rule": "Iwi differ in how the month is counted: some begin it at the new Moon, some at the full Moon, and names, number and order of nights vary.",
+   "uncertainty": "One iwi's published variant; other iwi differ. Night positions are this account's order.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.teara-maramataka"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "oceania.maori.tuhoe-months",
+   "culture_key": "oceania.maori",
+   "name": "Months of the year (Ngāi Tūhoe, as recorded by Te Ara)",
+   "kind": "seasonal",
+   "description": "Twelve named months and what each meant for the seasons and the work of the year, in Tūtakangahau of Ngāi Tūhoe's account.",
+   "uncertainty": "These months describe Aotearoa New Zealand's seasons and don't convert to Gregorian months or to Zanzibar's climate.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.teara-maramataka"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "lunar_days": [
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-01",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 1,
+   "name": "Whiro",
+   "original_name": "Whiro",
+   "meaning": "Unfavourable for many food-seeking activities; traditions vary",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-01"
+    }
+   ],
+   "favourability": "unfavourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-02",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 2,
+   "name": "Tirea",
+   "original_name": "Tirea",
+   "meaning": "Very small Moon; no specific activity asserted",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-02"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-03",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 3,
+   "name": "Hoata",
+   "original_name": "Hoata",
+   "meaning": "Pleasing day, small Moon",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-03"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-04",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 4,
+   "name": "Ōuenuku",
+   "original_name": "Ōuenuku",
+   "meaning": "Good night for eeling",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-04"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-05",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 5,
+   "name": "Okoro",
+   "original_name": "Okoro",
+   "meaning": "Good eeling at night",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-05"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-06",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 6,
+   "name": "Tamatea-ngana",
+   "original_name": "Tamatea-ngana",
+   "meaning": "Unpleasant weather and rough seas in the recorded tradition",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-06"
+    }
+   ],
+   "favourability": "unfavourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-07",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 7,
+   "name": "Tamatea-kai-ariki",
+   "original_name": "Tamatea-kai-ariki",
+   "meaning": "Weather improves",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-07"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-08",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 8,
+   "name": "Huna",
+   "original_name": "Huna",
+   "meaning": "Bad weather; food products suffer",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-08"
+    }
+   ],
+   "favourability": "unfavourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-09",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 9,
+   "name": "Ari-roa",
+   "original_name": "Ari-roa",
+   "meaning": "Favourable for spearing eels",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-09"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-10",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 10,
+   "name": "Maure",
+   "original_name": "Maure",
+   "meaning": "Fine and desirable day",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-10"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-11",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 11,
+   "name": "Māwharu",
+   "original_name": "Māwharu",
+   "meaning": "Crayfish gathering",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-11"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-12",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 12,
+   "name": "Ohua",
+   "original_name": "Ohua",
+   "meaning": "Good day for work",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-12"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-13",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 13,
+   "name": "Hotu",
+   "original_name": "Hotu",
+   "meaning": "Rough sea and unpleasant conditions",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-13"
+    }
+   ],
+   "favourability": "unfavourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-14",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 14,
+   "name": "Atua",
+   "original_name": "Atua",
+   "meaning": "Unfavourable day",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-14"
+    }
+   ],
+   "favourability": "unfavourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-15",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 15,
+   "name": "Turu",
+   "original_name": "Turu",
+   "meaning": "Collect food from sea",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-15"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-16",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 16,
+   "name": "Rākaunui",
+   "original_name": "Rākaunui",
+   "meaning": "Full Moon; marine food gathering important",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-16"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-17",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 17,
+   "name": "Rākau-matohi",
+   "original_name": "Rākau-matohi",
+   "meaning": "Moon wanes; fine day",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-17"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-18",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 18,
+   "name": "Takirau",
+   "original_name": "Takirau",
+   "meaning": "Fine morning",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-18"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-19",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 19,
+   "name": "Oike",
+   "original_name": "Oike",
+   "meaning": "Favourable afternoon",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-19"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-20",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 20,
+   "name": "Korekore-te-whiwhia",
+   "original_name": "Korekore-te-whiwhia",
+   "meaning": "Unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-20"
+    }
+   ],
+   "favourability": "unfavourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-21",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 21,
+   "name": "Korekore-te-rawea",
+   "original_name": "Korekore-te-rawea",
+   "meaning": "Unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-21"
+    }
+   ],
+   "favourability": "unfavourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-22",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 22,
+   "name": "Korekore-hahani",
+   "original_name": "Korekore-hahani",
+   "meaning": "Fairly good day",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-22"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-23",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 23,
+   "name": "Tangaroa-ā-mua",
+   "original_name": "Tangaroa-ā-mua",
+   "meaning": "Good fishing",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-23"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-24",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 24,
+   "name": "Tangaroa-ā-roto",
+   "original_name": "Tangaroa-ā-roto",
+   "meaning": "Good fishing",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-24"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-25",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 25,
+   "name": "Tangaroa-kiokio",
+   "original_name": "Tangaroa-kiokio",
+   "meaning": "Excellent fishing; mist on land",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-25"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-26",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 26,
+   "name": "Ōtāne",
+   "original_name": "Ōtāne",
+   "meaning": "Good day and eeling night",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-26"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-27",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 27,
+   "name": "Ōrongonui",
+   "original_name": "Ōrongonui",
+   "meaning": "Īnanga migration noted",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-27"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-28",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 28,
+   "name": "Mauri",
+   "original_name": "Mauri",
+   "meaning": "Moon darkens; fine morning",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-28"
+    }
+   ],
+   "favourability": "favourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-29",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 29,
+   "name": "Ōmutu",
+   "original_name": "Ōmutu",
+   "meaning": "Unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-29"
+    }
+   ],
+   "favourability": "unfavourable"
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-30",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "day_number": 30,
+   "name": "Mutuwhenua",
+   "original_name": "Mutuwhenua",
+   "meaning": "Very unfavourable; cycle ends",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Ngāti Kahungunu as recorded by Te Ara; other iwi differ in names, order and when the count starts.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-30"
+    }
+   ],
+   "favourability": "unfavourable"
+  }
+ ],
+ "months": [
+  {
+   "key": "oceania.maori.tuhoe-months.month-01",
+   "system_key": "oceania.maori.tuhoe-months",
+   "ordinal": 1,
+   "name": "Pipiri",
+   "original_name": "Pipiri",
+   "description": "Cold period; living things contract",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Refers to Aotearoa New Zealand's seasons; the months do not convert to Gregorian months or to Zanzibar.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-tuhoe-month-01"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.tuhoe-months.month-02",
+   "system_key": "oceania.maori.tuhoe-months",
+   "ordinal": 2,
+   "name": "Hongonui",
+   "original_name": "Hongonui",
+   "description": "Strong cold and fires for warmth",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Refers to Aotearoa New Zealand's seasons; the months do not convert to Gregorian months or to Zanzibar.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-tuhoe-month-02"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.tuhoe-months.month-03",
+   "system_key": "oceania.maori.tuhoe-months",
+   "ordinal": 3,
+   "name": "Here-turi-kōkā",
+   "original_name": "Here-turi-kōkā",
+   "description": "Cold-season fire imagery",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Refers to Aotearoa New Zealand's seasons; the months do not convert to Gregorian months or to Zanzibar.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-tuhoe-month-03"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.tuhoe-months.month-04",
+   "system_key": "oceania.maori.tuhoe-months",
+   "ordinal": 4,
+   "name": "Mahuru",
+   "original_name": "Mahuru",
+   "description": "Earth and vegetation warming",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Refers to Aotearoa New Zealand's seasons; the months do not convert to Gregorian months or to Zanzibar.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-tuhoe-month-04"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.tuhoe-months.month-05",
+   "system_key": "oceania.maori.tuhoe-months",
+   "ordinal": 5,
+   "name": "Whiringa-ā-nuku",
+   "original_name": "Whiringa-ā-nuku",
+   "description": "Earth becomes warm",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Refers to Aotearoa New Zealand's seasons; the months do not convert to Gregorian months or to Zanzibar.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-tuhoe-month-05"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.tuhoe-months.month-06",
+   "system_key": "oceania.maori.tuhoe-months",
+   "ordinal": 6,
+   "name": "Whiringa-ā-rangi",
+   "original_name": "Whiringa-ā-rangi",
+   "description": "Summer strength of sun",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Refers to Aotearoa New Zealand's seasons; the months do not convert to Gregorian months or to Zanzibar.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-tuhoe-month-06"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.tuhoe-months.month-07",
+   "system_key": "oceania.maori.tuhoe-months",
+   "ordinal": 7,
+   "name": "Hakihea",
+   "original_name": "Hakihea",
+   "description": "Birds nesting",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Refers to Aotearoa New Zealand's seasons; the months do not convert to Gregorian months or to Zanzibar.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-tuhoe-month-07"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.tuhoe-months.month-08",
+   "system_key": "oceania.maori.tuhoe-months",
+   "ordinal": 8,
+   "name": "Kohi-tātea",
+   "original_name": "Kohi-tātea",
+   "description": "Fruits ripening and eaten",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Refers to Aotearoa New Zealand's seasons; the months do not convert to Gregorian months or to Zanzibar.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-tuhoe-month-08"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.tuhoe-months.month-09",
+   "system_key": "oceania.maori.tuhoe-months",
+   "ordinal": 9,
+   "name": "Hui-tanguru",
+   "original_name": "Hui-tanguru",
+   "description": "Summer-star seasonal marker",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Refers to Aotearoa New Zealand's seasons; the months do not convert to Gregorian months or to Zanzibar.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-tuhoe-month-09"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.tuhoe-months.month-10",
+   "system_key": "oceania.maori.tuhoe-months",
+   "ordinal": 10,
+   "name": "Poutū-te-rangi",
+   "original_name": "Poutū-te-rangi",
+   "description": "Harvesting crops",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Refers to Aotearoa New Zealand's seasons; the months do not convert to Gregorian months or to Zanzibar.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-tuhoe-month-10"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.tuhoe-months.month-11",
+   "system_key": "oceania.maori.tuhoe-months",
+   "ordinal": 11,
+   "name": "Paenga-whāwhā",
+   "original_name": "Paenga-whāwhā",
+   "description": "Straw collected beside gardens",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Refers to Aotearoa New Zealand's seasons; the months do not convert to Gregorian months or to Zanzibar.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-tuhoe-month-11"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.tuhoe-months.month-12",
+   "system_key": "oceania.maori.tuhoe-months",
+   "ordinal": 12,
+   "name": "Haratua",
+   "original_name": "Haratua",
+   "description": "Crops stored; work completed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Refers to Aotearoa New Zealand's seasons; the months do not convert to Gregorian months or to Zanzibar.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-tuhoe-month-12"
+    }
+   ]
+  }
+ ],
+ "recommendations": [
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-01.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "lunar_day_key": "oceania.maori.kahungunu-maramataka.night-01",
+   "activity": "fishing",
+   "historical_practice": "Unfavourable for many food-seeking activities; traditions vary",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One iwi's account; check with local tangata whenua before relying on it.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-01"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-04.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "lunar_day_key": "oceania.maori.kahungunu-maramataka.night-04",
+   "activity": "fishing",
+   "historical_practice": "Good night for eeling",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One iwi's account; check with local tangata whenua before relying on it.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-04"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-05.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "lunar_day_key": "oceania.maori.kahungunu-maramataka.night-05",
+   "activity": "fishing",
+   "historical_practice": "Good eeling at night",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One iwi's account; check with local tangata whenua before relying on it.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-05"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-09.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "lunar_day_key": "oceania.maori.kahungunu-maramataka.night-09",
+   "activity": "fishing",
+   "historical_practice": "Favourable for spearing eels",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One iwi's account; check with local tangata whenua before relying on it.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-09"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-11.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "lunar_day_key": "oceania.maori.kahungunu-maramataka.night-11",
+   "activity": "fishing",
+   "historical_practice": "Crayfish gathering",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One iwi's account; check with local tangata whenua before relying on it.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-11"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-12.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "lunar_day_key": "oceania.maori.kahungunu-maramataka.night-12",
+   "activity": "other",
+   "historical_practice": "Good day for work",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One iwi's account; check with local tangata whenua before relying on it.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-12"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-15.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "lunar_day_key": "oceania.maori.kahungunu-maramataka.night-15",
+   "activity": "fishing",
+   "historical_practice": "Collect food from sea",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One iwi's account; check with local tangata whenua before relying on it.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-15"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-16.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "lunar_day_key": "oceania.maori.kahungunu-maramataka.night-16",
+   "activity": "fishing",
+   "historical_practice": "Full Moon; marine food gathering important",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One iwi's account; check with local tangata whenua before relying on it.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-16"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-23.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "lunar_day_key": "oceania.maori.kahungunu-maramataka.night-23",
+   "activity": "fishing",
+   "historical_practice": "Good fishing",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One iwi's account; check with local tangata whenua before relying on it.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-23"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-24.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "lunar_day_key": "oceania.maori.kahungunu-maramataka.night-24",
+   "activity": "fishing",
+   "historical_practice": "Good fishing",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One iwi's account; check with local tangata whenua before relying on it.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-24"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-25.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "lunar_day_key": "oceania.maori.kahungunu-maramataka.night-25",
+   "activity": "fishing",
+   "historical_practice": "Excellent fishing; mist on land",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One iwi's account; check with local tangata whenua before relying on it.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-25"
+    }
+   ]
+  },
+  {
+   "key": "oceania.maori.kahungunu-maramataka.night-26.practice",
+   "culture_key": "oceania.maori",
+   "system_key": "oceania.maori.kahungunu-maramataka",
+   "lunar_day_key": "oceania.maori.kahungunu-maramataka.night-26",
+   "activity": "fishing",
+   "historical_practice": "Good day and eeling night",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One iwi's account; check with local tangata whenua before relying on it.",
+   "review_status": "draft",
+   "sources": [
+    {
+     "source": "src.teara-maramataka",
+     "locator": "b06-māori-26"
+    }
+   ]
+  }
+ ]
+}

@@ -16,7 +16,7 @@
 
 import { type CivilDate, addDays, daysFromCivil, formatIsoDate, parseIsoDate } from "../dates";
 import type { DayMoon } from "../astronomy";
-import type { CorrespondenceRecord, CultureRecord, DailyNoteRecord, LunarDayRecord, SourceRecord, CyclePositionRecord, CycleRecord, MeaningRecord, MoonPhaseKey, ObservanceRecord, RecommendationRecord, SystemRecord } from "./model";
+import type { CorrespondenceRecord, CultureRecord, DailyNoteRecord, LunarDayRecord, MonthRecord, SourceRecord, CyclePositionRecord, CycleRecord, MeaningRecord, MoonPhaseKey, ObservanceRecord, RecommendationRecord, SystemRecord } from "./model";
 
 type Row<R> = Omit<R, "sources">;
 
@@ -34,12 +34,14 @@ export interface ResearchBundle {
   notes: Row<DailyNoteRecord>[];
   /** Named nights/days of particular lunar calendars (never placed on dates). */
   lunarDays: Row<LunarDayRecord>[];
+  /** Named months of particular calendars (seasonal; never placed on dates). */
+  months: Row<MonthRecord>[];
   /** Published sources, and which claims each supports. */
   sources: Pick<Row<SourceRecord>, "key" | "title" | "url" | "publisher">[];
   citations: { claim_table: string; claim_key: string; source_key: string }[];
 }
 
-export const EMPTY_BUNDLE: ResearchBundle = { cultures: [], systems: [], cycles: [], positions: [], observances: [], meanings: [], recommendations: [], correspondences: [], notes: [], lunarDays: [], sources: [], citations: [] };
+export const EMPTY_BUNDLE: ResearchBundle = { cultures: [], systems: [], cycles: [], positions: [], observances: [], meanings: [], recommendations: [], correspondences: [], notes: [], lunarDays: [], months: [], sources: [], citations: [] };
 
 /** The modern suggestions written for this date. */
 export function notesForDay(bundle: ResearchBundle, date: CivilDate): Row<DailyNoteRecord>[] {
