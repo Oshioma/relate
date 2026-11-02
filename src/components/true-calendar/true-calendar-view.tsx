@@ -24,6 +24,7 @@ import { fixedWeekday, formatFixedDate, gregorianToFixed } from "@/lib/true-cale
 import { lunarMonthContaining } from "@/lib/true-calendar/astronomy";
 import { parseYearInput } from "@/lib/true-calendar/url-state";
 import { FixedGrid, GregorianGrid, LunarGrid } from "./calendar-grids";
+import { MercuryStatus } from "./mercury-status";
 import { MoonPanel } from "./moon-panel";
 import { DayWisdom } from "./day-wisdom";
 import type { ResearchBundle } from "@/lib/true-calendar/research/daily";
@@ -110,6 +111,7 @@ function Calendar({
             </dd>
           </div>
         </dl>
+        <MercuryStatus date={date} tz={tz} />
         {isProlepticGregorian(date) ? (
           <p className="mt-2 text-sm text-[var(--tc-muted)]">
             Before 15 October 1582 no one used the Gregorian calendar. This date is shown in it projected backwards (the proleptic Gregorian calendar), which is how astronomers line up ancient dates; it is not the date people used at the time.

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight, Fish, Leaf, type LucideIcon, Sparkles, Sprout, Store, Users, Utensils, X } from "lucide-react";
 import Link from "@/components/ui/link";
-import { type CivilDate, GREGORIAN_MONTHS, WEEKDAYS_SHORT, addDays, compareDates, weekdayOf } from "@/lib/true-calendar/dates";
+import { type CivilDate, GREGORIAN_MONTHS, WEEKDAYS_SHORT, addDays, compareDates, daysFromCivil, weekdayOf } from "@/lib/true-calendar/dates";
 import { lunarMonthContaining, moonDays } from "@/lib/true-calendar/astronomy";
 import type { ResearchBundle } from "@/lib/true-calendar/research/daily";
 import type { ResearchStats } from "@/lib/data/true-calendar";
@@ -23,7 +23,10 @@ import {
   mappingLevel,
 } from "@/lib/true-calendar/research/ahead";
 import { MAPPING_LEVELS, type MappingChoice, MAPPING_PROFILES, alternativeGroups } from "@/lib/true-calendar/research/mapping";
+import { mercuryOn } from "@/lib/true-calendar/mercury";
+import { plainAdvice, termsIn } from "@/lib/true-calendar/research/plain-words";
 import { EvidenceChips } from "./history-bits";
+import { MercuryNotes, mercuryHeadline } from "./mercury-status";
 import { MoonGlyph } from "./moon-glyph";
 
 // "Next Advice From the Past": one chronological calendar of traditional
@@ -86,7 +89,16 @@ export function NextAdvice({ bundle, stats, date, tz, historyPath }: { bundle: R
     setShown(FIRST_DAYS);
   }
 
-  const days = useMemo(() => adviceDays(feed, moons, start, range, filter), [feed, moons, start, range, filter]);
+  // Mercury's stations get a card of their own; retrograde days say so on theirs.
+  const stations = useMemo(() => {
+    const out = new Set<number>();
+    for (let i = 0; i < range; i++) {
+      const d = addDays(start, i);
+      if (mercuryOn(d, tz).station) out.add(daysFromCivil(d));
+    }
+    return out;
+  }, [start, range, tz]);
+  const days = useMemo(() => adviceDays(feed, moons, start, range, filter, stations), [feed, moons, start, range, filter, stations]);
   const undated = useMemo(() => {
     const f = filterFeed(feed, filter);
     return [...f.dated, ...f.lunar, ...f.seasonal].filter((i) => !i.date && i.cultureKey !== "sky");
@@ -196,7 +208,7 @@ export function NextAdvice({ bundle, stats, date, tz, historyPath }: { bundle: R
       ) : (
         <ol className="mt-5 space-y-3">
           {days.slice(0, shown).map((d) => (
-            <DayCard key={d.id} day={d} historyPath={historyPath} />
+            <DayCard key={d.id} day={d} tz={tz} historyPath={historyPath} />
           ))}
         </ol>
       )}
@@ -244,7 +256,7 @@ function Chip({ active, onClick, title, children }: { active: boolean; onClick: 
 }
 
 /** One date: the date and its Moon on the left, the cultures on the right. */
-function DayCard({ day, historyPath }: { day: AdviceDay; historyPath: string }) {
+function DayCard({ day, tz, historyPath }: { day: AdviceDay; tz: string; historyPath: string }) {
   const [more, setMore] = useState(false);
   const { date, moon, quarter } = day;
   const lit = Math.round(moon.state.illumination * 100);
@@ -269,6 +281,7 @@ function DayCard({ day, historyPath }: { day: AdviceDay; historyPath: string }) 
             {quarter ? <span className="font-serif text-2xl font-semibold leading-tight">{QUARTER_TITLES[quarter]}</span> : <span className="font-medium">{moon.name}</span>}
             <span className="text-sm text-[var(--tc-muted)]">{lit}% lit · calculated</span>
           </p>
+          <MercuryLine date={date} tz={tz} />
         </div>
         {/* On a phone the cultures run the full width under the date. */}
         <div className="col-span-2 min-w-0 sm:col-span-1 sm:col-start-2">
@@ -294,6 +307,21 @@ function DayCard({ day, historyPath }: { day: AdviceDay; historyPath: string }) 
         </div>
       </div>
     </li>
+  );
+}
+
+/** A short Mercury line on a retrograde day; the notes open on a station day. */
+function MercuryLine({ date, tz }: { date: CivilDate; tz: string }) {
+  const m = mercuryOn(date, tz);
+  if (!m.retrograde) return null;
+  return (
+    <div className="mt-0.5 text-sm">
+      <p className="flex items-center gap-2 text-rose-800 dark:text-rose-300">
+        <span aria-hidden className="inline-block h-1 w-5 rounded-full bg-rose-500/70 dark:bg-rose-400/70" />
+        {m.station ? <span className="font-medium">{mercuryHeadline(m, date)}</span> : `Mercury retrograde, day ${m.day} of ${m.length}`}
+      </p>
+      {m.station ? <MercuryNotes /> : null}
+    </div>
   );
 }
 
@@ -376,6 +404,8 @@ function ModelChoice({ choice, setChoice }: { choice: MappingChoice; setChoice: 
 function Row({ row, historyPath }: { row: DayRow; historyPath: string }) {
   const { item } = row;
   const [open, setOpen] = useState(false);
+  const plain = plainAdvice(item);
+  const terms = termsIn(item);
   // Always: the date-mapping note lives here.
   const hasDetail = true;
   return (
@@ -392,10 +422,21 @@ function Row({ row, historyPath }: { row: DayRow; historyPath: string }) {
         <span className="text-[var(--tc-muted)]">What the tradition says: </span>
         {item.says[0]}
       </p>
-      {item.modern.length > 0 ? (
+      {plain ? (
         <p className="mt-0.5">
-          <span className="text-emerald-800 dark:text-emerald-300">Practical application: </span>
-          {item.modern[0]}
+          <span className="text-emerald-800 dark:text-emerald-300">What you could do: </span>
+          {plain}
+        </p>
+      ) : null}
+      {terms.length > 0 ? (
+        <p className="mt-0.5 text-sm">
+          {terms.map((t, i) => (
+            <span key={t.term}>
+              {i > 0 ? " · " : null}
+              <span className="font-medium">{t.term}</span>
+              <span className="text-[var(--tc-muted)]">: {t.meaning}</span>
+            </span>
+          ))}
         </p>
       ) : null}
       {item.conflicts.length > 0 ? (
@@ -418,9 +459,9 @@ function Row({ row, historyPath }: { row: DayRow; historyPath: string }) {
               {t}
             </p>
           ))}
-          {item.modern.slice(1).map((t, i) => (
+          {item.modern.map((t, i) => (
             <p key={`m${i}`}>
-              <span className="text-[var(--tc-muted)]">Another application: </span>
+              <span className="text-[var(--tc-muted)]">Researchers&apos; modern note: </span>
               {t}
             </p>
           ))}

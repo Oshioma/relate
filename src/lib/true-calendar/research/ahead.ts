@@ -830,7 +830,11 @@ function datesOf(item: AdviceItem): CivilDate[] {
  * `moons` must be the calculated Moon for consecutive days starting at `from`
  * and cover the range. `filter` narrows the rows; the Moon stays.
  */
-export function adviceDays(feed: AdviceFeed, moons: DayMoon[], from: CivilDate, days: number, filter?: AdviceFilter): AdviceDay[] {
+/**
+ * `alsoShow`: day numbers that get a card even with no record (a sky event the
+ * page marks, such as a Mercury station), unless a filter narrows the list.
+ */
+export function adviceDays(feed: AdviceFeed, moons: DayMoon[], from: CivilDate, days: number, filter?: AdviceFilter, alsoShow?: Set<number>): AdviceDay[] {
   const first = daysFromCivil(from);
   const last = first + days - 1;
   const moonOn = new Map(moons.map((m) => [daysFromCivil(m.date), m]));
@@ -857,7 +861,8 @@ export function adviceDays(feed: AdviceFeed, moons: DayMoon[], from: CivilDate, 
     const quarter = moon.quarter?.kind ?? null;
     // A date needs a sourced record; a principal phase is shown on its own
     // only when nothing narrows the list.
-    if (rows.length === 0 && (!quarter || (filter && (filter.category !== "all" || filter.culture !== "all" || filter.tier !== "all")))) continue;
+    const narrowed = Boolean(filter && (filter.category !== "all" || filter.culture !== "all" || filter.tier !== "all"));
+    if (rows.length === 0 && ((!quarter && !alsoShow?.has(serial)) || narrowed)) continue;
     const groups = new Map<string, CultureRows>();
     for (const r of rows) {
       const g = groups.get(r.item.cultureKey) ?? { cultureKey: r.item.cultureKey, cultureName: r.item.cultureName, region: r.item.region, rows: [] };
