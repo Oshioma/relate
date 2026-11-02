@@ -100,7 +100,7 @@ import { BooksMediaView } from "./books-media-view";
 import { ArtsBoardView } from "./arts-board-view";
 import { TrueCalendarView } from "@/components/true-calendar/true-calendar-view";
 import { TrueCalendarFrame } from "@/components/true-calendar/true-calendar-frame";
-import { getResearchBundle, getResearcherRole } from "@/lib/data/true-calendar";
+import { getResearchBundle, getResearcherRole, getResearchStats } from "@/lib/data/true-calendar";
 import { getArtsBoardMarks, getArtsShareTarget } from "@/lib/data/arts-board";
 import { getSpaceMediaItems, getMediaMarks } from "@/lib/data/media-items";
 import { isMediaReviewConfigured } from "@/lib/ai/analyse-media";
@@ -264,9 +264,9 @@ export default async function SpaceDetailPage({
   // what each day meant to other cultures comes from published research.
   const isTrueCalendarSpace = space.space_type === "true_calendar";
   // Its published research (rules, not dates) is small: read it whole.
-  const [calendarResearch, calendarResearcherRole] = isTrueCalendarSpace
-    ? await Promise.all([getResearchBundle(supabase), getResearcherRole(supabase, user?.id ?? null)])
-    : [null, null];
+  const [calendarResearch, calendarResearcherRole, calendarStats] = isTrueCalendarSpace
+    ? await Promise.all([getResearchBundle(supabase), getResearcherRole(supabase, user?.id ?? null), getResearchStats(supabase, new Date().toISOString().slice(0, 10))])
+    : [null, null, null];
   // Adopt a Beginner and its siblings: a landing page with its own hero, and
   // sub-pages under ./join, ./mentors, ./requests, ./journeys, ./stories, ./manage.
   const isGuidedJourneySpace = space.space_type === "guided_journey";
@@ -898,7 +898,7 @@ export default async function SpaceDetailPage({
           active="calendar"
           showResearch={Boolean(calendarResearcherRole)}
         >
-          <TrueCalendarView bundle={calendarResearch!} historyPath={`/c/${community.slug}/spaces/${space.slug}/history`} />
+          <TrueCalendarView bundle={calendarResearch!} stats={calendarStats} historyPath={`/c/${community.slug}/spaces/${space.slug}/history`} />
         </TrueCalendarFrame>
       ) : isArtsBoardSpace ? (
         <ArtsBoardView

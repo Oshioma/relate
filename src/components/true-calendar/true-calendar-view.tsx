@@ -27,6 +27,7 @@ import { FixedGrid, GregorianGrid, LunarGrid } from "./calendar-grids";
 import { MoonPanel } from "./moon-panel";
 import { DayWisdom } from "./day-wisdom";
 import type { ResearchBundle } from "@/lib/true-calendar/research/daily";
+import type { ResearchStats } from "@/lib/data/true-calendar";
 import { useCalendarPrefs, useCalendarState } from "./use-calendar-state";
 
 // The True Calendar: two synchronised calendars for one selected day.
@@ -34,7 +35,7 @@ import { useCalendarPrefs, useCalendarState } from "./use-calendar-state";
 // astronomical lunar calendar. Every control just changes the selected date
 // (kept in the URL), and both sides and the Moon panel follow it.
 
-export function TrueCalendarView({ bundle, historyPath }: { bundle: ResearchBundle; historyPath: string }) {
+export function TrueCalendarView({ bundle, stats, historyPath }: { bundle: ResearchBundle; stats: ResearchStats | null; historyPath: string }) {
   const state = useCalendarState();
   const [prefs, setPrefs] = useCalendarPrefs();
   // On a phone the two calendars share one slot; this picks which shows.
@@ -43,7 +44,7 @@ export function TrueCalendarView({ bundle, historyPath }: { bundle: ResearchBund
   return !state.ready ? (
     <LoadingFrame />
   ) : (
-    <Calendar state={state} prefs={prefs} setPrefs={setPrefs} mobileSide={mobileSide} setMobileSide={setMobileSide} bundle={bundle} historyPath={historyPath} />
+    <Calendar state={state} prefs={prefs} setPrefs={setPrefs} mobileSide={mobileSide} setMobileSide={setMobileSide} bundle={bundle} stats={stats} historyPath={historyPath} />
   );
 }
 
@@ -65,9 +66,11 @@ function Calendar({
   mobileSide,
   setMobileSide,
   bundle,
+  stats,
   historyPath,
 }: {
   bundle: ResearchBundle;
+  stats: ResearchStats | null;
   historyPath: string;
   state: ReturnType<typeof useCalendarState>;
   prefs: ReturnType<typeof useCalendarPrefs>[0];
@@ -164,7 +167,7 @@ function Calendar({
 
       <MoonPanel date={date} tz={tz} prefs={prefs} onPrefs={setPrefs} />
 
-      <DayWisdom bundle={bundle} date={date} tz={tz} historyPath={historyPath} isToday={isToday} />
+      <DayWisdom bundle={bundle} stats={stats} date={date} tz={tz} historyPath={historyPath} isToday={isToday} />
     </div>
   );
 }

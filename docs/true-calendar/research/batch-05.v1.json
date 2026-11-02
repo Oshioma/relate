@@ -26,6 +26,15 @@
       "source_type": "academic",
       "notes": "Cogent Arts & Humanities, 2022. Title taken from the batch; confirm the exact title and authors on review. Describes Nkwerre; order and alignment of market days vary by community. From Oshi's research batch 05.",
       "review_status": "draft"
+    },
+    {
+      "key": "src.tepapa-what-maramataka",
+      "title": "What is maramataka?",
+      "publisher": "Te Papa Tongarewa",
+      "url": "https://www.tepapa.govt.nz/digital-museum/explore-digital-museum/maori/matariki-maori-new-year/what-maramataka-maori-lunar",
+      "source_type": "official",
+      "notes": "Te Papa's explanation of the maramataka. Cited in batch 05 for iwi differences in when the month starts. From Oshi's research batch 05.",
+      "review_status": "draft"
     }
   ],
   "lunar_days": [
@@ -235,7 +244,8 @@
         }
       ],
       "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-03",
-      "uncertainty": "Historical ritual restrictions could override activity guidance."
+      "uncertainty": "Historical ritual restrictions could override activity guidance.",
+      "conflict_group": "oceania.hawaiian.ku-nights-planting"
     },
     {
       "key": "oceania.hawaiian.oahu-lunar-nights.night-05.batch05",
@@ -256,7 +266,8 @@
         }
       ],
       "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-05",
-      "uncertainty": "Tradition-specific exception to general Kū-night rule."
+      "uncertainty": "Tradition-specific exception to general Kū-night rule.",
+      "conflict_group": "oceania.hawaiian.ku-nights-planting"
     },
     {
       "key": "oceania.hawaiian.oahu-lunar-nights.night-07.batch05",
@@ -318,7 +329,8 @@
         }
       ],
       "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-22",
-      "uncertainty": "Conflicting primary-source traditions; must display disagreement."
+      "uncertainty": "Conflicting primary-source traditions; must display disagreement.",
+      "conflict_group": "oceania.hawaiian.olekulua-planting"
     },
     {
       "key": "oceania.hawaiian.oahu-lunar-nights.night-24.batch05",
@@ -485,6 +497,28 @@
       ],
       "cycle_position_key": "africa.west.igbo.market-week.cycle.nkwo",
       "uncertainty": "Order and alignment vary by community; study describes Nkwerre."
+    },
+    {
+      "key": "oceania.hawaiian.oahu-lunar-nights.night-22.practice",
+      "culture_key": "oceania.hawaiian",
+      "system_key": "oceania.hawaiian.oahu-lunar-nights",
+      "lunar_day_key": "oceania.hawaiian.oahu-lunar-nights.night-22",
+      "activity": "planting",
+      "historical_practice": "Planting good in one account, discouraged in another",
+      "modern_interpretation": "Consider planting as a reflection or planning prompt; check local conditions.",
+      "evidence": [
+        "historically_documented",
+        "contested",
+        "modern_interpretation"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.kapiolani-oahu-days",
+          "locator": "hawaiian-oahu-22"
+        }
+      ],
+      "conflict_group": "oceania.hawaiian.olekulua-planting"
     }
   ],
   "date_correspondences": [
@@ -511,7 +545,8 @@
           "relation": "context"
         }
       ],
-      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official.",
+      "date_status": "published_secondary"
     },
     {
       "key": "africa.west.akan.akwasidae.2026-03-15",
@@ -536,7 +571,8 @@
           "relation": "context"
         }
       ],
-      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official.",
+      "date_status": "published_secondary"
     },
     {
       "key": "africa.west.akan.akwasidae.2026-04-26",
@@ -561,7 +597,8 @@
           "relation": "context"
         }
       ],
-      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official.",
+      "date_status": "published_secondary"
     },
     {
       "key": "africa.west.akan.akwasidae.2026-06-07",
@@ -586,7 +623,8 @@
           "relation": "context"
         }
       ],
-      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official.",
+      "date_status": "published_secondary"
     },
     {
       "key": "africa.west.akan.akwasidae.2026-07-19",
@@ -611,7 +649,8 @@
           "relation": "context"
         }
       ],
-      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official.",
+      "date_status": "published_secondary"
     },
     {
       "key": "africa.west.akan.akwasidae.2026-08-30",
@@ -636,7 +675,8 @@
           "relation": "context"
         }
       ],
-      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official.",
+      "date_status": "published_secondary"
     },
     {
       "key": "africa.west.akan.akwasidae.2026-10-11",
@@ -661,7 +701,8 @@
           "relation": "context"
         }
       ],
-      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official.",
+      "date_status": "published_secondary"
     },
     {
       "key": "africa.west.akan.akwasidae.2026-11-22",
@@ -686,7 +727,74 @@
           "relation": "context"
         }
       ],
-      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official."
+      "uncertainty": "Secondary listing: published by Akan Dictionary (and Nyame Dua), but another guide describes the 2026 dates as calculated from 2025 dates, not formally announced by Manhyia Palace. Verify with Manhyia Palace before treating as official.",
+      "date_status": "published_secondary"
+    }
+  ],
+  "systems": [
+    {
+      "key": "oceania.maori.maramataka",
+      "culture_key": "oceania.maori",
+      "name": "Maramataka",
+      "original_name": "Maramataka",
+      "translation": "the turning of the Moon",
+      "kind": "lunar",
+      "description": "The Māori lunar calendar of named nights.",
+      "uncertainty": "Night names, their number and order differ among iwi; the numbered examples here are approximate reference positions from a composite account and are not authoritative for every iwi.",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka"
+        },
+        {
+          "source": "src.tepapa-what-maramataka",
+          "locator": "batch 05 README"
+        }
+      ],
+      "review_status": "draft",
+      "month_rule": "Iwi differ in how the month is counted: some begin it at the new Moon, some at the full Moon, and names, number and order of nights vary."
+    },
+    {
+      "key": "oceania.maori.tepapa-sequence",
+      "culture_key": "oceania.maori",
+      "name": "Te Papa's maramataka activity sequence",
+      "kind": "lunar",
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.tepapa-maramataka"
+        },
+        {
+          "source": "src.tepapa-what-maramataka",
+          "locator": "batch 05 README"
+        }
+      ],
+      "description": "The planting, fishing and gathering guidance Te Papa gives night by night through the maramataka, numbered here in the order the page lists it.",
+      "uncertainty": "The numbers are the order of Te Papa's page, not established night numbers: several of the page's positions are fractional or repeated (2.5, 7.8, a second 12). Night names are given only where the page's text names them. Iwi differ in names, number and order. Do not use this as a conversion table.",
+      "original_name": "Maramataka",
+      "evidence": [],
+      "month_rule": "Iwi differ in how the month is counted: some begin it at the new Moon, some at the full Moon, and names, number and order of nights vary."
+    }
+  ],
+  "cycles": [
+    {
+      "key": "africa.west.igbo.market-week.cycle",
+      "system_key": "africa.west.igbo.market-week",
+      "name": "Market week",
+      "length_days": 4,
+      "regional_note": "Order and alignment of the market days vary by community; the Nkwerre study describes one community.",
+      "evidence": [
+        "ethnographically_documented"
+      ],
+      "review_status": "draft",
+      "sources": [
+        {
+          "source": "src.elias-igbo-days"
+        },
+        {
+          "source": "src.igbo-nkwerre-2022",
+          "locator": "TC05-020"
+        }
+      ]
     }
   ]
 }

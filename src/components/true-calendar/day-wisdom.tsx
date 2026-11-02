@@ -3,7 +3,8 @@
 import { useMemo } from "react";
 import Link from "@/components/ui/link";
 import { type CivilDate, addDays, formatIsoDate, weekdayOf, WEEKDAYS, GREGORIAN_MONTHS } from "@/lib/true-calendar/dates";
-import { moonDays } from "@/lib/true-calendar/astronomy";
+import { type DayMoon, moonDays } from "@/lib/true-calendar/astronomy";
+import type { ResearchStats } from "@/lib/data/true-calendar";
 import { type DayEntry, type ResearchBundle, entriesForDay, notesForDay } from "@/lib/true-calendar/research/daily";
 import type { DailyNoteRecord } from "@/lib/true-calendar/research/model";
 import { EvidenceChips } from "./history-bits";
@@ -15,12 +16,12 @@ import { NextAdvice } from "./next-advice";
 // the culture's History page for the "why". Historical practice and modern
 // suggestions are labelled separately and never merged.
 
-export function DayWisdom({ bundle, date, tz, historyPath, isToday }: { bundle: ResearchBundle; date: CivilDate; tz: string; historyPath: string; isToday: boolean }) {
+export function DayWisdom({ bundle, stats, date, tz, historyPath, isToday }: { bundle: ResearchBundle; stats: ResearchStats | null; date: CivilDate; tz: string; historyPath: string; isToday: boolean }) {
   const week = useMemo(() => {
     const moons = moonDays(date, 7, tz);
     return moons.map((moon, i) => {
       const d = addDays(date, i);
-      return { date: d, entries: entriesForDay(bundle, d, moon), notes: notesForDay(bundle, d) };
+      return { date: d, moon, entries: entriesForDay(bundle, d, moon), notes: notesForDay(bundle, d) };
     });
   }, [bundle, date, tz]);
 
@@ -39,18 +40,21 @@ export function DayWisdom({ bundle, date, tz, historyPath, isToday }: { bundle: 
   const [first, second] = week;
   return (
     <div className="space-y-5">
-      <DaySection id="tc-wisdom-today" heading={isToday ? "Ancient wisdom for today" : `Ancient wisdom for ${shortDate(first.date)}`} entries={first.entries} notes={first.notes} historyPath={historyPath} />
-      <DaySection id="tc-wisdom-tomorrow" heading={isToday ? "Tomorrow's guidance" : `The day after: ${shortDate(second.date)}`} entries={second.entries} notes={second.notes} historyPath={historyPath} compact />
+      <DaySection id="tc-wisdom-today" heading={isToday ? "Ancient wisdom for today" : `Ancient wisdom for ${shortDate(first.date)}`} entries={first.entries} notes={first.notes} moon={first.moon} historyPath={historyPath} />
+      <DaySection id="tc-wisdom-tomorrow" heading={isToday ? "Tomorrow's guidance" : `The day after: ${shortDate(second.date)}`} entries={second.entries} notes={second.notes} moon={second.moon} historyPath={historyPath} compact />
 
       <section aria-labelledby="tc-outlook-heading" className="rounded-lg border border-[var(--tc-line)] bg-[var(--tc-panel)] px-4 py-4">
         <h2 id="tc-outlook-heading" className="font-serif text-2xl">Seven-day outlook</h2>
         <ol className="mt-3 divide-y divide-[var(--tc-line)]">
-          {week.map(({ date: d, entries, notes }) => (
+          {week.map(({ date: d, moon, entries, notes }) => (
             <li key={formatIsoDate(d)} className="flex flex-col gap-1 py-2.5 sm:flex-row sm:gap-4">
-              <span className="w-40 shrink-0 text-base font-medium">{shortDate(d)}</span>
+              <span className="w-40 shrink-0">
+                <span className="block text-base font-medium">{shortDate(d)}</span>
+                <span className="block text-sm text-[var(--tc-muted)]">{moonLine(moon)}</span>
+              </span>
               <div className="space-y-1">
               {entries.length === 0 ? (
-                <span className="text-base text-[var(--tc-muted)]">Nothing sourced marks this day.</span>
+                <span className="text-base text-[var(--tc-muted)]">No verified date-specific observance.</span>
               ) : (
                 <ul className="flex flex-wrap gap-x-4 gap-y-1 text-base">
                   {entries.map((e) => (
@@ -65,7 +69,7 @@ export function DayWisdom({ bundle, date, tz, historyPath, isToday }: { bundle: 
               )}
               {notes.map((n) => (
                 <p key={n.key} className="text-base">
-                  <span className="text-[var(--tc-muted)]">Modern suggestion: </span>
+                  <span className="text-[var(--tc-muted)]">Modern practical application (optional): </span>
                   {n.title}
                 </p>
               ))}
@@ -75,7 +79,7 @@ export function DayWisdom({ bundle, date, tz, historyPath, isToday }: { bundle: 
         </ol>
       </section>
 
-      <NextAdvice bundle={bundle} date={date} tz={tz} historyPath={historyPath} />
+      <NextAdvice bundle={bundle} stats={stats} date={date} tz={tz} historyPath={historyPath} />
     </div>
   );
 }
@@ -86,13 +90,21 @@ function shortDate(d: CivilDate): string {
 
 type Note = Omit<DailyNoteRecord, "sources">;
 
-function DaySection({ id, heading, entries, notes, historyPath, compact }: { id: string; heading: string; entries: DayEntry[]; notes: Note[]; historyPath: string; compact?: boolean }) {
+// The real Moon for the day: phase, light, and the exact time of a principal phase.
+function moonLine(moon: DayMoon): string {
+  const lit = `${Math.round(moon.state.illumination * 100)}% lit`;
+  return moon.quarter ? `${moon.name} today · ${lit}` : `${moon.name} · ${lit}`;
+}
+
+function DaySection({ id, heading, entries, notes, moon, historyPath, compact }: { id: string; heading: string; entries: DayEntry[]; notes: Note[]; moon: DayMoon; historyPath: string; compact?: boolean }) {
   return (
     <section aria-labelledby={id} className="rounded-lg border border-[var(--tc-line)] bg-[var(--tc-panel)] px-4 py-4">
       <h2 id={id} className="font-serif text-2xl">{heading}</h2>
+      <p className="mt-0.5 text-base text-[var(--tc-muted)]">Moon: {moonLine(moon)}</p>
       {entries.length === 0 ? (
         <p className="mt-1 text-base text-[var(--tc-muted)]">
-          No sourced tradition marks this day yet. <Link href={historyPath} className="underline underline-offset-2 hover:text-[var(--tc-ink)]">See what each tradition counts in History</Link>.
+          No verified date-specific observance.{" "}
+          <a href="#tc-next-advice-heading" className="underline underline-offset-2 hover:text-[var(--tc-ink)]">See the lunar and seasonal knowledge below</a>.
         </p>
       ) : (
         <ul className="mt-3 space-y-4">
@@ -113,7 +125,7 @@ function DaySection({ id, heading, entries, notes, historyPath, compact }: { id:
 function NoteCard({ note, compact }: { note: Note; compact?: boolean }) {
   return (
     <div className="mt-4 rounded-md border border-dashed border-[var(--tc-line)] px-3 py-2">
-      <p className="text-xs font-semibold uppercase tracking-wider text-[var(--tc-muted)]">A suggestion for the day · modern and optional</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-[var(--tc-muted)]">Modern practical application · optional, not a tradition&apos;s instruction</p>
       <p className="mt-1 text-lg font-medium">{note.title}</p>
       {!compact && note.explanation ? <p className="mt-1 text-base leading-relaxed">{note.explanation}</p> : null}
       {!compact ? (

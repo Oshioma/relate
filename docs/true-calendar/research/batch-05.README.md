@@ -24,3 +24,18 @@ is counted twice:
 
 Every "modern_application" is stored as a modern interpretation. Everything is
 a draft. The Igbo article's title was taken from the batch; confirm it on review.
+
+## Added with Phase 5
+
+- The eight 2026 Akwasidae dates carry `date_status: "published_secondary"`
+  (new field), so the calendar labels them "Published secondary-source date",
+  never official.
+- Disagreements are linked with `conflict_group` (new field) instead of being
+  merged: ʻOlekūlua (night 22: batch 01's practice and Kepelino vs Handy and
+  Handy) and the Kū nights (Kūkahi recommended for planting; Kepelino cautions
+  against some crops on Kūkolu). The card says "Historical interpretations
+  differ" and lists each account beside its source.
+- Regional variation is recorded on the records themselves: both Māori
+  calendars get a month rule (iwi differ; some begin at the full Moon), citing
+  Te Papa's "What is maramataka?", and the Igbo market-week cycle gets a
+  regional note (order and alignment vary; the study describes Nkwerre).

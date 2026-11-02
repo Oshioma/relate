@@ -53,6 +53,18 @@ export default async function CultureHistoryPage({ params }: { params: Promise<{
   if (culture.countries?.length) facts.push(["Today in", culture.countries.join(", ")]);
   if (culture.period_label || culture.period_start != null)
     facts.push(["Period", culture.period_label ?? `${formatYear(culture.period_start!)}${culture.period_end != null ? ` to ${formatYear(culture.period_end)}` : " onwards"}`]);
+  // Research confidence: how the published records for this culture are evidenced.
+  const records = [...systems, ...cycles, ...positions, ...months, ...lunarDays, ...observances, ...meanings, ...recommendations, ...correspondences] as Array<{ evidence?: string[] | null }>;
+  if (records.length) {
+    const tally = (tags: string[]) => records.filter((r) => (r.evidence ?? []).some((e) => tags.includes(e))).length;
+    const parts: Array<[number, string]> = [
+      [tally(["historically_documented", "ethnographically_documented", "astronomically_calculated"]), "documented in historical or ethnographic sources"],
+      [tally(["oral_tradition"]), "oral tradition"],
+      [tally(["scholarly_reconstruction", "unverified_lead"]), "reconstruction or unverified lead"],
+      [tally(["contested"]), "contested"],
+    ];
+    facts.push(["Research confidence", `${records.length} published records: ${parts.filter(([n]) => n > 0).map(([n, l]) => `${n} ${l}`).join(", ") || "evidence not yet tagged"}`]);
+  }
   if (culture.continues_today && culture.continues_today !== "unknown")
     facts.push(["Kept today", { yes: "Yes", no: "No", partly: "In part" }[culture.continues_today]]);
 
@@ -67,6 +79,11 @@ export default async function CultureHistoryPage({ params }: { params: Promise<{
           <div className="mt-1 flex flex-wrap items-baseline gap-3">
             <h2 className="font-serif text-4xl">{culture.name}</h2>
             <StatusPill status={culture.research_status} />
+            {hasResearch ? (
+              <Link href={`${spacePath}?advice=${encodeURIComponent(culture.key)}#tc-next-advice`} className="text-base text-[var(--tc-gold)] underline-offset-2 hover:underline">
+                See related advice
+              </Link>
+            ) : null}
           </div>
         </div>
 
