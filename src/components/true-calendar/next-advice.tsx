@@ -20,7 +20,9 @@ import {
   adviceAhead,
   adviceDays,
   filterFeed,
+  mappingLevel,
 } from "@/lib/true-calendar/research/ahead";
+import { MAPPING_LEVELS, type MappingChoice, MAPPING_PROFILES, alternativeGroups } from "@/lib/true-calendar/research/mapping";
 import { EvidenceChips } from "./history-bits";
 import { MoonGlyph } from "./moon-glyph";
 
@@ -59,7 +61,12 @@ export function NextAdvice({ bundle, stats, date, tz, historyPath }: { bundle: R
   const start = useMemo(() => addDays(date, page * range), [date, page, range]);
   // The Moon for the range plus a month, so every counted night is known.
   const moons = useMemo(() => moonDays(start, range + 31, tz), [start, range, tz]);
-  const feed = useMemo(() => adviceAhead(bundle, start, moons, { monthStart: lunarMonthContaining(start, tz).month.start }), [bundle, start, moons, tz]);
+  // Which start-of-month model each tradition with alternatives uses.
+  const [choice, setChoice] = useState<MappingChoice>({});
+  const feed = useMemo(
+    () => adviceAhead(bundle, start, moons, { monthStart: lunarMonthContaining(start, tz).month.start, choice }),
+    [bundle, start, moons, tz, choice]
+  );
   // "See related advice" on a History page links here with ?advice=<culture>.
   // The calendar renders only in the browser (it waits for the local date), so
   // reading the address here is safe.
@@ -176,6 +183,8 @@ export function NextAdvice({ bundle, stats, date, tz, historyPath }: { bundle: R
           </>
         ) : null}
       </p>
+
+      <ModelChoice choice={choice} setChoice={(c) => setChoice(c)} />
 
       {everything.length === 0 ? (
         <p className="mt-5 text-base text-[var(--tc-muted)]">
@@ -297,9 +306,13 @@ function rowName(item: AdviceItem): string {
 function StatusPill({ row }: { row: DayRow }) {
   const s = row.item.status;
   if (row.approximate) {
+    const illustrative = s === "illustrative";
     return (
-      <span title={DATE_STATUS_LABELS.counted} className="rounded-full border border-sky-700/30 bg-sky-50 px-2 text-xs text-sky-900 dark:bg-sky-950 dark:text-sky-200">
-        Approximate
+      <span
+        title={illustrative ? DATE_STATUS_LABELS.illustrative : MAPPING_LEVELS.B.explain}
+        className="rounded-full border border-sky-700/30 bg-sky-50 px-2 text-xs text-sky-900 dark:bg-sky-950 dark:text-sky-200"
+      >
+        {illustrative ? "Illustrative" : "Approx."}
       </span>
     );
   }
@@ -316,11 +329,55 @@ function StatusPill({ row }: { row: DayRow }) {
   return null;
 }
 
+/** "How this date was mapped", behind More detail. */
+function MappingNote({ item }: { item: AdviceItem }) {
+  const level = mappingLevel(item);
+  const profile = item.profileKey ? MAPPING_PROFILES.find((p) => p.key === item.profileKey) : undefined;
+  return (
+    <p>
+      <span className="font-medium">Date mapping: {MAPPING_LEVELS[level].name}.</span> {MAPPING_LEVELS[level].explain}
+      {profile ? ` Model: ${profile.label}; counted in ${profile.region} time (${profile.timezone}). ${profile.adjustment}` : ""}
+      {level === "C" && profile && profile.anchor.kind === "none" ? ` Needed: ${profile.anchor.needs}.` : ""}
+    </p>
+  );
+}
+
+/** Traditions that count their month in more than one way: the reader picks. */
+function ModelChoice({ choice, setChoice }: { choice: MappingChoice; setChoice: (c: MappingChoice) => void }) {
+  const groups = alternativeGroups();
+  if (groups.length === 0) return null;
+  return (
+    <details className="mt-2 text-sm text-[var(--tc-muted)]">
+      <summary className="cursor-pointer">Month models</summary>
+      <div className="mt-2 space-y-2">
+        {groups.map(({ group, profiles }) => {
+          const current = choice[group] ?? profiles.find((p) => p.isDefault)?.key;
+          return (
+            <fieldset key={group}>
+              <legend className="font-medium text-[var(--tc-ink)]">{profiles[0].calendarSystem}</legend>
+              {profiles.map((p) => (
+                <label key={p.key} className="mt-1 flex items-start gap-2">
+                  <input type="radio" name={`tc-model-${group}`} checked={current === p.key} onChange={() => setChoice({ ...choice, [group]: p.key })} className="mt-1" />
+                  <span>
+                    <span className="text-[var(--tc-ink)]">{p.label}</span>
+                    {p.isDefault ? " (default)" : ""}. {p.assumption}
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+          );
+        })}
+      </div>
+    </details>
+  );
+}
+
 /** One culture's interpretation: what the tradition says, then the modern application. */
 function Row({ row, historyPath }: { row: DayRow; historyPath: string }) {
   const { item } = row;
   const [open, setOpen] = useState(false);
-  const hasDetail = item.says.length > 1 || item.modern.length > 1 || Boolean(item.caution) || item.evidence.length > 0;
+  // Always: the date-mapping note lives here.
+  const hasDetail = true;
   return (
     <li className="py-2 text-base leading-snug first:pt-0">
       <p className="flex flex-wrap items-baseline gap-x-2">
@@ -368,6 +425,7 @@ function Row({ row, historyPath }: { row: DayRow; historyPath: string }) {
             </p>
           ))}
           {item.cycle ? <p className="text-[var(--tc-muted)]">{item.cycle}</p> : null}
+          <MappingNote item={item} />
           {item.caution ? <p className="text-amber-800 dark:text-amber-300">{item.caution}</p> : null}
           <EvidenceChips tags={item.evidence} />
         </div>
