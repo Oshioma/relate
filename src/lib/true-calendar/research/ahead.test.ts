@@ -12,7 +12,7 @@ import { lunarMonthContaining, moonDays } from "../astronomy";
 // the acceptance test for "Next advice from the past".
 function publishedBundle(): ResearchBundle {
   const b: ResearchBundle = { ...EMPTY_BUNDLE, cultures: [], systems: [], cycles: [], positions: [], observances: [], meanings: [], recommendations: [], correspondences: [], notes: [], lunarDays: [], months: [], sources: [], citations: [] };
-  for (const n of ["01", "02", "03", "04", "05", "06"]) {
+  for (const n of ["01", "02", "03", "04", "05", "06", "07"]) {
     const { file } = parseImport(JSON.parse(readFileSync(new URL(`../../../../docs/true-calendar/research/batch-${n}.v1.json`, import.meta.url), "utf8")));
     assert.ok(file, `batch ${n} parses`);
     const add = <T extends { key: string }>(list: T[], rows: T[]) => {
@@ -81,12 +81,14 @@ test("acceptance: Whiro and Rākaunui appear once each, dated by a stated count 
 
 test("every lunar night gets a date; Hawaiian nights start the evening after the new Moon", () => {
   const { lunar } = feedWithMonth();
-  assert.ok(lunar.every((i) => i.date !== null), "no lunar item left undated");
+  const greek = (i: { cultureKey: string }) => /^europe\.(athenian|hesiodic)-greek$/.test(i.cultureKey);
+  assert.ok(lunar.filter((i) => !greek(i)).every((i) => i.date !== null), "every non-Greek lunar item is dated");
+  assert.ok(lunar.filter(greek).every((i) => i.date === null && i.status === "lunar_pending"), "ancient Greek days are never dated");
   const kukahi = lunar.find((i) => i.name === "Kukahi"); // night 3
   assert.deepEqual(kukahi?.date, { year: 2026, month: 11, day: 12 });
   const newMoon = lunar.find((i) => i.id.startsWith("sky|new|"));
   assert.deepEqual(newMoon?.date, { year: 2026, month: 11, day: 9 });
-  const orders = lunar.map((i) => i.order);
+  const orders = lunar.filter((i) => i.date).map((i) => i.order);
   assert.deepEqual(orders, [...orders].sort((a, b) => a - b));
 });
 
@@ -179,4 +181,19 @@ test("the page list opens with listed dates and the Moon, then takes turns betwe
   assert.ok(new Set(next).size >= 3, "different traditions near the top");
   const firstUndated = list.findIndex((i) => !i.date);
   assert.ok(firstUndated > 0 && list.slice(firstUndated).every((i) => !i.date));
+});
+
+test("batch 07: Hesiod's days undated with their practices; Egyptian lucky days and Hawaiian months recurring", () => {
+  const feed = feedWithMonth();
+  const hesiod = feed.lunar.filter((i) => i.cultureKey === "europe.hesiodic-greek");
+  assert.equal(hesiod.length, 14);
+  assert.ok(hesiod.every((i) => i.date === null && i.sources.some((s) => s.key === "src.hesiod-works-days-chs")));
+  assert.equal(hesiod.filter((i) => i.hasPractice).length, 9);
+  // Omens and birth signs are kept as history, not practices.
+  assert.ok(!hesiod.find((i) => i.name === "Day 20")?.hasPractice);
+  const egypt = feed.seasonal.filter((i) => i.id.startsWith("obs|africa.north.ancient-egyptian.lucky-days"));
+  assert.equal(egypt.length, 3);
+  assert.ok(egypt.every((i) => i.date === null && i.status === "recurring"));
+  const months = feed.seasonal.filter((i) => i.id.startsWith("obs|oceania.hawaiian.seasonal-months"));
+  assert.deepEqual(months.map((i) => i.name).sort(), ["Ikiʻiki", "Makaliʻi", "Welehu"]);
 });

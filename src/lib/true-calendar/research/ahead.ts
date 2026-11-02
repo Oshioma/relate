@@ -81,7 +81,9 @@ export const DATE_STATUS_BADGES: Record<DateStatus, string> = {
 
 // How night 1 of each lunar calendar is placed against the calculated new
 // Moon. Our counting rule, stated on every card it dates; the first match wins.
-const NIGHT_ONE: { match: RegExp; offset: number; rule: string; exact: boolean }[] = [
+// `count: false` keeps a calendar's days undated: Oshi asked (2 Nov 2026,
+// batch 07) that ancient Greek lunar days never get Gregorian dates.
+const NIGHT_ONE: { match: RegExp; offset: number; rule: string; exact: boolean; count?: false }[] = [
   {
     match: /^oceania\.hawaiian\./,
     offset: 1,
@@ -96,9 +98,9 @@ const NIGHT_ONE: { match: RegExp; offset: number; rule: string; exact: boolean }
   },
   { match: /^oceania\.maori\./, offset: 0, rule: "Whiro (night 1) is taken as the day of the new Moon; some iwi begin the month at the full Moon instead", exact: true },
   { match: /^africa\.north\.ancient-egyptian\./, offset: 0, rule: "day 1 is taken as the day of the new Moon, when the old Moon can no longer be seen", exact: true },
-  { match: /^europe\.athenian-greek\./, offset: 1, rule: "the Noumenia (day 1) is taken as the day after the new Moon, at the first crescent", exact: true },
+  { match: /^europe\.(athenian|hesiodic)-greek\./, offset: 1, rule: "ancient Greek month days are not placed on modern dates", exact: true, count: false },
 ];
-const DEFAULT_NIGHT_ONE = { offset: 0, rule: "day 1 is taken as the day of the new Moon", exact: true };
+const DEFAULT_NIGHT_ONE: (typeof NIGHT_ONE)[number] = { match: /./, offset: 0, rule: "day 1 is taken as the day of the new Moon", exact: true };
 export function nightOneRule(systemKey: string) {
   return NIGHT_ONE.find((r) => r.match.test(systemKey)) ?? DEFAULT_NIGHT_ONE;
 }
@@ -487,7 +489,7 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
     if (says.length === 0) continue;
     const evidence = [...new Set([...day.evidence, ...recs.flatMap((r) => r.evidence), ...observances.flatMap((o) => o.evidence)])] as EvidenceTag[];
     const rule = nightOneRule(system.key);
-    const counted = countNight(day.day_number, rule.offset);
+    const counted = rule.count === false ? null : countNight(day.day_number, rule.offset);
     nights.push({
       ...culture,
       id: `night|${day.key}`,
@@ -555,15 +557,17 @@ export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayM
     const culture = cultureBits(o.culture_key);
     if (!culture) continue;
     const system = o.system_key ? systems.get(o.system_key) : undefined;
-    const isLunar = Boolean(system && (system.kind === "lunar" || system.kind === "lunisolar"));
+    const nightNo = o.lunar_day ?? (/last day/i.test(o.timing ?? "") ? 0 : null);
+    // A lunar observance on a stated night sits with the lunar nights; a whole
+    // month or an unplaced day is a recurring, seasonal item.
+    const isLunar = Boolean(system && (system.kind === "lunar" || system.kind === "lunisolar") && nightNo !== null);
     const recs = bundle.recommendations.filter((r) => r.observance_key === o.key);
     const says = uniq([o.description, ...recs.map((r) => r.historical_practice)]);
     const evidence = [...new Set([...o.evidence, ...recs.flatMap((r) => r.evidence)])] as EvidenceTag[];
     // A lunar observance on a stated night: "the last day of the lunar month"
     // is the day before night 1; a lunar_day is counted like a night.
     const rule = system ? nightOneRule(system.key) : DEFAULT_NIGHT_ONE;
-    const nightNo = o.lunar_day ?? (/last day/i.test(o.timing ?? "") ? 0 : null);
-    const counted = isLunar && nightNo !== null ? countNight(nightNo, rule.offset) : null;
+    const counted = isLunar && nightNo !== null && rule.count !== false ? countNight(nightNo, rule.offset) : null;
     const item: AdviceItem = {
       ...culture,
       id: `obs|${o.key}`,
