@@ -37,6 +37,7 @@ import { PLAIN_HORTULANUS } from "./hortulanus";
 import { PLAIN_TURBA } from "./turba-philosophorum";
 import { PLAIN_CHALDEAN_ORACLES } from "./chaldean-oracles";
 import { PLAIN_IAMBLICHUS_MYSTERIES } from "./iamblichus-mysteries";
+import { PLAIN_PLUTARCH_ISIS_OSIRIS } from "./plutarch-isis-osiris";
 import { PLAIN_TIMAEUS } from "./timaeus";
 import { TURBA_UNITS } from "../turba-philosophorum-text";
 
@@ -77,6 +78,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "arab.turba-philosophorum": PLAIN_TURBA,
   "greek.chaldean-oracles": PLAIN_CHALDEAN_ORACLES,
   "greek.iamblichus-mysteries": PLAIN_IAMBLICHUS_MYSTERIES,
+  "greek.plutarch-isis-osiris": PLAIN_PLUTARCH_ISIS_OSIRIS,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -291,6 +293,24 @@ test("every Chaldaean Oracle in Westcott's collection has plain words, with the 
   }
   assert.match(PLAIN_CHALDEAN_ORACLES["greek.chald.199"], /hear the voice of fire/);
   assert.match(PLAIN_CHALDEAN_ORACLES["greek.chald.155"], /foreign names/);
+});
+
+test("every chapter of Babbitt's Plutarch, On Isis and Osiris, has plain words that say whose voice it is, and only those", () => {
+  const plut = ALL_CORPORA.find((c) => c.workKey === "greek.plutarch-isis-osiris")!;
+  const withText = plut.passages.filter((p) => p.layers.some((l) => l.key === "eng-1936")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_PLUTARCH_ISIS_OSIRIS).sort(), [...withText].sort());
+  assert.equal(withText.length, 80);
+  // Every paraphrase names Plutarch as the one speaking, reporting or retelling:
+  // nothing is offered as Egyptian scripture or as fact about the gods.
+  for (const [key, words] of Object.entries(PLAIN_PLUTARCH_ISIS_OSIRIS)) {
+    assert.match(words, /^Plutarch(,| reports| retells| turns)/, key);
+  }
+  // The myth (chapters 12–19) is retold as the Egyptians tell it, not as his own claim.
+  for (let n = 12; n <= 19; n++) assert.match(PLAIN_PLUTARCH_ISIS_OSIRIS[`greek.plut.${n}`], /^Plutarch retells the story/, String(n));
+  assert.match(PLAIN_PLUTARCH_ISIS_OSIRIS["greek.plut.1"], /^Plutarch, in his own voice/);
+  assert.match(PLAIN_PLUTARCH_ISIS_OSIRIS["greek.plut.19"], /Harpocrates/);
+  assert.match(PLAIN_PLUTARCH_ISIS_OSIRIS["greek.plut.46"], /Zoroaster/);
+  assert.match(PLAIN_PLUTARCH_ISIS_OSIRIS["greek.plut.80"], /kyphi/);
 });
 
 test("Porphyry's Epistle and every chapter of the Answer in Taylor's Iamblichus have plain words, with the two voices kept apart, and only those", () => {

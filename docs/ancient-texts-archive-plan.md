@@ -2711,3 +2711,168 @@ The paraphrase follows Taylor's English closely. Its technical terms (theurgy, t
 - Gale's edition was read only at its title page, and the Aldine Ficino only at its first leaves; its colophon was not read.
 - Two pictures (the Aldine index and Mussard's imagined Iamblichus) were left out because Commons would not serve them to be looked at.
 - `inventoryVerified` stays false.
+
+## 34. Stage 28: Plutarch, On Isis and Osiris, in Babbitt's English (1936)
+
+Brief item 18 ("Related Greek and Hermetic texts") listed Plutarch's *On Isis and Osiris* among its proposed members, noting that it was already a timeline record. It is now imported as its own work, whole, from Frank Cole Babbitt's English in *Plutarch's Moralia* V (Loeb Classical Library 306, 1936), "Isis and Osiris", Moralia 351C–384C. The proposed-member line now reads "Plutarch, On Isis and Osiris — Babbitt 1936 public domain in the US; imported as its own work, greek.plutarch-isis-osiris".
+
+- **`greek.plutarch-isis-osiris`** (prefix `greek.plut`), brief item 18. Tradition class `ancient_late_transmission`, corpus group `greek_hermetic`. It has **no marker of its own**: it hangs off the existing record **`plutarch-on-isis-and-osiris`** (in `set-sutekh-seed.ts`), whose date (startYear 100, `century`, approximate, "About the late first or early second century CE") agrees with the sources read here and is **left unchanged**. The work adds three dated claims to that record (below).
+
+**What it is.** A Greek essay by Plutarch of Chaeronea (ca. 45–120 CE, SEP), priest of Apollo at Delphi, written for Clea, a priestess at Delphi. It retells the Egyptian story of Osiris, Isis, Horus and Typhon (Set), the fullest ancient telling of it, and then weighs what it means: the priests' and Greek writers' explanations (the Nile and the drought, the moon and the sun, the demigods), and Plutarch's own Platonist reading, in which Osiris is reason and the good, Isis the receptive principle, Typhon the disorderly, and Horus the visible world. It ends with the sacred animals, the robes of Isis and Osiris and the temple incense (kyphi).
+
+**Presented honestly.**
+- **A Greek, philosophical account, not an Egyptian text.** Babbitt's introduction says Plutarch's knowledge of Egypt came from "two sources: books and priests". The book passage, the inventory's attribution note and every plain-words entry say so.
+- **Whose voice.** Each chapter's notes begin by saying whose voice it is in:
+  - **the myth** (chapters 12–19), told in reported speech ("they relate"), not Plutarch's claim that it happened;
+  - **others' views reported**: Egyptian priests, Manetho, Hecataeus, Eudoxus, the Stoics, the Pythagoreans, Zoroaster as reported, and others;
+  - **Plutarch's own voice**: his judgements and his reading.
+  Where a chapter mixes them, the note says where the voice changes.
+- **Griffiths, second-hand only.** J. Gwyn Griffiths, *Plutarch's De Iside et Osiride* (University of Wales Press, 1970), was **not read**. It is cited only as Wikipedia ("Osiris myth") reports it: the early second century CE (pp. 16–17); that several elements come from Greek myth and the work as a whole is not based directly on Egyptian sources (pp. 51–52, 98); and that the Byblos episode is not known from Egyptian sources (pp. 319–322). Wikipedia's report of John Baines's opposite view (1996, p. 370), that Plutarch could have drawn on lost temple writings, is given too.
+- **The licence: US only.** Bill Thayer's LacusCurtius page states: "The work is now in the public domain pursuant to the 1978 revision of the U. S. Copyright Code, since the copyright expired in 1964 and was not renewed at the appropriate time, which would have been that year or the year before." That is a United States status only, and the text layers carry `public_domain_us`. The statement is exported as `THAYER_PUBLIC_DOMAIN_STATEMENT` and quoted in the source's notes and in every layer's evidence.
+
+The inventory gained six sources:
+- `babbitt-1936-plutarch-isis-osiris`: the English imported (Loeb 306, 1936), read in the archive.org scan of a 2003 reprint;
+- `thayer-lacuscurtius-isis-osiris`: the copy text, Thayer's hand-typed transcription, and the licence statement;
+- `loeb-moralia-v-scans`: the four archive.org scans whose OCR served as witnesses;
+- `aldine-1509-plutarch-moralia`: the first printing of the Greek Moralia, seen at its title page only;
+- `sep-plutarch`: Karamanolis, first published 2010, revised 2024;
+- `wikipedia-osiris-myth`: second-hand, for Griffiths and Baines.
+
+Files:
+- `corpus/plutarch-isis-osiris.ts`;
+- the generated `corpus/plutarch-isis-osiris-text.ts`, made by `scripts/texts/plutarch-isis-osiris.py`, which records the witnesses, the method, every decision on a flagged place and every correction by hand;
+- `corpus/plutarch-isis-osiris-related-images.ts`;
+- plain words in `corpus/plain/plutarch-isis-osiris.ts`;
+- the existing record's pictures in `marker-pictures.ts`. `importer.ts` now tops up pictures on an existing record a work hangs off (`existingSlug`) when `MARKER_PICTURES` has an entry for it, once per record, by the usual rule (a missing caption is added; a cover is set only on a record without one). `marker-pictures.test.ts` allows such entries.
+
+### Source and checking
+
+| Siglum | Witness |
+|---|---|
+| B | Thayer's LacusCurtius transcription (five pages, chapters 1–19, 20–40, 41–52, 53–67, 68–80), with his marks for the Loeb pages, the Stephanus sections and Babbitt's note numbers. The copy text. |
+| L | archive.org OCR of `plutarchs-moralia-vol.-5-loeb-306`, a 2003 reprint ("First published 1936"); its page images were used for all the proofreading |
+| T | `moraliainfiftee05plut`, a University of Toronto copy |
+| P | `plutarchsmoralia05plut` (some leaves bound out of order, so each chapter is sought anywhere in the volume) |
+| I | `plutarch-isis-osiris-loeb`, the essay's pages from a 1999 printing |
+
+The reprints are photographic: the type and pages are those of 1936.
+
+- **The vote.** Thayer's words were aligned with each OCR, chapter by chapter. A place is flagged wherever at least three of the four agree on another reading (letters, a stop or a diacritic), or where the aligner could not anchor the stretch in three. **95 places** were flagged: 54 letters, 29 stops, 6 diacritics, 6 skipped.
+- **Decisions.** Each flag was looked at on L's page image and has an entry in `DECISIONS`: the printed reading was taken in **47** places (pinned as `TAKEN_COUNT`); Thayer's reading stands in the rest (OCR misreadings, note marks read as "?", dropped diaereses and the like). The script stops if a flag has no decision or a decision is unused.
+- **`FIXES`**, each checked on L's page image, five entries:
+  - "framed) as if such" for Thayer's "and if" (ch. 20, p. 49), which only two OCRs caught;
+  - "persea-tree" (ch. 20): Thayer's note mark after the hyphen split the word;
+  - the single closing ’ after "gained from the gods," (ch. 26), where Thayer marks his double quote as an emendation;
+  - the marker for p. 89 (ch. 36), which Thayer lacks;
+  - the first section, 351C, where Thayer's anchor reads "351a".
+- **Thayer's interventions not followed:** his supplied "her" in ch. 60 ("we call Isis", so printed); his own notes and mouse-over comments. "rarefication (sic)" in ch. 79 is so printed and kept.
+- **368C.** The Loeb does not mark section 368C (Thayer notes it twice). None is invented: ch. 43 runs from 368B to 368D.
+
+Thayer's page marks agree with the first words of every English page of L except p. 89. Curly quotes; verse lines (Homer, Aeschylus and others) are kept as separate paragraphs. Babbitt's footnote marks are not reproduced.
+
+### Units
+
+- **`greek.plut.book`** (`part`) holds no text. It carries:
+  - the Greek as a cited layer (`grc`, `primary_text`, no content): Babbitt's own facing Greek (not transcribed), Parthey (Berlin, 1850, named in Babbitt's introduction), Griffiths 1970 (second-hand) and the Aldine of 1509 (title page only);
+  - the dates and the pictures of the book;
+  - notes on what is imported, Babbitt's introduction (listed: Plutarch's visit to Egypt, Moralia 678C; books and priests; the dedication to Clea; the bad manuscript tradition; no. 118 in Lamprias's list), and the Griffiths and Baines views, second-hand.
+- 80 **`chapter`** units, `greek.plut.1` to `greek.plut.80` ("Chapter 1 (351C–351E)"), each with the layer `eng-1936`, kind `translation`, the Stephanus sections it runs over and its Loeb pages (7–191). Chapter notes give the voice, any imported footnote, and the hand corrections.
+
+That makes 80 units with text and 81 passages, 24,637 words. `expectedUnits` is 80. `inventoryVerified` stays false: the Greek was not compared.
+
+**Imported notes:** 8 of Babbitt's 403, short ones the reader needs: 1, 8, 77, 147, 264, 303, 385 and 403 (in chapters 1, 2, 14, 29, 46, 52, 75 and 80).
+
+**Listed, not imported:**
+- Babbitt's introduction (pp. 3–5);
+- his Greek text and apparatus;
+- the other 395 footnotes;
+- Thayer's own notes.
+
+### Dates
+
+On `greek.plut.book`, and as `extraClaims` on the existing record:
+
+- **Composition:** 100–120 CE (`decade`, approximate), `sep-plutarch`. **Inferred**: the essay gives no date. The SEP calls it a "late work" and has Plutarch dying after 119 CE; Wikipedia, citing Griffiths (not read), says the early second century.
+- **Translation and publication:**
+  - 1509 (`aldine-1509-plutarch-moralia`): the first printing of the Greek Moralia, Aldus, Venice. The title page was looked at and bears no date; the year is the Commons file page's. That the essay is in it rests on Babbitt's apparatus citing "the Aldine ed.". The role is the archive's nearest; it is a first printing of the Greek, not a translation.
+  - 1936 (`babbitt-1936-plutarch-isis-osiris`): "First published 1936", read on the verso of the title page of the 2003 reprint.
+
+The existing record's own claim (100, `century`, approximate) is not changed; a test pins it and checks that the new range falls inside its century.
+
+### Links
+
+All 25 are `proposed`, and none says one text copied another or that Plutarch used an Egyptian text. Every link to an Egyptian text says "he names no Egyptian text, and this archive has found none that he read".
+- The two Timaeus links where Plutarch names Plato, and the five links to Hall, who names Plutarch, begin "Documented …".
+- All the others begin "None shown." for transmission.
+
+| From | To | Class | What it rests on |
+|---|---|---|---|
+| 14 | `egy.pt.532` | `close_conceptual_parallel` | the goddesses' search for the dead Osiris |
+| 19 | `egy.pt.366` | `close_conceptual_parallel` | a son conceived of Osiris after his death (Horus there, Harpocrates in Plutarch) |
+| 19 | `egy.pt.477` | `symbolic_similarity` | a court of the gods over the quarrel (different charges) |
+| 19 | `egy.ct.148` | `broad_thematic_resemblance` | the child Isis bears to the dead Osiris (archive summary only) |
+| 19 | `egy.bd.18` | `symbolic_similarity` | Thoth/Hermes wins the case for Osiris's side |
+| 13 | `egy.memphite.61-64` | `broad_thematic_resemblance` | Osiris's death tied to the water (Breasted's description only) |
+| 19 | `egy.memphite.7-18` | `symbolic_similarity` | the gods' judgement between Horus and Set |
+| 6 | `egy.cow.1.3` | `symbolic_similarity` | a drink linked to the blood of rebels against the gods (beer there, wine here) |
+| 13 | `herm.sh.ex25.36` | `close_conceptual_parallel` | Osiris (with Isis) as bringer of civilization, in the Kore Kosmou (Mead) |
+| 13 | `modern.vow.1885.kore.1` | `close_conceptual_parallel` | the same, in Kingsford and Maitland's English |
+| 78 | `modern.vow.1885.def.4` | `later_reinterpretation` | Osiris far from the earth, a later mystical reading |
+| 11 | `greek.iamb.7.2` | `close_conceptual_parallel` | the god on the lotus as a symbol, not a fact |
+| 18 | `greek.iamb.6.5` | `symbolic_similarity` | the scattering of Osiris's members |
+| 49 | `greek.iamb.8.3` | `close_conceptual_parallel` | Osiris as the name of a power for good |
+| 53 | `greek.tim.51a` | `documented_transmission` | Plutarch names Plato for "nurse" and "all-receptive" (SEP links 372E–F with Timaeus 49a, 51a) |
+| 56 | `greek.tim.50d` | `documented_transmission` | Plutarch names Plato for father, mother and offspring |
+| 9 | `greek.tim.21e` | `close_conceptual_parallel` | the goddess of Saïs is Athena |
+| 10 | `greek.tim.22b` | `close_conceptual_parallel` | Solon taught by a priest of Saïs |
+| 77 | `greek.chald.163` | `broad_thematic_resemblance` | the highest object of thought grasped beyond reasoning (the Oracles are later) |
+| 28 | `modern.hall.2.s1.p2` | `later_reinterpretation` | Hall retells the statue of Serapis, naming Plutarch |
+| 3 | `modern.hall.7.p11` | `documented_transmission` | Hall quotes this chapter in an older English |
+| 9 | `modern.hall.7.p1` | `later_reinterpretation` | the Saïs inscription in Hall |
+| 13 | `modern.hall.7.p3` | `later_reinterpretation` | Hall retells the chest and the conspirators |
+| 14 | `modern.hall.7.p4` | `later_reinterpretation` | Hall names Plutarch for the Pans and Satyrs |
+| 9 | `modern.hpb.isis` | `speculative_connection` | the title *Isis Unveiled* and the veiled Isis of Saïs; Blavatsky's source not checked |
+
+### Images
+
+All the pictures come from Commons file pages, and each was looked at before it was added. None repeats a picture shown elsewhere in the archive. No manuscript leaf of this essay was found on Commons under a name that could be checked.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| The title page of the Aldine Moralia, "PLVTARCHI OPVSCVLA. LXXXXII." (Venice, 1509, as the file page says); Simon Fraser University copy; public domain | `greek.plut.book`; first of the existing record's added pictures | `secure`, `historical_document` |
+| The opening leaf of a Greek Moralia manuscript said to be written for Bessarion (Venice, Gr. 248, from the file name), heading read on the image; public domain with the Italian `ita-mibac` restriction (`licenceStatus` "restricted") | `greek.plut.book` | `UNVERIFIED`, `manuscript`: another essay; library, shelfmark and date not checked |
+| The inscribed pillar at Delphi naming a Plutarch honoured by the Delphians and Chaeroneans (read on the image); CC BY-SA 3.0, Zde | `greek.plut.book`; the record's second added picture | `UNVERIFIED`, `artefact`: that it honours the author, and its date, are the file page's |
+| A marble bust at Delphi "believed to represent" Plutarch; CC BY-SA 4.0, Odysses | `greek.plut.book` | `UNVERIFIED`, `portrait` |
+| A relief on the roof of the Dendera temple: Osiris on his bier between two winged goddesses; CC0, A. Parrot | `greek.plut.18` | `UNVERIFIED`, `site`: Egyptian evidence, not an illustration of Plutarch |
+| The "Bed of Osiris", Cairo JE 32090, from the tomb of Djer (as the file page says); CC BY-SA 3.0, Juan R. Lazaro | `greek.plut.20`; the record's third added picture | `UNVERIFIED`, `artefact`: number, findspot and date not checked |
+| The temple of Isis at Philae; CC BY-SA 3.0, M.ramadan2014 | `greek.plut.20` | `UNVERIFIED`, `site`: context; Plutarch's "sacred island by Philae" is a neighbouring island, not this temple |
+
+The existing record keeps its own cover (a Fuseli drawing); the three added pictures go into its gallery.
+
+Left out:
+- the Dendera relief of the conception of Horus, already shown on Coffin Text spell 148 (to which chapter 19 links);
+- Met statuettes of Isis nursing Horus and of Osiris: Commons refused the images (HTTP 429), so they could not be looked at;
+- a closer photograph of the same Delphi bust, a duplicate;
+- the Simon Fraser University scan itself, which sits behind a bot check that was not bypassed.
+
+### Plain words
+
+There are 80 entries, one per chapter, and none for the book. Each begins with Plutarch and his voice, so the three voices stay apart:
+- "Plutarch, in his own voice, ..." for his own judgements;
+- "Plutarch reports ..." for others' views and customs;
+- "Plutarch retells the story ..." for the myth (chapters 12–19);
+- "Plutarch turns, as he promised, ..." (ch. 79).
+
+The paraphrase follows Babbitt's English closely. Nothing is offered as true of Egypt or of the gods.
+
+### Not done
+
+- The Greek was not read in any edition (Babbitt's facing text, Parthey, Griffiths); nothing is marked verified.
+- Griffiths's commentary and Baines's chapter were not read; both are second-hand from Wikipedia.
+- 395 of Babbitt's 403 footnotes and his introduction are not imported; Thayer's notes are not imported.
+- Section 368C is unmarked in the Loeb, so ch. 43 is given as 368B–368D.
+- The Aldine date is the Commons file page's; the colophon was not read, and the SFU scan was not opened.
+- The Blavatsky link is speculative; her source for the veiled Isis was not checked.
+- Verse lines are kept as separate paragraphs.
+- The licence holds in the United States only.
+- `inventoryVerified` stays false.
