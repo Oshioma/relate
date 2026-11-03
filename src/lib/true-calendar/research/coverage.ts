@@ -61,7 +61,7 @@ export function mappingCoverage(bundle: ResearchBundle): MappingCoverage {
     const cycle = cycles.get(pos.cycle_key);
     const system = cycle ? systems.get(cycle.system_key) : undefined;
     const profile = system ? profileFor(system.key) : null;
-    const anchored = Boolean(cycle?.anchor_date) && profile !== null && profile.level !== "C";
+    const anchored = (Boolean(cycle?.anchor_date) || profile?.anchor.kind === "jianchu") && profile !== null && profile.level !== "C";
     const listed = bundle.correspondences.some((c) => c.culture_key === system?.culture_key && LISTED_A.has(c.date_status ?? "published_secondary") && c.label === pos.name);
     add(listed ? "A" : anchored ? "B" : "C", profile, system?.culture_key ?? null);
   }

@@ -1,0 +1,3795 @@
+{
+ "format": "true-calendar/v1",
+ "sources": [
+  {
+   "key": "src.wikipedia-tzolkin",
+   "title": "Tzolkʼin",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Tzolk%CA%BCin",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "The 20 day names and their meanings (after Miller and Taube 1993 and Wright 1989), and the good/bad days and their uses in three highland Guatemalan calendars, based on an 1854 manuscript by Vicente Hernández Spina as given by Weeks, Sachse and Prager (2009).",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.weeks-maya-daykeeping",
+   "title": "Maya Daykeeping: Three Calendars from Highland Guatemala",
+   "publisher": "University Press of Colorado",
+   "url": null,
+   "accessed_on": "2026-11-02",
+   "source_type": "academic",
+   "notes": "Transcribes three divinatory calendars from highland Guatemala (including one of 1772) and Hernández Spina's 1854 notes on the days. Cited here through the Wikipedia summary; not read directly.",
+   "review_status": "draft",
+   "author": "John M. Weeks, Frauke Sachse and Christian M. Prager (eds.)",
+   "published": "2009"
+  },
+  {
+   "key": "src.wikipedia-maya-long-count",
+   "title": "Mesoamerican Long Count calendar",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Mesoamerican_Long_Count_calendar",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "The GMT correlation (584,283): 13.0.0.0.0 4 Ajaw 8 Kumkʼu; the current bʼakʼtun began on 21 December 2012. Highland communities that still keep the 260-day count are consistent with it (Tedlock 1992).",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-haab",
+   "title": "Haabʼ",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Haab%CA%BC",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "The 365-day year of eighteen 20-day months plus the five Wayebʼ days, thought to be a dangerous time.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-akan-calendar",
+   "title": "Akan calendar",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Akan_calendar",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "The six-day week (nnanson) and its day meanings, the seven-day week (nnawɔtwe) and its meanings, the 42-day adaduanan grid recorded in Kwahu and Bono, and the four dabɔne (Fɔdwo, Awukudae, Fofie, Akwasidae) with their rules. Mainly after Bartle (1978).",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.bartle-akan-forty-days",
+   "title": "Forty Days: The Akan Calendar",
+   "publisher": "Africa: Journal of the International African Institute 48(1), 80–84",
+   "url": "https://doi.org/10.2307/1158712",
+   "accessed_on": "2026-11-02",
+   "source_type": "academic",
+   "notes": "The 42-day cycle and its special days; dates the dabɔne of 1978 (Akwasidae 8 Jan, Fodwo 23 Jan, Awukudae 1 Feb, Fofi 10 Feb). Cited through the Wikipedia article.",
+   "review_status": "draft",
+   "author": "Philip F. W. Bartle",
+   "published": "1978"
+  },
+  {
+   "key": "src.wikipedia-akan-names",
+   "title": "Akan name",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Akan_name",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "Day names given to children by the day of the week they were born, with the meaning associated with each day.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-igbo-calendar",
+   "title": "Igbo calendar",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Igbo_calendar",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "The four market days Eke, Orie, Afọ, Nkwọ; their link to the four directions (Isichei 1997); naming after the market day; the Nri year-counting festival Ịgụ Arọ \"initially slated\" for 18 February 2012, \"an Nkwọ day\".",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.zhwiki-jianchu",
+   "title": "建除十二神 (The twelve day officers)",
+   "publisher": "Wikipedia",
+   "url": "https://zh.wikipedia.org/wiki/%E5%BB%BA%E9%99%A4%E5%8D%81%E4%BA%8C%E7%A5%9E",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "Chinese Wikipedia. Quotes the Huainanzi (2nd century BCE), the Qin Day Books (Shuihudi), a Dunhuang almanac of 924 CE with one prohibition per officer, the Song official calendar, and the Qing rule (Xieji bianfang shu, 1741) used by almanacs today.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.huainanzi-tianwen",
+   "title": "Huainanzi, chapter 3: Tianwen xun (Treatise on the Patterns of Heaven)",
+   "publisher": "Chinese Text Project",
+   "url": "https://ctext.org/huainanzi/tian-wen-xun",
+   "accessed_on": "2026-11-02",
+   "source_type": "primary_text",
+   "notes": "\"寅為建，卯為除，辰為滿，巳為平，主生。午為定，未為執，主陷。申為破，主衡。酉為危，主杓。戌為成，主少德。亥為收，主大德。子為開，主太歲。丑為閉，主太陰。\"",
+   "review_status": "draft",
+   "author": "Liu An (ed.)",
+   "published": "c. 139 BCE"
+  },
+  {
+   "key": "src.wikipedia-sexagenary-cycle",
+   "title": "Sexagenary cycle",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Sexagenary_cycle",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "Day counting by the sixty stem-branch pairs since the Shang oracle bones; the solar-term months (jiéyuè) and their branches; worked example: 1 October 1949 was a jiazi (甲子) day.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-tithi",
+   "title": "Tithi",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Tithi",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "A tithi is the time for the Moon to gain 12° on the Sun; 30 to a lunar month; the tithi at sunrise is the tithi of the day; auspicious and inauspicious tithis.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-paksha",
+   "title": "Paksha",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Paksha",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "The bright fortnight (Śukla Pakṣa, waxing, \"considered auspicious\") and the dark fortnight (Kṛṣṇa Pakṣa, waning); amānta and pūrṇimānta month reckoning.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-ekadashi",
+   "title": "Ekadashi",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Ekadashi",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "The 11th tithi of each fortnight: fasting for Vishnu; the three-day observance (one meal on Daśamī, fast on Ekādaśī, break the fast after sunrise on Dvādaśī) and lighter forms of the fast.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-amavasya",
+   "title": "Amavasya",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Amavasya",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "The new-Moon tithi: fasting, and especially rites for the ancestors (śrāddha, tarpaṇa).",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-purnima",
+   "title": "Purnima",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Purnima",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "The full-Moon tithi; many festivals fall on the Pūrṇimā of particular months.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-pradosha",
+   "title": "Pradosha",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Pradosha",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "Twice a month, on the 13th tithi: Shiva worship at twilight, with a fast (pradoṣa vrata).",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-sankashti",
+   "title": "Sankashti Chaturthi",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Sankashti_Chaturthi",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "Each month on the 4th tithi of the dark fortnight: a fast for Ganesha, broken at night after seeing the Moon.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-tithi-days",
+   "title": "Pratipada, Dvitiya, Tritiya, Chaturthi, Shashthi, Saptami, Ashtami, Navami, Dashami, Dvadashi, Chaturdashi (articles)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Category:Hindu_calendar",
+   "accessed_on": "2026-11-02",
+   "source_type": "reference",
+   "notes": "The Wikipedia articles on the individual tithis: what each is, and which yearly festivals fall on it in particular months.",
+   "review_status": "draft"
+  }
+ ],
+ "cultures": [
+  {
+   "key": "americas.maya",
+   "name": "Maya",
+   "alt_names": [
+    "Kʼicheʼ daykeepers"
+   ],
+   "continent": "Americas",
+   "region": "Mexico and Central America",
+   "countries": [
+    "Guatemala",
+    "Mexico",
+    "Belize"
+   ],
+   "continues_today": "yes",
+   "people": "Maya peoples; Kʼicheʼ, Ixil, Mam and other highland communities still keep the 260-day count",
+   "overview": "The 260-day tzolkʼin (20 day names with 13 numbers) runs alongside the 365-day haabʼ. Daykeepers (Aj Kʼij) in highland Guatemala still use it to choose days for actions.",
+   "research_status": "in_progress",
+   "sort_order": 62,
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese",
+   "name": "Chinese",
+   "alt_names": [
+    "Tung Shing / Tongshu almanac"
+   ],
+   "continent": "Asia",
+   "region": "East and Southeast Asia",
+   "countries": [
+    "China",
+    "Taiwan",
+    "Hong Kong",
+    "Singapore",
+    "Malaysia"
+   ],
+   "continues_today": "yes",
+   "people": "Han Chinese and the Chinese diaspora; printed almanacs are still sold every year",
+   "overview": "Days are counted in a cycle of sixty stem-branch pairs, and almanacs name what is suitable and unsuitable each day. One of the oldest layers is the twelve day officers (建除), found in Qin Day Books of the 3rd century BCE.",
+   "research_status": "in_progress",
+   "sort_order": 53,
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu"
+    },
+    {
+     "source": "src.wikipedia-sexagenary-cycle"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu",
+   "name": "Vedic Hindu",
+   "alt_names": [
+    "Hindu pañcāṅga"
+   ],
+   "continent": "Asia",
+   "region": "South Asia",
+   "countries": [
+    "India",
+    "Nepal"
+   ],
+   "continues_today": "yes",
+   "people": "Hindus in South Asia and worldwide",
+   "overview": "The Hindu almanac (pañcāṅga) counts lunar days called tithis: thirty to a lunar month, fifteen in the bright half and fifteen in the dark half. Fasts and festivals are kept on particular tithis.",
+   "research_status": "in_progress",
+   "sort_order": 46,
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "systems": [
+  {
+   "key": "americas.maya.tzolkin",
+   "culture_key": "americas.maya",
+   "name": "Tzolkʼin (260-day count)",
+   "original_name": "Aj Ilabal Qʼij (Kʼicheʼ)",
+   "kind": "day_cycle",
+   "day_rule": "Twenty named days run in order alongside the numbers 1 to 13; the same name and number meet again after 260 days.",
+   "description": "The 260-day count. Each of the twenty day names has its own character; daykeepers use it to choose good days for actions.",
+   "uncertainty": "The day meanings here come from one 19th-century highland source (Hernández Spina, 1854) and from modern scholarly summaries; daykeepers in different towns read the days differently.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin"
+    },
+    {
+     "source": "src.wikipedia-maya-long-count"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.haab",
+   "culture_key": "americas.maya",
+   "name": "Haabʼ (365-day year)",
+   "kind": "solar",
+   "day_rule": "Eighteen months of twenty days, then five extra days (Wayebʼ); no leap day, so it slowly drifts against the seasons.",
+   "description": "The 365-day vague year that runs alongside the tzolkʼin.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-haab"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnanson",
+   "culture_key": "africa.west.akan",
+   "name": "Six-day week",
+   "original_name": "Nnanson",
+   "translation": "\"Seven days\" (counting the first and last day both)",
+   "kind": "day_cycle",
+   "day_rule": "Six named days in a row (Fo, Nwuna, Nkyi, Kuru, Kwa, Mono). Running beside the seven-day week, it makes the 42-day adaduanan.",
+   "description": "The older Akan six-day week. Its days carry meanings of judgement, funerals, taboo, the town, freedom and fresh starts.",
+   "uncertainty": "Recorded in Kwahu and Bono (Bartle 1978, Rattray); other Akan states may differ. Dates are counted from the published Akwasidae dates of 2026, which agree with Bartle's 1978 dates.",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnanson"
+    },
+    {
+     "source": "src.bartle-akan-forty-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnawotwe",
+   "culture_key": "africa.west.akan",
+   "name": "Seven-day week",
+   "original_name": "Nnawɔtwe",
+   "translation": "\"Eight days\" (counting the first and last day both)",
+   "kind": "day_cycle",
+   "day_rule": "The same seven days as the Gregorian week, each with an Akan name and meaning. Children are named after the day they were born.",
+   "description": "The Akan seven-day week. Each day has a meaning and gives a day name to everyone born on it (Kofi for Friday, Ama for Saturday…).",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnawɔtwe"
+    },
+    {
+     "source": "src.wikipedia-akan-names"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu",
+   "culture_key": "asia.east.chinese",
+   "name": "The twelve day officers",
+   "original_name": "建除十二神",
+   "transliteration": "jiànchú shí'èr shén",
+   "kind": "day_cycle",
+   "day_rule": "Each day is ruled by one of twelve 'officers', Jian (建) to Bi (閉), in turn. The day whose earthly branch matches the month's branch is Jian; the solar-term months begin at the twelve 'jie' terms (Lichun, Jingzhe…), and on the day a new month begins the officer repeats.",
+   "description": "One of the oldest day-choosing systems in Chinese almanacs: in the Qin Day Books (3rd century BCE), the Huainanzi (2nd century BCE), and every Tongshu (almanac) printed today.",
+   "uncertainty": "Almanacs differ on which items each officer allows or forbids; this record gives the Huainanzi's grouping, the Dunhuang almanac of 924 CE, and the Song and Qing rules as quoted by Chinese Wikipedia.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu"
+    },
+    {
+     "source": "src.huainanzi-tianwen"
+    },
+    {
+     "source": "src.wikipedia-sexagenary-cycle",
+     "locator": "Sexagenary months"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi",
+   "culture_key": "asia.south.vedic-hindu",
+   "name": "Tithi (lunar day)",
+   "original_name": "तिथि tithi",
+   "kind": "lunar",
+   "day_rule": "A tithi is the time the Moon takes to gain 12° on the Sun (about 19 to 27 hours). The tithi in force at sunrise is the tithi of the day, so a tithi is sometimes skipped or repeated.",
+   "month_rule": "Thirty tithis to a lunar month: Śukla (bright) Pratipadā to Pūrṇimā (full Moon), then Kṛṣṇa (dark) Pratipadā to Amāvasyā (new Moon). In the amānta reckoning (south India) the month ends at Amāvasyā; in the pūrṇimānta (north India) at Pūrṇimā.",
+   "description": "The lunar day of the Hindu pañcāṅga, one of its five parts with the weekday, nakṣatra, yoga and karaṇa.",
+   "uncertainty": "Tithi times depend on place (sunrise) and on the method (traditional Sūrya Siddhānta reckoning or modern ephemerides); almanacs for different cities can differ by a day at a boundary.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "cycles": [
+  {
+   "key": "americas.maya.tzolkin.day-names",
+   "system_key": "americas.maya.tzolkin",
+   "name": "Twenty day names",
+   "original_name": "Tzolkʼin day signs",
+   "length_days": 20,
+   "description": "The twenty day names of the tzolkʼin, from Imix to Ajaw.",
+   "anchor_date": "2012-12-21",
+   "anchor_position": 19,
+   "anchor_source_key": "src.wikipedia-maya-long-count",
+   "anchor_note": "21 December 2012 was 13.0.0.0.0, 4 Ajaw in the GMT correlation (584,283). The highland Guatemalan count that daykeepers still keep agrees with this correlation.",
+   "regional_note": "Highland daykeepers begin and read the day in their own way; one 19th-century source is quoted here.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-maya-long-count"
+    },
+    {
+     "source": "src.wikipedia-tzolkin"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.haab.year",
+   "system_key": "americas.maya.haab",
+   "name": "Haabʼ year",
+   "length_days": 365,
+   "description": "The 365 days of the haabʼ, counted from 0 Pop; positions 360 to 364 are the five Wayebʼ days.",
+   "anchor_date": "2012-12-21",
+   "anchor_position": 263,
+   "anchor_source_key": "src.wikipedia-maya-long-count",
+   "anchor_note": "21 December 2012 was 3 Kʼankʼin (GMT correlation): month 14 (Kʼankʼin) day 3, so position 13 × 20 + 3 = 263.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-maya-long-count"
+    },
+    {
+     "source": "src.wikipedia-haab"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnanson.cycle",
+   "system_key": "africa.west.akan.nnanson",
+   "name": "Six-day week",
+   "original_name": "Nnanson",
+   "length_days": 6,
+   "description": "Fo, Nwuna, Nkyi, Kuru, Kwa, Mono.",
+   "anchor_date": "2026-02-01",
+   "anchor_position": 3,
+   "anchor_source_key": "src.akandictionary-akwasidae-2026",
+   "anchor_note": "Akwasidae is Kuru-Kwasi (Kuru of the six-day week on a Sunday) in the 42-day grid; Akwasidae fell on 1 February 2026 in the published listing. Bartle's 1978 dates count to the same days.",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Adaduanan grid"
+    },
+    {
+     "source": "src.akandictionary-akwasidae-2026"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnawotwe.cycle",
+   "system_key": "africa.west.akan.nnawotwe",
+   "name": "Seven-day week",
+   "original_name": "Nnawɔtwe",
+   "length_days": 7,
+   "description": "Kwasiada (Sunday) to Memeneda (Saturday).",
+   "anchor_date": "2026-02-01",
+   "anchor_position": 0,
+   "anchor_source_key": "src.wikipedia-akan-calendar",
+   "anchor_note": "The Akan and English seven-day weeks are the same: Kwasiada is Sunday. 1 February 2026 was a Sunday.",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Gregorian calendar"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.igbo.market-week.cycle",
+   "system_key": "africa.west.igbo.market-week",
+   "name": "Market week",
+   "original_name": "Izu",
+   "length_days": 4,
+   "description": "Eke, Orie, Afọ, Nkwọ: four market days that repeat without a break.",
+   "anchor_date": "2012-02-18",
+   "anchor_position": 3,
+   "anchor_source_key": "src.wikipedia-igbo-calendar",
+   "anchor_note": "The Nri year-counting festival Ịgụ Arọ was initially slated for 18 February 2012, \"an Nkwọ day\". That fixes the Nri count; other towns' market days can fall on a different day of the cycle.",
+   "regional_note": "This is the count of the Nri area. The order Eke, Orie, Afọ, Nkwọ is the same everywhere, but which day is Eke differs between communities; check your own town's market.",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.elias-igbo-days"
+    },
+    {
+     "source": "src.wikipedia-igbo-calendar",
+     "locator": "Ọnwa Mbụ",
+     "quote": "18 February (an Nkwọ day on the third week of February)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers",
+   "system_key": "asia.east.chinese.jianchu",
+   "name": "Twelve day officers",
+   "original_name": "建除",
+   "length_days": 12,
+   "description": "建 Jian, 除 Chu, 滿 Man, 平 Ping, 定 Ding, 執 Zhi, 破 Po, 危 Wei, 成 Cheng, 收 Shou, 開 Kai, 閉 Bi. Dated by rule, not by a plain 12-day count: see the day rule.",
+   "anchor_note": "No single anchor: the officer is worked out from the day's stem-branch (1 October 1949 was 甲子) and the Sun's position (the solar-term month).",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu"
+    },
+    {
+     "source": "src.wikipedia-sexagenary-cycle"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "cycle_positions": [
+  {
+   "key": "americas.maya.tzolkin.day-names.imix",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 0,
+   "name": "Imix",
+   "original_name": "Imix (Kʼicheʼ: Imox)",
+   "translation": "Crocodile",
+   "meaning": "Crocodile; the Earth; water (the primordial water serpent).",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.ik",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 1,
+   "name": "Ikʼ",
+   "original_name": "Ikʼ (Kʼicheʼ: Iq)",
+   "translation": "Wind, breath, life force",
+   "meaning": "Wind, breath, life force.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.akbal",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 2,
+   "name": "Akʼbʼal",
+   "original_name": "Akʼbʼal (Kʼicheʼ: Aqabal)",
+   "translation": "Darkness, night, early dawn",
+   "meaning": "Darkness, night, early dawn.",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.kan",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 3,
+   "name": "Kʼan",
+   "original_name": "Kʼan (Kʼicheʼ: Kat)",
+   "translation": "Maize",
+   "meaning": "Maize; ripeness; also lizard.",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.chikchan",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 4,
+   "name": "Chikchan",
+   "original_name": "Chikchan (Kʼicheʼ: Kan)",
+   "translation": "Snake",
+   "meaning": "Snake; the celestial serpent.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.kimi",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 5,
+   "name": "Kimi",
+   "original_name": "Kimi (Kʼicheʼ: Kame)",
+   "translation": "Death",
+   "meaning": "Death.",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.manik",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 6,
+   "name": "Manikʼ",
+   "original_name": "Manikʼ (Kʼicheʼ: Keej)",
+   "translation": "Deer",
+   "meaning": "Deer; the Lord of the Hunt.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.lamat",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 7,
+   "name": "Lamat",
+   "original_name": "Lamat (Kʼicheʼ: Qanil)",
+   "translation": "Venus, star, ripeness, maize seeds",
+   "meaning": "Venus, star, ripeness, maize seeds.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.muluk",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 8,
+   "name": "Muluk",
+   "original_name": "Muluk (Kʼicheʼ: Toj)",
+   "translation": "Water, jade, offering",
+   "meaning": "Water, jade, offering.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.ok",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 9,
+   "name": "Ok",
+   "original_name": "Ok (Kʼicheʼ: Tzi)",
+   "translation": "Dog, who guides the night sun through the underworld",
+   "meaning": "Dog, who guides the night sun through the underworld.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.chuwen",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 10,
+   "name": "Chuwen",
+   "original_name": "Chuwen (Kʼicheʼ: Batz)",
+   "translation": "Howler monkey",
+   "meaning": "Howler monkey; the great craftsman, patron of arts and knowledge; thread.",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.eb",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 11,
+   "name": "Ebʼ",
+   "original_name": "Ebʼ (Kʼicheʼ: E)",
+   "translation": "Grass or point",
+   "meaning": "Grass or point; rain; the road.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.ben",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 12,
+   "name": "Bʼen",
+   "original_name": "Bʼen (Kʼicheʼ: Aj)",
+   "translation": "Reed",
+   "meaning": "Reed; green maize; the growth of corn, cane and people.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.ix",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 13,
+   "name": "Ix",
+   "original_name": "Ix (Kʼicheʼ: Ix)",
+   "translation": "Jaguar",
+   "meaning": "Jaguar; the night sun; the earth.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.men",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 14,
+   "name": "Men",
+   "original_name": "Men (Kʼicheʼ: Tzikin)",
+   "translation": "Eagle (Kʼicheʼ: bird)",
+   "meaning": "Eagle (Kʼicheʼ: bird); the wise one.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.kib",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 15,
+   "name": "Kibʼ",
+   "original_name": "Kibʼ (Kʼicheʼ: Ajmaq)",
+   "translation": "Owl or vulture",
+   "meaning": "Owl or vulture; wax; soul.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.kaban",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 16,
+   "name": "Kabʼan",
+   "original_name": "Kabʼan (Kʼicheʼ: Noj)",
+   "translation": "Earth",
+   "meaning": "Earth; earthquake; thought.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.etznab",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 17,
+   "name": "Etzʼnabʼ",
+   "original_name": "Etzʼnabʼ (Kʼicheʼ: Tijax)",
+   "translation": "Flint knife",
+   "meaning": "Flint knife.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.kawak",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 18,
+   "name": "Kawak",
+   "original_name": "Kawak (Kʼicheʼ: Kawoq)",
+   "translation": "Rain storm",
+   "meaning": "Rain storm; thunder and lightning.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.ajaw",
+   "cycle_key": "americas.maya.tzolkin.day-names",
+   "position": 19,
+   "name": "Ajaw",
+   "original_name": "Ajaw (Kʼicheʼ: Junajpu (Ajpu))",
+   "translation": "Lord, ruler, the sun",
+   "meaning": "Lord, ruler, the sun.",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "The twenty day names (table; associations after Miller and Taube 1993 and Wright 1989)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.haab.year.wayeb-1",
+   "cycle_key": "americas.maya.haab.year",
+   "position": 360,
+   "name": "Wayebʼ, day 1 of 5",
+   "original_name": "Wayebʼ (Uayeb)",
+   "translation": "The five nameless days",
+   "meaning": "The five nameless days at the end of the 365-day year were thought a dangerous time: \"portals between the mortal realm and the Underworld dissolved\" (Foster 2002). People kept customs to ward off evil spirits; they would not leave their homes or wash their hair.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Customs described for the ancient Maya in a modern summary; the haabʼ drifts against the seasons (no leap day).",
+   "sources": [
+    {
+     "source": "src.wikipedia-haab",
+     "locator": "Five unlucky days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.haab.year.wayeb-2",
+   "cycle_key": "americas.maya.haab.year",
+   "position": 361,
+   "name": "Wayebʼ, day 2 of 5",
+   "original_name": "Wayebʼ (Uayeb)",
+   "translation": "The five nameless days",
+   "meaning": "The five nameless days at the end of the 365-day year were thought a dangerous time: \"portals between the mortal realm and the Underworld dissolved\" (Foster 2002). People kept customs to ward off evil spirits; they would not leave their homes or wash their hair.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Customs described for the ancient Maya in a modern summary; the haabʼ drifts against the seasons (no leap day).",
+   "sources": [
+    {
+     "source": "src.wikipedia-haab",
+     "locator": "Five unlucky days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.haab.year.wayeb-3",
+   "cycle_key": "americas.maya.haab.year",
+   "position": 362,
+   "name": "Wayebʼ, day 3 of 5",
+   "original_name": "Wayebʼ (Uayeb)",
+   "translation": "The five nameless days",
+   "meaning": "The five nameless days at the end of the 365-day year were thought a dangerous time: \"portals between the mortal realm and the Underworld dissolved\" (Foster 2002). People kept customs to ward off evil spirits; they would not leave their homes or wash their hair.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Customs described for the ancient Maya in a modern summary; the haabʼ drifts against the seasons (no leap day).",
+   "sources": [
+    {
+     "source": "src.wikipedia-haab",
+     "locator": "Five unlucky days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.haab.year.wayeb-4",
+   "cycle_key": "americas.maya.haab.year",
+   "position": 363,
+   "name": "Wayebʼ, day 4 of 5",
+   "original_name": "Wayebʼ (Uayeb)",
+   "translation": "The five nameless days",
+   "meaning": "The five nameless days at the end of the 365-day year were thought a dangerous time: \"portals between the mortal realm and the Underworld dissolved\" (Foster 2002). People kept customs to ward off evil spirits; they would not leave their homes or wash their hair.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Customs described for the ancient Maya in a modern summary; the haabʼ drifts against the seasons (no leap day).",
+   "sources": [
+    {
+     "source": "src.wikipedia-haab",
+     "locator": "Five unlucky days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.haab.year.wayeb-5",
+   "cycle_key": "americas.maya.haab.year",
+   "position": 364,
+   "name": "Wayebʼ, day 5 of 5",
+   "original_name": "Wayebʼ (Uayeb)",
+   "translation": "The five nameless days",
+   "meaning": "The five nameless days at the end of the 365-day year were thought a dangerous time: \"portals between the mortal realm and the Underworld dissolved\" (Foster 2002). People kept customs to ward off evil spirits; they would not leave their homes or wash their hair.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Customs described for the ancient Maya in a modern summary; the haabʼ drifts against the seasons (no leap day).",
+   "sources": [
+    {
+     "source": "src.wikipedia-haab",
+     "locator": "Five unlucky days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnanson.cycle.fo",
+   "cycle_key": "africa.west.akan.nnanson.cycle",
+   "position": 0,
+   "name": "Fo",
+   "original_name": "Fo",
+   "meaning": "Judgement day: \"guilty verdict (passing sentence)\"; also called Bemim, \"not guilty verdict\".",
+   "favourability": "mixed",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "Recorded in Kwahu and Bono (Bartle 1978, Rattray); other Akan states may differ. Dates are counted from the published Akwasidae dates of 2026, which agree with Bartle's 1978 dates.",
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnanson (table)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnanson.cycle.nwuna",
+   "cycle_key": "africa.west.akan.nnanson.cycle",
+   "position": 1,
+   "name": "Nwuna",
+   "original_name": "Nwuna",
+   "meaning": "Sleep (death) day; funerals day; covered day.",
+   "favourability": "neutral",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "Recorded in Kwahu and Bono (Bartle 1978, Rattray); other Akan states may differ. Dates are counted from the published Akwasidae dates of 2026, which agree with Bartle's 1978 dates.",
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnanson (table)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnanson.cycle.nkyi",
+   "cycle_key": "africa.west.akan.nnanson.cycle",
+   "position": 2,
+   "name": "Nkyi",
+   "original_name": "Nkyi",
+   "meaning": "Behind (hate-taboo) day; destroyed day.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "Recorded in Kwahu and Bono (Bartle 1978, Rattray); other Akan states may differ. Dates are counted from the published Akwasidae dates of 2026, which agree with Bartle's 1978 dates.",
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnanson (table)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnanson.cycle.kuru",
+   "cycle_key": "africa.west.akan.nnanson.cycle",
+   "position": 3,
+   "name": "Kuru",
+   "original_name": "Kuru",
+   "meaning": "Town (political) day; royal day.",
+   "favourability": "favourable",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "Recorded in Kwahu and Bono (Bartle 1978, Rattray); other Akan states may differ. Dates are counted from the published Akwasidae dates of 2026, which agree with Bartle's 1978 dates.",
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnanson (table)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnanson.cycle.kwa",
+   "cycle_key": "africa.west.akan.nnanson.cycle",
+   "position": 4,
+   "name": "Kwa",
+   "original_name": "Kwa",
+   "meaning": "For nothing ('just like that', free, unrestrained) day; servant day.",
+   "favourability": "neutral",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "Recorded in Kwahu and Bono (Bartle 1978, Rattray); other Akan states may differ. Dates are counted from the published Akwasidae dates of 2026, which agree with Bartle's 1978 dates.",
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnanson (table)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnanson.cycle.mono",
+   "cycle_key": "africa.west.akan.nnanson.cycle",
+   "position": 5,
+   "name": "Mono",
+   "original_name": "Mono",
+   "meaning": "Fresh (starting) day.",
+   "favourability": "favourable",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "Recorded in Kwahu and Bono (Bartle 1978, Rattray); other Akan states may differ. Dates are counted from the published Akwasidae dates of 2026, which agree with Bartle's 1978 dates.",
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnanson (table)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnawotwe.cycle.kwasiada",
+   "cycle_key": "africa.west.akan.nnawotwe.cycle",
+   "position": 0,
+   "name": "Kwasiada",
+   "original_name": "Kwasiada",
+   "translation": "Sunday",
+   "meaning": "Under day (awiase, 'under the sun'): the universe, everything. Day names for people born on it: Kwasi, Akosua.",
+   "favourability": "neutral",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnawɔtwe (table)"
+    },
+    {
+     "source": "src.wikipedia-akan-names",
+     "locator": "Day names table"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnawotwe.cycle.edwoada",
+   "cycle_key": "africa.west.akan.nnawotwe.cycle",
+   "position": 1,
+   "name": "Ɛdwoada",
+   "original_name": "Ɛdwoada",
+   "translation": "Monday",
+   "meaning": "Quiet (peace) day; calm. Day names for people born on it: Kwadwo, Adwoa.",
+   "favourability": "neutral",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnawɔtwe (table)"
+    },
+    {
+     "source": "src.wikipedia-akan-names",
+     "locator": "Day names table"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnawotwe.cycle.ebenada",
+   "cycle_key": "africa.west.akan.nnawotwe.cycle",
+   "position": 2,
+   "name": "Ɛbenada",
+   "original_name": "Ɛbenada",
+   "translation": "Tuesday",
+   "meaning": "Birthday of the ocean; heat, boiling, cooking. Day names for people born on it: Kwabena, Abena.",
+   "favourability": "neutral",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnawɔtwe (table)"
+    },
+    {
+     "source": "src.wikipedia-akan-names",
+     "locator": "Day names table"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnawotwe.cycle.wukuada",
+   "cycle_key": "africa.west.akan.nnawotwe.cycle",
+   "position": 3,
+   "name": "Wukuada",
+   "original_name": "Wukuada",
+   "translation": "Wednesday",
+   "meaning": "Birthday of Spider (Ananse). Day names for people born on it: Kwaku, Akua.",
+   "favourability": "neutral",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnawɔtwe (table)"
+    },
+    {
+     "source": "src.wikipedia-akan-names",
+     "locator": "Day names table"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnawotwe.cycle.yawoada",
+   "cycle_key": "africa.west.akan.nnawotwe.cycle",
+   "position": 4,
+   "name": "Yawoada",
+   "original_name": "Yawoada",
+   "translation": "Thursday",
+   "meaning": "Birthday of the Earth (a woman); power. The Asante say Asase Yaa, the Earth, was created on a Thursday. Day names for people born on it: Yaw, Yaa.",
+   "favourability": "neutral",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnawɔtwe (table)"
+    },
+    {
+     "source": "src.wikipedia-akan-names",
+     "locator": "Day names table"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnawotwe.cycle.efiada",
+   "cycle_key": "africa.west.akan.nnawotwe.cycle",
+   "position": 5,
+   "name": "Efiada",
+   "original_name": "Efiada",
+   "translation": "Friday",
+   "meaning": "Fertility (in some Fante states, the Earth's birthday). Day names for people born on it: Kofi, Afua.",
+   "favourability": "neutral",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnawɔtwe (table)"
+    },
+    {
+     "source": "src.wikipedia-akan-names",
+     "locator": "Day names table"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.nnawotwe.cycle.memeneda",
+   "cycle_key": "africa.west.akan.nnawotwe.cycle",
+   "position": 6,
+   "name": "Memeneda",
+   "original_name": "Memeneda",
+   "translation": "Saturday",
+   "meaning": "Birthday of the Supreme or Sky God (a man); respected, ancient. Day names for people born on it: Kwame, Ama.",
+   "favourability": "neutral",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Nnawɔtwe (table)"
+    },
+    {
+     "source": "src.wikipedia-akan-names",
+     "locator": "Day names table"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.adaduanan.fodwo",
+   "cycle_key": "africa.west.akan.adaduanan.cycle",
+   "position": 15,
+   "name": "Fɔdwo",
+   "original_name": "Fɔdwo",
+   "meaning": "Fo of the six-day week on a Monday. With Fofie, one of the two dabɔne for the tutelary spirits (abosom): purification and the spirits of rivers and caves.",
+   "favourability": "mixed",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "Recorded in Kwahu and Bono (Bartle 1978, Rattray); other Akan states may differ. Dates are counted from the published Akwasidae dates of 2026, which agree with Bartle's 1978 dates.",
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Dabɔne"
+    },
+    {
+     "source": "src.bartle-akan-forty-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.adaduanan.awukudae",
+   "cycle_key": "africa.west.akan.adaduanan.cycle",
+   "position": 24,
+   "name": "Awukudae",
+   "original_name": "Awukudae",
+   "meaning": "Kuru of the six-day week on a Wednesday: the Wednesday Adae (Wukuo-Adae). Libations and food are offered to the blackened stools of the ancestors.",
+   "favourability": "mixed",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "Recorded in Kwahu and Bono (Bartle 1978, Rattray); other Akan states may differ. Dates are counted from the published Akwasidae dates of 2026, which agree with Bartle's 1978 dates.",
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Dabɔne"
+    },
+    {
+     "source": "src.bartle-akan-forty-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.adaduanan.fofie",
+   "cycle_key": "africa.west.akan.adaduanan.cycle",
+   "position": 33,
+   "name": "Fofie",
+   "original_name": "Fofie",
+   "meaning": "Fo of the six-day week on a Friday. With Fɔdwo, a dabɔne for the tutelary spirits: purification and the spirits of rivers and caves.",
+   "favourability": "mixed",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "Recorded in Kwahu and Bono (Bartle 1978, Rattray); other Akan states may differ. Dates are counted from the published Akwasidae dates of 2026, which agree with Bartle's 1978 dates.",
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Dabɔne"
+    },
+    {
+     "source": "src.bartle-akan-forty-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.jian",
+   "cycle_key": "asia.east.chinese.jianchu.officers",
+   "position": 0,
+   "name": "Establish day (Jian)",
+   "original_name": "建日",
+   "transliteration": "Jian rì",
+   "translation": "Establish day",
+   "meaning": "The first of the twelve day officers. In the Huainanzi's list it governs life (主生).",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.huainanzi-tianwen",
+     "locator": "Tianwen xun"
+    },
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.chu",
+   "cycle_key": "asia.east.chinese.jianchu.officers",
+   "position": 1,
+   "name": "Remove day (Chu)",
+   "original_name": "除日",
+   "transliteration": "Chu rì",
+   "translation": "Remove day",
+   "meaning": "The second of the twelve day officers. In the Huainanzi's list it governs life (主生).",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.huainanzi-tianwen",
+     "locator": "Tianwen xun"
+    },
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.man",
+   "cycle_key": "asia.east.chinese.jianchu.officers",
+   "position": 2,
+   "name": "Full day (Man)",
+   "original_name": "滿日",
+   "transliteration": "Man rì",
+   "translation": "Full day",
+   "meaning": "The third of the twelve day officers. In the Huainanzi's list it governs life (主生).",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.huainanzi-tianwen",
+     "locator": "Tianwen xun"
+    },
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.ping",
+   "cycle_key": "asia.east.chinese.jianchu.officers",
+   "position": 3,
+   "name": "Level day (Ping)",
+   "original_name": "平日",
+   "transliteration": "Ping rì",
+   "translation": "Level day",
+   "meaning": "The fourth of the twelve day officers. In the Huainanzi's list it governs life (主生).",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.huainanzi-tianwen",
+     "locator": "Tianwen xun"
+    },
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.ding",
+   "cycle_key": "asia.east.chinese.jianchu.officers",
+   "position": 4,
+   "name": "Settle day (Ding)",
+   "original_name": "定日",
+   "transliteration": "Ding rì",
+   "translation": "Settle day",
+   "meaning": "The fifth of the twelve day officers. In the Huainanzi's list it governs sinking (主陷).",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.huainanzi-tianwen",
+     "locator": "Tianwen xun"
+    },
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.zhi",
+   "cycle_key": "asia.east.chinese.jianchu.officers",
+   "position": 5,
+   "name": "Hold day (Zhi)",
+   "original_name": "執日",
+   "transliteration": "Zhi rì",
+   "translation": "Hold day",
+   "meaning": "The sixth of the twelve day officers. In the Huainanzi's list it governs sinking (主陷).",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.huainanzi-tianwen",
+     "locator": "Tianwen xun"
+    },
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.po",
+   "cycle_key": "asia.east.chinese.jianchu.officers",
+   "position": 6,
+   "name": "Break day (Po)",
+   "original_name": "破日",
+   "transliteration": "Po rì",
+   "translation": "Break day",
+   "meaning": "The seventh of the twelve day officers. In the Huainanzi's list it governs the balance-beam (主衡).",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.huainanzi-tianwen",
+     "locator": "Tianwen xun"
+    },
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.wei",
+   "cycle_key": "asia.east.chinese.jianchu.officers",
+   "position": 7,
+   "name": "Danger day (Wei)",
+   "original_name": "危日",
+   "transliteration": "Wei rì",
+   "translation": "Danger day",
+   "meaning": "The eighth of the twelve day officers. In the Huainanzi's list it governs the Dipper's handle (主杓).",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.huainanzi-tianwen",
+     "locator": "Tianwen xun"
+    },
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.cheng",
+   "cycle_key": "asia.east.chinese.jianchu.officers",
+   "position": 8,
+   "name": "Complete day (Cheng)",
+   "original_name": "成日",
+   "transliteration": "Cheng rì",
+   "translation": "Complete day",
+   "meaning": "The ninth of the twelve day officers. In the Huainanzi's list it governs lesser virtue (主少德).",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.huainanzi-tianwen",
+     "locator": "Tianwen xun"
+    },
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.shou",
+   "cycle_key": "asia.east.chinese.jianchu.officers",
+   "position": 9,
+   "name": "Receive day (Shou)",
+   "original_name": "收日",
+   "transliteration": "Shou rì",
+   "translation": "Receive day",
+   "meaning": "The tenth of the twelve day officers. In the Huainanzi's list it governs great virtue (主大德).",
+   "favourability": "mixed",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.huainanzi-tianwen",
+     "locator": "Tianwen xun"
+    },
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.kai",
+   "cycle_key": "asia.east.chinese.jianchu.officers",
+   "position": 10,
+   "name": "Open day (Kai)",
+   "original_name": "開日",
+   "transliteration": "Kai rì",
+   "translation": "Open day",
+   "meaning": "The eleventh of the twelve day officers. In the Huainanzi's list it governs Taisui, the Year Star (主太歲).",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.huainanzi-tianwen",
+     "locator": "Tianwen xun"
+    },
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.bi",
+   "cycle_key": "asia.east.chinese.jianchu.officers",
+   "position": 11,
+   "name": "Close day (Bi)",
+   "original_name": "閉日",
+   "transliteration": "Bi rì",
+   "translation": "Close day",
+   "meaning": "The twelfth of the twelve day officers. In the Huainanzi's list it governs Taiyin (主太陰).",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.huainanzi-tianwen",
+     "locator": "Tianwen xun"
+    },
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "lunar_days": [
+  {
+   "key": "asia.south.vedic-hindu.tithi.01",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 1,
+   "name": "Śukla Pratipadā",
+   "original_name": "Śukla Pratipadā",
+   "translation": "First lunar day, bright half",
+   "meaning": "The first tithi of the Śukla (bright, waxing) fortnight. The bright fortnight is \"considered auspicious\". Yearly festivals on this tithi in particular months: Gudi Padwa and Ugadi (new year, Chaitra); Govardhan Puja and Bali Pratipada (Kartika).",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.02",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 2,
+   "name": "Śukla Dvitīyā",
+   "original_name": "Śukla Dvitīyā",
+   "translation": "Second lunar day, bright half",
+   "meaning": "The second tithi of the Śukla (bright, waxing) fortnight. The bright fortnight is \"considered auspicious\". Yearly festivals on this tithi in particular months: Bhai Dooj (Kartika), Phulera Dooj (Phalguna).",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.03",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 3,
+   "name": "Śukla Tṛtīyā",
+   "original_name": "Śukla Tṛtīyā",
+   "translation": "Third lunar day, bright half",
+   "meaning": "The third tithi of the Śukla (bright, waxing) fortnight. The bright fortnight is \"considered auspicious\". Yearly festivals on this tithi in particular months: Akshaya Tritiya (Vaishakha), Teej (Shravana and Bhadrapada).",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.04",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 4,
+   "name": "Śukla Caturthī",
+   "original_name": "Śukla Caturthī",
+   "translation": "Fourth lunar day, bright half",
+   "meaning": "The fourth tithi of the Śukla (bright, waxing) fortnight. The bright fortnight is \"considered auspicious\". Yearly festivals on this tithi in particular months: Ganesh Chaturthi (Bhadrapada), Ganesh Jayanti (Magha).",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.05",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 5,
+   "name": "Śukla Pañcamī",
+   "original_name": "Śukla Pañcamī",
+   "translation": "Fifth lunar day, bright half",
+   "meaning": "The fifth tithi of the Śukla (bright, waxing) fortnight. The bright fortnight is \"considered auspicious\". Yearly festivals on this tithi in particular months: Vasanta Panchami (Magha), Vivaha Panchami (Margashirsha).",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.06",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 6,
+   "name": "Śukla Ṣaṣṭhī",
+   "original_name": "Śukla Ṣaṣṭhī",
+   "translation": "Sixth lunar day, bright half",
+   "meaning": "The sixth tithi of the Śukla (bright, waxing) fortnight. The bright fortnight is \"considered auspicious\". Yearly festivals on this tithi in particular months: Chhath, the Sun festival (Kartika); Skanda Shashti (Kartika–Margashirsha).",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.07",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 7,
+   "name": "Śukla Saptamī",
+   "original_name": "Śukla Saptamī",
+   "translation": "Seventh lunar day, bright half",
+   "meaning": "The seventh tithi of the Śukla (bright, waxing) fortnight. The bright fortnight is \"considered auspicious\". Yearly festivals on this tithi in particular months: Ratha Saptami, for the Sun.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.08",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 8,
+   "name": "Śukla Aṣṭamī",
+   "original_name": "Śukla Aṣṭamī",
+   "translation": "Eighth lunar day, bright half",
+   "meaning": "The eighth tithi of the Śukla (bright, waxing) fortnight. The bright fortnight is \"considered auspicious\". Yearly festivals on this tithi in particular months: Radhashtami (Bhadrapada).",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.09",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 9,
+   "name": "Śukla Navamī",
+   "original_name": "Śukla Navamī",
+   "translation": "Ninth lunar day, bright half",
+   "meaning": "The ninth tithi of the Śukla (bright, waxing) fortnight. The bright fortnight is \"considered auspicious\". Yearly festivals on this tithi in particular months: Rama Navami (Chaitra), Maha Navami of Navaratri (Ashvin).",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.10",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 10,
+   "name": "Śukla Daśamī",
+   "original_name": "Śukla Daśamī",
+   "translation": "Tenth lunar day, bright half",
+   "meaning": "The tenth tithi of the Śukla (bright, waxing) fortnight. The bright fortnight is \"considered auspicious\". Yearly festivals on this tithi in particular months: Vijayadashami / Dussehra (Ashvin).",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.11",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 11,
+   "name": "Śukla Ekādaśī",
+   "original_name": "Śukla Ekādaśī",
+   "translation": "Eleventh lunar day, bright half",
+   "meaning": "The eleventh tithi of the Śukla (bright, waxing) fortnight. The bright fortnight is \"considered auspicious\".",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.12",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 12,
+   "name": "Śukla Dvādaśī",
+   "original_name": "Śukla Dvādaśī",
+   "translation": "Twelfth lunar day, bright half",
+   "meaning": "The twelfth tithi of the Śukla (bright, waxing) fortnight. The bright fortnight is \"considered auspicious\". Yearly festivals on this tithi in particular months: Vamana Dvadashi / Onam; Kurma Dvadashi (Pausha).",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.13",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 13,
+   "name": "Śukla Trayodaśī",
+   "original_name": "Śukla Trayodaśī",
+   "translation": "Thirteenth lunar day, bright half",
+   "meaning": "The thirteenth tithi of the Śukla (bright, waxing) fortnight. The bright fortnight is \"considered auspicious\".",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.14",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 14,
+   "name": "Śukla Caturdaśī",
+   "original_name": "Śukla Caturdaśī",
+   "translation": "Fourteenth lunar day, bright half",
+   "meaning": "The fourteenth tithi of the Śukla (bright, waxing) fortnight. The bright fortnight is \"considered auspicious\". Yearly festivals on this tithi in particular months: Ananta Chaturdashi (Bhadrapada), Narasimha Chaturdashi (Vaishakha), Holika Dahana (Phalguna).",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.15",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 15,
+   "name": "Pūrṇimā",
+   "original_name": "Pūrṇimā",
+   "translation": "Full Moon",
+   "meaning": "The full-Moon tithi, ending the bright fortnight (and the month, in the pūrṇimānta reckoning). Many festivals fall on the Pūrṇimā of particular months, e.g. Kartik Purnima (Dev Deepavali), with lamps, pilgrimages and bathing in sacred rivers.",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-purnima"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.16",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 16,
+   "name": "Kṛṣṇa Pratipadā",
+   "original_name": "Kṛṣṇa Pratipadā",
+   "translation": "First lunar day, dark half",
+   "meaning": "The first tithi of the Kṛṣṇa (dark, waning) fortnight.",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.17",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 17,
+   "name": "Kṛṣṇa Dvitīyā",
+   "original_name": "Kṛṣṇa Dvitīyā",
+   "translation": "Second lunar day, dark half",
+   "meaning": "The second tithi of the Kṛṣṇa (dark, waning) fortnight.",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.18",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 18,
+   "name": "Kṛṣṇa Tṛtīyā",
+   "original_name": "Kṛṣṇa Tṛtīyā",
+   "translation": "Third lunar day, dark half",
+   "meaning": "The third tithi of the Kṛṣṇa (dark, waning) fortnight.",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.19",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 19,
+   "name": "Kṛṣṇa Caturthī",
+   "original_name": "Kṛṣṇa Caturthī",
+   "translation": "Fourth lunar day, dark half",
+   "meaning": "The fourth tithi of the Kṛṣṇa (dark, waning) fortnight. Yearly festivals on this tithi in particular months: Karva Chauth (Kartika).",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.20",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 20,
+   "name": "Kṛṣṇa Pañcamī",
+   "original_name": "Kṛṣṇa Pañcamī",
+   "translation": "Fifth lunar day, dark half",
+   "meaning": "The fifth tithi of the Kṛṣṇa (dark, waning) fortnight.",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.21",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 21,
+   "name": "Kṛṣṇa Ṣaṣṭhī",
+   "original_name": "Kṛṣṇa Ṣaṣṭhī",
+   "translation": "Sixth lunar day, dark half",
+   "meaning": "The sixth tithi of the Kṛṣṇa (dark, waning) fortnight. Yearly festivals on this tithi in particular months: Balarama's birthday, Chandra Shashti (Bhadrapada).",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.22",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 22,
+   "name": "Kṛṣṇa Saptamī",
+   "original_name": "Kṛṣṇa Saptamī",
+   "translation": "Seventh lunar day, dark half",
+   "meaning": "The seventh tithi of the Kṛṣṇa (dark, waning) fortnight.",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.23",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 23,
+   "name": "Kṛṣṇa Aṣṭamī",
+   "original_name": "Kṛṣṇa Aṣṭamī",
+   "translation": "Eighth lunar day, dark half",
+   "meaning": "The eighth tithi of the Kṛṣṇa (dark, waning) fortnight. Yearly festivals on this tithi in particular months: Krishna Janmashtami, Krishna's birthday (Bhadrapada).",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.24",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 24,
+   "name": "Kṛṣṇa Navamī",
+   "original_name": "Kṛṣṇa Navamī",
+   "translation": "Ninth lunar day, dark half",
+   "meaning": "The ninth tithi of the Kṛṣṇa (dark, waning) fortnight. Yearly festivals on this tithi in particular months: Nandotsava (Bhadrapada).",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.25",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 25,
+   "name": "Kṛṣṇa Daśamī",
+   "original_name": "Kṛṣṇa Daśamī",
+   "translation": "Tenth lunar day, dark half",
+   "meaning": "The tenth tithi of the Kṛṣṇa (dark, waning) fortnight.",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.26",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 26,
+   "name": "Kṛṣṇa Ekādaśī",
+   "original_name": "Kṛṣṇa Ekādaśī",
+   "translation": "Eleventh lunar day, dark half",
+   "meaning": "The eleventh tithi of the Kṛṣṇa (dark, waning) fortnight.",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.27",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 27,
+   "name": "Kṛṣṇa Dvādaśī",
+   "original_name": "Kṛṣṇa Dvādaśī",
+   "translation": "Twelfth lunar day, dark half",
+   "meaning": "The twelfth tithi of the Kṛṣṇa (dark, waning) fortnight. Yearly festivals on this tithi in particular months: Govatsa Dvadashi, first day of Diwali (Ashvin–Kartika).",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.28",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 28,
+   "name": "Kṛṣṇa Trayodaśī",
+   "original_name": "Kṛṣṇa Trayodaśī",
+   "translation": "Thirteenth lunar day, dark half",
+   "meaning": "The thirteenth tithi of the Kṛṣṇa (dark, waning) fortnight.",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.29",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 29,
+   "name": "Kṛṣṇa Caturdaśī",
+   "original_name": "Kṛṣṇa Caturdaśī",
+   "translation": "Fourteenth lunar day, dark half",
+   "meaning": "The fourteenth tithi of the Kṛṣṇa (dark, waning) fortnight. Yearly festivals on this tithi in particular months: Naraka Chaturdashi (before Diwali), Maha Shivaratri (Magha–Phalguna).",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-tithi-days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.30",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "day_number": 30,
+   "name": "Amāvasyā",
+   "original_name": "Amāvasyā",
+   "translation": "New Moon",
+   "meaning": "The new-Moon tithi, ending the dark fortnight (and the month, in the amānta reckoning). A day for fasting and above all for the ancestors (pitṛs): holy dips in rivers, śrāddha and tarpaṇa offerings. Diwali falls on the Amāvasyā of Kartika.",
+   "favourability": "neutral",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tithi",
+     "locator": "Panchanga (list of tithis)"
+    },
+    {
+     "source": "src.wikipedia-paksha"
+    },
+    {
+     "source": "src.wikipedia-amavasya"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "observances": [],
+ "meanings": [
+  {
+   "key": "africa.west.igbo.market-week.cycle.eke.direction",
+   "culture_key": "africa.west.igbo",
+   "system_key": "africa.west.igbo.market-week",
+   "subject": "cycle_position",
+   "subject_key": "africa.west.igbo.market-week.cycle.eke",
+   "meaning": "Eke is the market day of the east: the four days correspond to the four cardinal points. Each community holds a market named after one of the days, and children were once named after their market day (e.g. Okeke, Mgbeke).",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "The days' directions are from Isichei (1997) as cited by Wikipedia. Names like these are now used less often.",
+   "sources": [
+    {
+     "source": "src.wikipedia-igbo-calendar",
+     "locator": "Market days; Naming after dates"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.igbo.market-week.cycle.orie.direction",
+   "culture_key": "africa.west.igbo",
+   "system_key": "africa.west.igbo.market-week",
+   "subject": "cycle_position",
+   "subject_key": "africa.west.igbo.market-week.cycle.orie",
+   "meaning": "Orie is the market day of the west: the four days correspond to the four cardinal points. Each community holds a market named after one of the days, and children were once named after their market day (e.g. Okorie, Mgborie).",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "The days' directions are from Isichei (1997) as cited by Wikipedia. Names like these are now used less often.",
+   "sources": [
+    {
+     "source": "src.wikipedia-igbo-calendar",
+     "locator": "Market days; Naming after dates"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.igbo.market-week.cycle.afo.direction",
+   "culture_key": "africa.west.igbo",
+   "system_key": "africa.west.igbo.market-week",
+   "subject": "cycle_position",
+   "subject_key": "africa.west.igbo.market-week.cycle.afo",
+   "meaning": "Afọ is the market day of the north: the four days correspond to the four cardinal points. Each community holds a market named after one of the days, and children were once named after their market day (e.g. Okafor, Mgbafọ).",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "The days' directions are from Isichei (1997) as cited by Wikipedia. Names like these are now used less often.",
+   "sources": [
+    {
+     "source": "src.wikipedia-igbo-calendar",
+     "locator": "Market days; Naming after dates"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.igbo.market-week.cycle.nkwo.direction",
+   "culture_key": "africa.west.igbo",
+   "system_key": "africa.west.igbo.market-week",
+   "subject": "cycle_position",
+   "subject_key": "africa.west.igbo.market-week.cycle.nkwo",
+   "meaning": "Nkwọ is the market day of the south: the four days correspond to the four cardinal points. Each community holds a market named after one of the days, and children were once named after their market day (e.g. Okonkwo, Mgbankwọ).",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "The days' directions are from Isichei (1997) as cited by Wikipedia. Names like these are now used less often.",
+   "sources": [
+    {
+     "source": "src.wikipedia-igbo-calendar",
+     "locator": "Market days; Naming after dates"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "recommendations": [
+  {
+   "key": "americas.maya.tzolkin.day-names.imix.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.imix",
+   "activity": "other",
+   "historical_practice": "Imox is a bad day, associated with the insane, on which the priests of the sun pray that harm may come to their enemies through evil spirits.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.ik.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.ik",
+   "activity": "other",
+   "historical_practice": "Iq is a bad day, symbolic of the destructive forces of nature; that power is localized in stone idols, who are honored with incense, roses, candles, pine needles and aguardiente. Tumours and painful swellings are attributed to the influence of this day.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.akbal.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.akbal",
+   "activity": "other",
+   "historical_practice": "Aqabal is a bad day, on which the priests of the sun go to shrines to pray against their enemies. The day is symbolic of evil in general and of slanderers in particular. (A modern summary adds that a low-numbered Akʼbʼal is a good day for a wedding.)",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.kan.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.kan",
+   "activity": "other",
+   "historical_practice": "Kat is a bad day in the same sense as Aqabal, symbolic of evil in general. (A modern summary says Kʼan is a good day for building or maintaining a house.)",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.chikchan.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.chikchan",
+   "activity": "other",
+   "historical_practice": "Kan is a bad day. It brings sickness and is symbolic of the arbitrary cruelty of nature.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.kimi.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.kimi",
+   "activity": "ceremony",
+   "historical_practice": "Kame is recorded as a bad day by one 19th-century source and as a good day by a 20th-century one (Ruth Bunzel). It is symbolic of the dissolution by death of everything good and evil, and a good day to confess one's wrongs and ask for pardon.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.manik.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.manik",
+   "activity": "remembrance",
+   "historical_practice": "Keej is a good day on which wishes are made. It is a good day to ask favours and to commemorate ancestors.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.lamat.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.lamat",
+   "activity": "planting",
+   "historical_practice": "Qanil is a good day, sacred to fertility gods, associated with human nourishment, the growth of crops, the cycle of death and rebirth, and the milpa (maize field). After the harvest is completed, thanksgiving is made on Qanil.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.muluk.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.muluk",
+   "activity": "other",
+   "historical_practice": "Toj is a bad day, symbolized by sickness, and anyone born on it will be perverse. It is a good day to wish sickness upon an enemy.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.ok.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.ok",
+   "activity": "ceremony",
+   "historical_practice": "Tzi is a bad day, symbolized by sexual depravity. No ceremonies must ever be held on this day.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.chuwen.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.chuwen",
+   "activity": "ceremony",
+   "historical_practice": "Batz is a bad day, symbolized by paralysis. According to some it is a good day, symbolic of the ancestors. Every 260 days, 8 Batz is the great initiation day of daykeepers in Momostenango and Santa Cruz del Quiché.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.eb.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.eb",
+   "activity": "ceremony",
+   "historical_practice": "E is a good day, symbolized by destiny, fortune and the essential characteristics of one's personality. It is a day on which marriages may be held, and sacrifices to benign deities may be made.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.ben.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.ben",
+   "activity": "ceremony",
+   "historical_practice": "Aj is a good day, consecrated to fertility gods, herdsmen and domesticated animals. The day is symbolic of one's destiny as embodied in one's nagual (animal companion spirit). (A modern summary says a low-numbered Bʼen is a good day for a wedding.)",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.ix.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.ix",
+   "activity": "ceremony",
+   "historical_practice": "Ix is a good day, sacred to the mountain and forest spirits. On this day protection may be sought from wolves and wild predators, in favour of flocks and animals. The day is symbolic of the creative force and of the earth itself.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.men.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.men",
+   "activity": "trade",
+   "historical_practice": "Tzikin is the most excellent day of all. Double offerings are made at shrines, in forests and in caves. It is a day on which wishes may be made, forgiveness may be sought, and important matters may be finalized.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.kib.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.kib",
+   "activity": "other",
+   "historical_practice": "Ajmaq is also a very good day, one sacred to the spirits that preside over good health.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.kaban.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.kaban",
+   "activity": "other",
+   "historical_practice": "Noj is an auspicious day, on which good judgement may be prayed for. The day is symbolic of humanity's moral and amoral qualities.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.etznab.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.etznab",
+   "activity": "community",
+   "historical_practice": "Tijax is a good day. It is a day of verbal arguments, and a good day to confess sins.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.kawak.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.kawak",
+   "activity": "other",
+   "historical_practice": "Kawoq is recognised as an indifferent day or a bad day. It is symbolic of the malice of the dead.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.tzolkin.day-names.ajaw.highland-1854",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.tzolkin",
+   "cycle_position_key": "americas.maya.tzolkin.day-names.ajaw",
+   "activity": "remembrance",
+   "historical_practice": "Ajpu is an indifferent day, neither a bad nor a good portent, on which the power of the ancestors is embodied by the house itself.",
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "uncertainty": "From Hernández Spina's 1854 manuscript on three highland Guatemalan calendars, as summarised (via Weeks, Sachse and Prager 2009) by Wikipedia. Daykeepers in other towns and times read the days differently; the day's number (1 to 13) also changes its strength.",
+   "sources": [
+    {
+     "source": "src.wikipedia-tzolkin",
+     "locator": "Highland calendars (Hernández Spina 1854)"
+    },
+    {
+     "source": "src.weeks-maya-daykeeping"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.haab.year.wayeb-1.stay-home",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.haab",
+   "cycle_position_key": "americas.maya.haab.year.wayeb-1",
+   "activity": "rest",
+   "historical_practice": "During Wayebʼ people would not leave their homes, and would not wash their hair.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "modern_interpretation": "Keep these five days quiet: stay close to home and leave big starts until the new year begins (modern suggestion).",
+   "sources": [
+    {
+     "source": "src.wikipedia-haab",
+     "locator": "Five unlucky days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.haab.year.wayeb-2.stay-home",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.haab",
+   "cycle_position_key": "americas.maya.haab.year.wayeb-2",
+   "activity": "rest",
+   "historical_practice": "During Wayebʼ people would not leave their homes, and would not wash their hair.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "modern_interpretation": "Keep these five days quiet: stay close to home and leave big starts until the new year begins (modern suggestion).",
+   "sources": [
+    {
+     "source": "src.wikipedia-haab",
+     "locator": "Five unlucky days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.haab.year.wayeb-3.stay-home",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.haab",
+   "cycle_position_key": "americas.maya.haab.year.wayeb-3",
+   "activity": "rest",
+   "historical_practice": "During Wayebʼ people would not leave their homes, and would not wash their hair.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "modern_interpretation": "Keep these five days quiet: stay close to home and leave big starts until the new year begins (modern suggestion).",
+   "sources": [
+    {
+     "source": "src.wikipedia-haab",
+     "locator": "Five unlucky days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.haab.year.wayeb-4.stay-home",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.haab",
+   "cycle_position_key": "americas.maya.haab.year.wayeb-4",
+   "activity": "rest",
+   "historical_practice": "During Wayebʼ people would not leave their homes, and would not wash their hair.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "modern_interpretation": "Keep these five days quiet: stay close to home and leave big starts until the new year begins (modern suggestion).",
+   "sources": [
+    {
+     "source": "src.wikipedia-haab",
+     "locator": "Five unlucky days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "americas.maya.haab.year.wayeb-5.stay-home",
+   "culture_key": "americas.maya",
+   "system_key": "americas.maya.haab",
+   "cycle_position_key": "americas.maya.haab.year.wayeb-5",
+   "activity": "rest",
+   "historical_practice": "During Wayebʼ people would not leave their homes, and would not wash their hair.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "modern_interpretation": "Keep these five days quiet: stay close to home and leave big starts until the new year begins (modern suggestion).",
+   "sources": [
+    {
+     "source": "src.wikipedia-haab",
+     "locator": "Five unlucky days"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.adaduanan.fodwo.no-farming",
+   "culture_key": "africa.west.akan",
+   "system_key": "africa.west.akan.adaduanan",
+   "cycle_position_key": "africa.west.akan.adaduanan.fodwo",
+   "activity": "planting",
+   "historical_practice": "No farming may be carried out on any dabɔne, but work as such is not banned: hunting and gathering are usually permitted, and people may fetch firewood or food reaped the day before, so long as no weeding is done. Communal labour is often done on the dabɔne that are not filled with ritual.",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "Recorded in Kwahu and Bono (Bartle 1978, Rattray); other Akan states may differ. Dates are counted from the published Akwasidae dates of 2026, which agree with Bartle's 1978 dates.",
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Dabɔne"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.adaduanan.awukudae.no-farming",
+   "culture_key": "africa.west.akan",
+   "system_key": "africa.west.akan.adaduanan",
+   "cycle_position_key": "africa.west.akan.adaduanan.awukudae",
+   "activity": "planting",
+   "historical_practice": "No farming may be carried out on any dabɔne, but work as such is not banned: hunting and gathering are usually permitted, and people may fetch firewood or food reaped the day before, so long as no weeding is done. Communal labour is often done on the dabɔne that are not filled with ritual.",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "Recorded in Kwahu and Bono (Bartle 1978, Rattray); other Akan states may differ. Dates are counted from the published Akwasidae dates of 2026, which agree with Bartle's 1978 dates.",
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Dabɔne"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.adaduanan.awukudae.no-funerals",
+   "culture_key": "africa.west.akan",
+   "system_key": "africa.west.akan.adaduanan",
+   "cycle_position_key": "africa.west.akan.adaduanan.awukudae",
+   "activity": "remembrance",
+   "historical_practice": "On an adae no funerals may be held and no news of a death may reach the chief, while libations of alcohol and offerings of food are made to the blackened stools of the ancestors.",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "Recorded in Kwahu and Bono (Bartle 1978, Rattray); other Akan states may differ. Dates are counted from the published Akwasidae dates of 2026, which agree with Bartle's 1978 dates.",
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Dabɔne"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "africa.west.akan.adaduanan.fofie.no-farming",
+   "culture_key": "africa.west.akan",
+   "system_key": "africa.west.akan.adaduanan",
+   "cycle_position_key": "africa.west.akan.adaduanan.fofie",
+   "activity": "planting",
+   "historical_practice": "No farming may be carried out on any dabɔne, but work as such is not banned: hunting and gathering are usually permitted, and people may fetch firewood or food reaped the day before, so long as no weeding is done. Communal labour is often done on the dabɔne that are not filled with ritual.",
+   "evidence": [
+    "ethnographically_documented"
+   ],
+   "uncertainty": "Recorded in Kwahu and Bono (Bartle 1978, Rattray); other Akan states may differ. Dates are counted from the published Akwasidae dates of 2026, which agree with Bartle's 1978 dates.",
+   "sources": [
+    {
+     "source": "src.wikipedia-akan-calendar",
+     "locator": "Dabɔne"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.jian.dunhuang-924",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.jian",
+   "activity": "trade",
+   "historical_practice": "On a Jian day, do not open the granary. (Dunhuang almanac of 924 CE: 「建日不開倉」)",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One almanac's rule, quoted by Chinese Wikipedia from the Dunhuang manuscripts; the English is our translation. Later almanacs give longer lists that differ.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, note on 後唐同光二年曆書",
+     "quote": "建日不開倉"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.chu.dunhuang-924",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.chu",
+   "activity": "trade",
+   "historical_practice": "On a Chu day, do not pay out money. (Dunhuang almanac of 924 CE: 「除日不出財」)",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One almanac's rule, quoted by Chinese Wikipedia from the Dunhuang manuscripts; the English is our translation. Later almanacs give longer lists that differ.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, note on 後唐同光二年曆書",
+     "quote": "除日不出財"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.man.dunhuang-924",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.man",
+   "activity": "other",
+   "historical_practice": "On a Man day, do not take medicine. (Dunhuang almanac of 924 CE: 「滿日不服藥」)",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One almanac's rule, quoted by Chinese Wikipedia from the Dunhuang manuscripts; the English is our translation. Later almanacs give longer lists that differ.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, note on 後唐同光二年曆書",
+     "quote": "滿日不服藥"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.ping.dunhuang-924",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.ping",
+   "activity": "planting",
+   "historical_practice": "On a Ping day, do not repair ditches. (Dunhuang almanac of 924 CE: 「平日不修溝」)",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One almanac's rule, quoted by Chinese Wikipedia from the Dunhuang manuscripts; the English is our translation. Later almanacs give longer lists that differ.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, note on 後唐同光二年曆書",
+     "quote": "平日不修溝"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.ding.dunhuang-924",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.ding",
+   "activity": "trade",
+   "historical_practice": "On a Ding day, do not draw up a statement (a plea or complaint). (Dunhuang almanac of 924 CE: 「定日不做辭」)",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One almanac's rule, quoted by Chinese Wikipedia from the Dunhuang manuscripts; the English is our translation. Later almanacs give longer lists that differ.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, note on 後唐同光二年曆書",
+     "quote": "定日不做辭"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.zhi.dunhuang-924",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.zhi",
+   "activity": "other",
+   "historical_practice": "On a Zhi day, \"do not start an illness\" (literal; the meaning is unclear: perhaps do not begin treating an illness). (Dunhuang almanac of 924 CE: 「執日不發病」)",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One almanac's rule, quoted by Chinese Wikipedia from the Dunhuang manuscripts; the English is our translation. Later almanacs give longer lists that differ.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, note on 後唐同光二年曆書",
+     "quote": "執日不發病"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.po.dunhuang-924",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.po",
+   "activity": "community",
+   "historical_practice": "On a Po day, do not receive guests. (Dunhuang almanac of 924 CE: 「破日不會客」)",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One almanac's rule, quoted by Chinese Wikipedia from the Dunhuang manuscripts; the English is our translation. Later almanacs give longer lists that differ.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, note on 後唐同光二年曆書",
+     "quote": "破日不會客"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.wei.dunhuang-924",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.wei",
+   "activity": "travel",
+   "historical_practice": "On a Wei day, do not travel far. (Dunhuang almanac of 924 CE: 「危日不遠行」)",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One almanac's rule, quoted by Chinese Wikipedia from the Dunhuang manuscripts; the English is our translation. Later almanacs give longer lists that differ.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, note on 後唐同光二年曆書",
+     "quote": "危日不遠行"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.cheng.dunhuang-924",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.cheng",
+   "activity": "trade",
+   "historical_practice": "On a Cheng day, do not go to law. (Dunhuang almanac of 924 CE: 「成日不辭訟」)",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One almanac's rule, quoted by Chinese Wikipedia from the Dunhuang manuscripts; the English is our translation. Later almanacs give longer lists that differ.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, note on 後唐同光二年曆書",
+     "quote": "成日不辭訟"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.shou.dunhuang-924",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.shou",
+   "activity": "travel",
+   "historical_practice": "On a Shou day, also do not travel far. (Dunhuang almanac of 924 CE: 「收日亦不遠行」)",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One almanac's rule, quoted by Chinese Wikipedia from the Dunhuang manuscripts; the English is our translation. Later almanacs give longer lists that differ.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, note on 後唐同光二年曆書",
+     "quote": "收日亦不遠行"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.kai.dunhuang-924",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.kai",
+   "activity": "remembrance",
+   "historical_practice": "On a Kai day, do not hold a funeral. (Dunhuang almanac of 924 CE: 「開日不送葬」)",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One almanac's rule, quoted by Chinese Wikipedia from the Dunhuang manuscripts; the English is our translation. Later almanacs give longer lists that differ.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, note on 後唐同光二年曆書",
+     "quote": "開日不送葬"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.bi.dunhuang-924",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.bi",
+   "activity": "other",
+   "historical_practice": "On a Bi day, \"do not reach the eyes\" (literal; the meaning is unclear: perhaps do not treat the eyes). (Dunhuang almanac of 924 CE: 「閉日不至目」)",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "One almanac's rule, quoted by Chinese Wikipedia from the Dunhuang manuscripts; the English is our translation. Later almanacs give longer lists that differ.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, note on 後唐同光二年曆書",
+     "quote": "閉日不至目"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.jian.qing-yi-ji",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.jian",
+   "activity": "trade",
+   "historical_practice": "Suitable on a Jian day: opening a market, drawing up contracts, trading, receiving money, setting out on a journey, raising the roof beam, building, breaking ground, treating illness, taking a teacher, meeting relatives and friends. Avoid: pulling down a house, digging the earth, funerals and burials, demolition, digging wells, going by boat.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "As listed in modern almanacs following the Qing rule (Chinese Wikipedia, 現代作法); our translation. Note it lists breaking ground under both columns in different almanacs.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "現代作法"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.jian.song-official",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.jian",
+   "activity": "other",
+   "historical_practice": "In the Song official calendar (會元曆), days of Jian, Ping, Po and Shou were \"not used\" each month (每月逢建、平、破、收，日皆不用) for choosing days.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Quoted by Hong Mai (Rongzhai suibi) as given in Chinese Wikipedia.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, 容齋隨筆"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.ping.song-official",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.ping",
+   "activity": "other",
+   "historical_practice": "In the Song official calendar (會元曆), days of Jian, Ping, Po and Shou were \"not used\" each month (每月逢建、平、破、收，日皆不用) for choosing days.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Quoted by Hong Mai (Rongzhai suibi) as given in Chinese Wikipedia.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, 容齋隨筆"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.po.song-official",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.po",
+   "activity": "other",
+   "historical_practice": "In the Song official calendar (會元曆), days of Jian, Ping, Po and Shou were \"not used\" each month (每月逢建、平、破、收，日皆不用) for choosing days.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Quoted by Hong Mai (Rongzhai suibi) as given in Chinese Wikipedia.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, 容齋隨筆"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.east.chinese.jianchu.officers.shou.song-official",
+   "culture_key": "asia.east.chinese",
+   "system_key": "asia.east.chinese.jianchu",
+   "cycle_position_key": "asia.east.chinese.jianchu.officers.shou",
+   "activity": "other",
+   "historical_practice": "In the Song official calendar (會元曆), days of Jian, Ping, Po and Shou were \"not used\" each month (每月逢建、平、破、收，日皆不用) for choosing days.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Quoted by Hong Mai (Rongzhai suibi) as given in Chinese Wikipedia.",
+   "sources": [
+    {
+     "source": "src.zhwiki-jianchu",
+     "locator": "概論, 容齋隨筆"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.11.ekadashi-fast",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "lunar_day_key": "asia.south.vedic-hindu.tithi.11",
+   "activity": "ceremony",
+   "historical_practice": "Ekādaśī: a fast for Vishnu, to gain control over the mind and senses. Strictly, no food or water from sunrise; many keep a lighter fast (only water, only milk, only fruit, or one meal).",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-ekadashi"
+    }
+   ],
+   "review_status": "draft",
+   "modern_interpretation": "If you fast, keep it gentle and right for your health (modern suggestion)."
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.26.ekadashi-fast",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "lunar_day_key": "asia.south.vedic-hindu.tithi.26",
+   "activity": "ceremony",
+   "historical_practice": "Ekādaśī: a fast for Vishnu, to gain control over the mind and senses. Strictly, no food or water from sunrise; many keep a lighter fast (only water, only milk, only fruit, or one meal).",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-ekadashi"
+    }
+   ],
+   "review_status": "draft",
+   "modern_interpretation": "If you fast, keep it gentle and right for your health (modern suggestion)."
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.10.ekadashi-eve",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "lunar_day_key": "asia.south.vedic-hindu.tithi.10",
+   "activity": "ceremony",
+   "historical_practice": "Daśamī, the day before Ekādaśī: devotees take a single meal in the afternoon so that no food remains for the next day's fast.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-ekadashi"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.25.ekadashi-eve",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "lunar_day_key": "asia.south.vedic-hindu.tithi.25",
+   "activity": "ceremony",
+   "historical_practice": "Daśamī, the day before Ekādaśī: devotees take a single meal in the afternoon so that no food remains for the next day's fast.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-ekadashi"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.12.break-fast",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "lunar_day_key": "asia.south.vedic-hindu.tithi.12",
+   "activity": "ceremony",
+   "historical_practice": "Dvādaśī: the Ekādaśī fast is broken only after sunrise. A day suited to honouring tulasi (holy basil) and to worshipping Vishnu.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-ekadashi"
+    },
+    {
+     "source": "src.wikipedia-tithi-days",
+     "locator": "Dvadashi"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.27.break-fast",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "lunar_day_key": "asia.south.vedic-hindu.tithi.27",
+   "activity": "ceremony",
+   "historical_practice": "Dvādaśī: the Ekādaśī fast is broken only after sunrise. A day suited to honouring tulasi (holy basil) and to worshipping Vishnu.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-ekadashi"
+    },
+    {
+     "source": "src.wikipedia-tithi-days",
+     "locator": "Dvadashi"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.13.pradosha",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "lunar_day_key": "asia.south.vedic-hindu.tithi.13",
+   "activity": "ceremony",
+   "historical_practice": "Pradoṣa: Shiva is worshipped at twilight (pradoṣa, \"the first part of the night\"), with a fast (pradoṣa vrata) said to bring wealth, grain, family and luck.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-pradosha"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.28.pradosha",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "lunar_day_key": "asia.south.vedic-hindu.tithi.28",
+   "activity": "ceremony",
+   "historical_practice": "Pradoṣa: Shiva is worshipped at twilight (pradoṣa, \"the first part of the night\"), with a fast (pradoṣa vrata) said to bring wealth, grain, family and luck.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-pradosha"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.19.sankashti",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "lunar_day_key": "asia.south.vedic-hindu.tithi.19",
+   "activity": "ceremony",
+   "historical_practice": "Saṅkaṣṭī Caturthī: a strict fast for Ganesha, the remover of obstacles, broken at night after seeing the Moon.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-sankashti"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.30.ancestors",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "lunar_day_key": "asia.south.vedic-hindu.tithi.30",
+   "activity": "remembrance",
+   "historical_practice": "Amāvasyā is particularly associated with the ancestors (pitṛs): holy dips in rivers, special pūjās, śrāddha rites, tarpaṇa (water offerings) and piṇḍa (rice-ball) offerings. Many fast.",
+   "evidence": [
+    "historically_documented",
+    "modern_interpretation"
+   ],
+   "uncertainty": "Calculated: the tithi at sunrise in Ujjain (the traditional meridian of Indian astronomy). Almanacs for your own city can differ by a day where a tithi begins or ends near sunrise.",
+   "sources": [
+    {
+     "source": "src.wikipedia-amavasya"
+    }
+   ],
+   "review_status": "draft",
+   "modern_interpretation": "A day to remember your ancestors: light a lamp, say their names, give food (modern suggestion)."
+  }
+ ]
+}

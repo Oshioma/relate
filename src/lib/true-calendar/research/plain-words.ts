@@ -31,6 +31,9 @@ const POS = /\b(good|favourable|favorable|productive|excellent|plentiful|fine|de
 const SACRED = /\b(kapu|sacred|holy|prayers?|offerings?|temple|ceremon\w*|observance)\b/i;
 const WEATHER = /\b(rough|fog|winds?|storm\w*|mist|bad weather|unpleasant weather)\b/i;
 
+const OWN_PLAIN = /^(americas\.maya|asia\.east\.chinese|asia\.south\.vedic-hindu|africa\.west\.akan\.(nnanson|nnawotwe)|africa\.west\.igbo)\./;
+const OWN_PLAIN_IDS = new Set(["pos|africa.west.akan.adaduanan.fodwo", "pos|africa.west.akan.adaduanan.awukudae", "pos|africa.west.akan.adaduanan.fofie"]);
+
 const list = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
@@ -38,6 +41,9 @@ const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 export function plainAdvice(item: AdviceItem): string | null {
   // A named month's meaning is a description, not advice for a day.
   if (item.id.startsWith("month|")) return null;
+  // Traditions whose plain explanation already says what to do (explanations.ts):
+  // their day meanings ("Maize; ripeness", "wind, breath") are not advice to be read word by word.
+  if (OWN_PLAIN.test(item.systemKey ?? "") || OWN_PLAIN_IDS.has(item.id)) return null;
   const good: string[] = [];
   const care: string[] = [];
   const plain: string[] = [];

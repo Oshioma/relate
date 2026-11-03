@@ -92,10 +92,10 @@ test("6. estimated dates are labelled; 7. undated records never get a date", () 
       if (level === "B") assert.ok(r.approximate && /Approximate lunar alignment|Illustrative reconstruction|provisional/i.test(`${r.item.caution} ${r.item.status}`), r.item.id);
     }
   const all = [...feed.dated, ...feed.lunar, ...feed.seasonal];
-  const unmapped = all.filter((i) => /igbo|yoruba|ancient-egyptian\.(civil|lucky)|seasonal-months/.test(`${i.systemKey ?? ""} ${i.cultureKey} ${i.id}`) && !i.id.startsWith("night|africa.north.ancient-egyptian.lunar"));
-  assert.ok(unmapped.length > 10);
+  const unmapped = all.filter((i) => /yoruba|ancient-egyptian\.(civil|lucky)|seasonal-months/.test(`${i.systemKey ?? ""} ${i.cultureKey} ${i.id}`) && !i.id.startsWith("night|africa.north.ancient-egyptian.lunar"));
+  assert.ok(unmapped.length > 5);
   for (const i of unmapped) {
-    if (i.cultureKey === "africa.west.igbo" || i.cultureKey === "africa.west.yoruba" || /lucky-days|seasonal-months/.test(i.id)) {
+    if (i.cultureKey === "africa.west.yoruba" || /lucky-days|seasonal-months/.test(i.id)) {
       assert.equal(i.date, null, `${i.id} stays undated`);
       assert.equal(mappingLevel(i), "C");
     }
@@ -152,5 +152,5 @@ test("coverage counts add up and verified needs a listing, not a calculation", (
   assert.ok(c.total > 200 && c.actionable > 50);
   assert.ok(c.verified > 0 && c.estimated > c.verified && c.awaiting > 0);
   assert.ok(c.culturesMapped >= 5, c.culturesMappedNames.join(", "));
-  assert.ok(c.profiles.find((p) => p.profile.key === "igbo.market-week-unanchored")!.records > 0);
+  assert.ok(c.profiles.find((p) => p.profile.key === "igbo.nri-market-count")!.records > 0);
 });
