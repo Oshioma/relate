@@ -122,7 +122,7 @@ function Shell({
         <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
           <span className="grid h-12 w-12 place-items-center rounded-full bg-accent/15 text-accent">{icon}</span>
           <h1 className="text-lg font-semibold text-foreground">{title}</h1>
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="whitespace-pre-line text-sm text-muted-foreground">{description}</p>
           <LinkButton href={ctaHref} className="mt-2">
             {ctaLabel}
           </LinkButton>

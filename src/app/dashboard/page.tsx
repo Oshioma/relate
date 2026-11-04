@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LinkButton } from "@/components/ui/button";
 import Link from "@/components/ui/link";
 import { JoinButton } from "./join-button";
+import { userTextPreview } from "@/components/ui/user-text";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -76,7 +77,7 @@ export default async function DashboardPage() {
                   </div>
                   <h3 className="mt-3 text-sm font-semibold text-foreground">{community.name}</h3>
                   {community.description && (
-                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{community.description}</p>
+                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{userTextPreview(community.description)}</p>
                   )}
                 </CardContent>
               </Card>
@@ -97,7 +98,7 @@ export default async function DashboardPage() {
                   <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={56} />
                   <h3 className="mt-3 text-sm font-semibold text-foreground">{community.name}</h3>
                   {community.description && (
-                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{community.description}</p>
+                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{userTextPreview(community.description)}</p>
                   )}
                   <div className="mt-4">
                     <JoinButton communityId={community.id} slug={community.slug} />
@@ -129,7 +130,7 @@ export default async function DashboardPage() {
                     </div>
                     <h3 className="mt-3 text-sm font-semibold text-foreground">{community.name}</h3>
                     {community.description && (
-                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{community.description}</p>
+                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{userTextPreview(community.description)}</p>
                     )}
                   </CardContent>
                 </Card>

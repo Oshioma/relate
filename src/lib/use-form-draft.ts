@@ -14,6 +14,9 @@ import { useCallback, useEffect, useRef, type RefObject } from "react";
 // (defaultValue / defaultChecked) so restoring is just setting the DOM value.
 // Controlled bits (a photo list, a toggle kept in state) put their value in a
 // hidden input marked `data-draft` and receive it back through `onRestore`.
+// The rich text editor (RichEditor) does this itself: its hidden input is
+// marked `data-draft data-draft-restore` and takes the saved text back from a
+// "draft-restore" event, so any form using this hook keeps rich text too.
 //
 // Never saved, whatever the form says: password fields, file inputs, hidden
 // inputs not marked `data-draft`, anything marked `data-no-draft`, and any
@@ -138,7 +141,15 @@ function apply(form: HTMLFormElement, values: DraftValues) {
       el.checked = typeof saved === "boolean" ? saved : Array.isArray(saved) ? saved.includes(el.value) : saved === el.value;
     } else if (el instanceof HTMLSelectElement && el.multiple && Array.isArray(saved)) {
       for (const option of Array.from(el.options)) option.selected = saved.includes(option.value);
-    } else if (typeof saved === "string" && !(el instanceof HTMLInputElement && el.type === "hidden")) {
+    } else if (typeof saved === "string" && el instanceof HTMLInputElement && el.type === "hidden") {
+      // A hidden field that can take its own value back (the rich text
+      // editor's) is told through a "draft-restore" event; other controlled
+      // fields get theirs through onRestore.
+      if (el.hasAttribute("data-draft-restore")) {
+        el.value = saved;
+        el.dispatchEvent(new CustomEvent("draft-restore", { detail: saved }));
+      }
+    } else if (typeof saved === "string") {
       el.value = saved;
     }
   }

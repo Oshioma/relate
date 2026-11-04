@@ -267,7 +267,7 @@ export function CoursePlayer({
               <h1 className="text-2xl font-semibold tracking-tight text-foreground">{course.title}</h1>
               {course.status === "draft" && <Badge tone="neutral">Draft</Badge>}
             </div>
-            {course.summary && <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">{course.summary}</p>}
+            {course.summary && <p className="whitespace-pre-line mt-1.5 max-w-2xl text-sm text-muted-foreground">{course.summary}</p>}
             {instructor && (
               <div className="mt-3 flex items-center gap-2">
                 <Avatar src={instructor.avatar_url} name={instructor.full_name || instructor.username} size={24} />

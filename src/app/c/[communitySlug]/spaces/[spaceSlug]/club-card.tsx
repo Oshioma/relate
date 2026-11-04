@@ -82,7 +82,7 @@ export function ClubCard({
           )}
         </div>
 
-        {club.description && <p className="mt-2 text-sm text-foreground">{club.description}</p>}
+        {club.description && <p className="whitespace-pre-line mt-2 text-sm text-foreground">{club.description}</p>}
 
         <div className="mt-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">

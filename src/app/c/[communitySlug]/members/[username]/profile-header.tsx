@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatRelativeTime } from "@/lib/utils";
 import type { MemberLocation, Profile } from "@/types/database";
 import { MessageButton } from "./message-button";
+import { UserText } from "@/components/ui/user-text";
 
 const SOCIAL_LABELS: Record<string, string> = {
   linkedin: "LinkedIn",
@@ -55,7 +56,7 @@ export function ProfileHeader({
             </p>
           )}
 
-          {profile.bio && <p className="mt-3 max-w-xl text-sm text-foreground">{profile.bio}</p>}
+          {profile.bio && <UserText text={profile.bio} className="mt-3 max-w-xl text-sm text-foreground" />}
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Badge tone="accent">{profile.contribution_score} points</Badge>

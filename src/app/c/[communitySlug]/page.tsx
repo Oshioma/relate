@@ -85,6 +85,7 @@ import { exampleFeedPosts } from "@/lib/feed-examples";
 import { formatDateTime, isImageUrl, isVideoUrl } from "@/lib/utils";
 import { postGallery } from "@/lib/post-media";
 import { joinPolicyOf } from "@/lib/join-policy";
+import { userTextPreview } from "@/components/ui/user-text";
 
 export default async function CommunityFeedPage({
   params,
@@ -504,7 +505,7 @@ export default async function CommunityFeedPage({
       createdAt: m.created_at,
       icon: UserPlus,
       title: m.profile.full_name || m.profile.username,
-      description: [m.profile.profession, m.profile.company].filter(Boolean).join(" · ") || m.profile.bio,
+      description: [m.profile.profession, m.profile.company].filter(Boolean).join(" · ") || userTextPreview(m.profile.bio),
       imageUrl: null,
       typeBadge: "New Member",
       detail: null,
