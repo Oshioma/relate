@@ -5,7 +5,8 @@ import { CheckCircle2 } from "lucide-react";
 import { createTier, type TierFormState } from "./tier-actions";
 import { TierRow } from "./tier-row";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input, Label, Textarea } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
+import { RichEditor } from "@/components/ui/rich-editor";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { useFormDraftRef } from "@/lib/use-form-draft";
 import type { TierSales, TierWithSpaces } from "@/lib/data/tiers";
@@ -75,7 +76,7 @@ export function TiersSection({
             </div>
             <div>
               <Label htmlFor="tier-desc">Description (optional)</Label>
-              <Textarea id="tier-desc" name="description" rows={2} placeholder="What members get for joining" />
+              <RichEditor id="tier-desc" name="description" rows={4} placeholder="What members get for joining" />
             </div>
             {spaces.length > 0 && (
               <fieldset>

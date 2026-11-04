@@ -3,6 +3,8 @@
 // product and a short line under the Pay button. Used by every member-facing
 // checkout: tiers, courses (one-off and instalments) and paid spaces.
 
+import { htmlToStripeMarkdown } from "./stripe-markdown";
+
 type LookSource = {
   name: string;
   logo_url?: string | null;
@@ -39,7 +41,9 @@ export function checkoutLookFor(
   community: LookSource,
   opts: { oneOff?: boolean; tier?: TierLook | null } = {}
 ): { imageUrl: string | null; submitMessage: string } {
-  const own = opts.tier?.checkout_message?.trim() || community.checkout_message?.trim();
+  // Written in the rich text editor (HTML); Stripe gets it as text with
+  // **bold**, _italic_ and [links](…).
+  const own = htmlToStripeMarkdown(opts.tier?.checkout_message) || htmlToStripeMarkdown(community.checkout_message);
   const fallback = opts.oneOff
     ? `You'll have access to ${community.name} as soon as you've paid.`
     : defaultCheckoutMessage(community.name);

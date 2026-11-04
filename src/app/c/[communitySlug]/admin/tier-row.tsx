@@ -4,7 +4,9 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Trash2, Archive, ArchiveRestore, CheckCircle2 } from "lucide-react";
 import { updateTier, setTierArchived, deleteTier, setTierSpaces, type TierFormState } from "./tier-actions";
-import { Input, Label, Textarea } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
+import { RichEditor } from "@/components/ui/rich-editor";
+import { useFormDraftRef } from "@/lib/use-form-draft";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Badge } from "@/components/ui/badge";
@@ -62,14 +64,20 @@ export function TierRow({
   const archived = Boolean(tier.archived_at);
   const status = tierStatus(tier);
 
+  // The edit form's typing is kept in this browser until it's saved (house
+  // rule); a refresh mid-edit brings it back when the form is opened again.
+  const editFormRef = useRef<HTMLFormElement>(null);
+  const { clear: clearEditDraft } = useFormDraftRef(editFormRef, `tier-edit:${tier.id}`, { enabled: editing });
+
   const wasUpdating = useRef(false);
   useEffect(() => {
     if (wasUpdating.current && !isUpdating && updateState && "saved" in updateState) {
+      clearEditDraft();
       setEditing(false);
       setSavedNote("Tier details saved.");
     }
     wasUpdating.current = isUpdating;
-  }, [isUpdating, updateState]);
+  }, [isUpdating, updateState, clearEditDraft]);
 
   // Whether the space selection differs from what's saved, so "Save spaces" only
   // lights up when there's something to save.
@@ -142,7 +150,7 @@ export function TierRow({
       </div>
 
       {editing && (
-        <form action={updateAction} className="mt-3 space-y-3">
+        <form ref={editFormRef} action={updateAction} className="mt-3 space-y-3">
           <input type="hidden" name="tier_id" value={tier.id} />
           <input type="hidden" name="community_slug" value={communitySlug} />
           <div>
@@ -163,7 +171,7 @@ export function TierRow({
           </div>
           <div>
             <Label htmlFor={`tier-desc-${tier.id}`}>Description</Label>
-            <Textarea id={`tier-desc-${tier.id}`} name="description" rows={2} defaultValue={tier.description ?? ""} />
+            <RichEditor id={`tier-desc-${tier.id}`} name="description" rows={4} defaultValue={tier.description ?? ""} fromPlainText />
           </div>
           {updateState && "error" in updateState && <p className="text-sm text-danger">{updateState.error}</p>}
           <div className="flex gap-2">

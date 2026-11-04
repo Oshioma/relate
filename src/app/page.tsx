@@ -39,6 +39,7 @@ import { readTestimonials, testimonialPhoto } from "@/lib/testimonials";
 import { readCreatorTestimonials, HOMEPAGE_TESTIMONIALS } from "@/lib/creator-testimonials";
 import { getTestimonialMemberPhotos } from "@/lib/data/testimonial-photos";
 import { pickHomepagePhotos } from "@/lib/homepage-photos";
+import { userTextPreview } from "@/components/ui/user-text";
 
 // The homepage's own type: a rounded geometric face for the headings, and a
 // handwritten one for the little notes scribbled beside the pictures.
@@ -712,7 +713,7 @@ function CommunityPreview({ community }: { community: Community }) {
           {community.name}
         </h3>
         {(community.tagline || community.description) && (
-          <p className="mt-1 line-clamp-3 text-sm leading-6 text-[#637067]">{community.tagline || community.description}</p>
+          <p className="mt-1 line-clamp-3 text-sm leading-6 text-[#637067]">{community.tagline || userTextPreview(community.description)}</p>
         )}
         <span className="mt-auto inline-flex items-center gap-1 pt-4 text-sm font-semibold text-[#326B42]">
           Visit community <ArrowRight className="h-4 w-4" />

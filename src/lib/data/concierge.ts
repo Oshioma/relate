@@ -279,7 +279,7 @@ export async function searchCommunity(supabase: Client, communityId: string, com
       type: "club",
       id: c.id,
       title: c.name,
-      snippet: truncate(c.description),
+      snippet: truncate(c.description?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ") ?? null),
       extra: c.category,
       href: `${base}/spaces/${c.space?.slug ?? ""}`,
     }));

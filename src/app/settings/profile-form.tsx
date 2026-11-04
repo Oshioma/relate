@@ -3,14 +3,23 @@
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { updateProfile, type ProfileFormState } from "./actions";
-import { Input, Textarea, Label } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
+import { RichEditor } from "@/components/ui/rich-editor";
+import { useFormDraft } from "@/lib/use-form-draft";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types/database";
 
 export function ProfileForm({ profile }: { profile: Profile }) {
-  const [state, formAction] = useActionState<ProfileFormState, FormData>(updateProfile, undefined);
+  // What's typed is kept in this browser until it's saved (house rule), and
+  // the draft is dropped once the save goes through.
+  const { formRef, clearDraft } = useFormDraft(`profile:${profile.id}`);
+  const [state, formAction] = useActionState<ProfileFormState, FormData>(async (prev, formData) => {
+    const result = await updateProfile(prev, formData);
+    if (!result?.error) clearDraft();
+    return result;
+  }, undefined);
   const router = useRouter();
 
   async function handleAvatarUploaded(url: string) {
@@ -34,7 +43,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         </div>
       </div>
 
-      <form action={formAction} className="space-y-4">
+      <form ref={formRef} action={formAction} className="space-y-4">
         <div>
           <Label htmlFor="full_name">Full name</Label>
           <Input id="full_name" name="full_name" defaultValue={profile.full_name ?? ""} placeholder="Jane Doe" />
@@ -47,7 +56,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
 
         <div>
           <Label htmlFor="bio">Bio</Label>
-          <Textarea id="bio" name="bio" rows={3} defaultValue={profile.bio ?? ""} placeholder="A little about you…" />
+          <RichEditor id="bio" name="bio" rows={5} defaultValue={profile.bio ?? ""} placeholder="A little about you…" fromPlainText />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">

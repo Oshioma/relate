@@ -10,6 +10,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatDateTime, formatRelativeTime } from "@/lib/utils";
 import type { AuthEventType } from "@/types/database";
+import { UserText } from "@/components/ui/user-text";
 
 // Same wording as the platform-admin "Signups & logins" tab.
 const AUTH_EVENT_LABELS: Record<AuthEventType, string> = {
@@ -79,7 +80,7 @@ export default async function PlatformUserDetailPage({ params }: { params: Promi
               {[profile.profession, profile.company].filter(Boolean).join(" at ")}
             </p>
           )}
-          {profile.bio && <p className="whitespace-pre-line mt-2 max-w-xl text-sm text-foreground">{profile.bio}</p>}
+          {profile.bio && <UserText text={profile.bio} className="mt-2 max-w-xl text-sm text-foreground" />}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Badge tone="accent">{profile.contribution_score} points</Badge>
             <Badge tone="neutral">Joined {formatDate(profile.created_at)}</Badge>

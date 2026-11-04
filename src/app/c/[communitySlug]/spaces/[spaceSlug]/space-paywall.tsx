@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { RichText } from "@/components/ui/rich-text";
 import { subscribeToSpace } from "./paywall-actions";
 import { subscribeToTier } from "../../membership-actions";
+import { UserText } from "@/components/ui/user-text";
 
 function formatPrice(cents: number, currency: string): string {
   try {
@@ -173,7 +174,7 @@ export function SpacePaywall({
                             {formatPrice(tier.priceCents, tier.currency)}/mo · unlocks {tier.spaceCount} space
                             {tier.spaceCount === 1 ? "" : "s"}
                           </p>
-                          {tier.description && <p className="whitespace-pre-line mt-1 text-xs text-muted-foreground">{tier.description}</p>}
+                          {tier.description && <UserText text={tier.description} className="mt-1 text-xs text-muted-foreground" />}
                         </div>
                         <Button size="sm" className="w-auto shrink-0" onClick={() => handleSubscribeTier(tier.id)} disabled={busy}>
                           {busyKey === tier.id ? "…" : "Join"}

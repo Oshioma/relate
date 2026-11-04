@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button";
 import { subscribeToTier, cancelTierSubscription, resumeTierSubscription } from "../membership-actions";
 import { planDescriptionBlocks } from "@/lib/plan-description";
 import { tierCheckoutPath } from "@/lib/checkout-links";
+import { RichText } from "@/components/ui/rich-text";
+import { looksLikeHtml } from "@/components/ui/safe-html";
+import { PROSE_CLASS } from "@/lib/prose";
+import { cn } from "@/lib/utils";
 
 function formatPrice(cents: number, currency: string): string {
   try {
@@ -85,7 +89,10 @@ export function MembershipTierCard({
   }
 
   const price = formatPrice(priceCents, currency);
-  const blocks = planDescriptionBlocks(description);
+  // Written in the rich text editor (HTML) it's shown as written; older plain
+  // descriptions are still laid out into headings, lists and paragraphs.
+  const richDescription = description && looksLikeHtml(description) ? description : null;
+  const blocks = richDescription ? [] : planDescriptionBlocks(description);
   const returnTo = `/c/${communitySlug}/membership`;
   const periodEndLabel = currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString() : null;
 
@@ -109,6 +116,13 @@ export function MembershipTierCard({
             </span>
           )}
         </div>
+
+        {richDescription && (
+          <RichText
+            content={richDescription}
+            className={cn(PROSE_CLASS, "mt-5 text-base text-foreground sm:text-lg [&_h2]:text-sm [&_h2]:uppercase [&_h2]:tracking-wide [&_h2]:text-accent")}
+          />
+        )}
 
         {blocks.length > 0 && (
           <div className="mt-5 space-y-3 text-base leading-relaxed text-foreground sm:text-lg">

@@ -2,6 +2,7 @@ import { Lock } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { LinkButton } from "@/components/ui/button";
 import { RequestToJoinButton } from "./request-to-join-button";
+import { UserText } from "@/components/ui/user-text";
 
 // The members-only feed for a private community, shown in the content area to a
 // non-member — signed-out or signed-in. The community shell around it (the left
@@ -41,7 +42,7 @@ export function CommunityGate({
       <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={88} className="mb-5" />
       <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{community.name}</h1>
       {community.description && (
-        <p className="whitespace-pre-line mt-3 max-w-sm text-base leading-relaxed text-muted-foreground">{community.description}</p>
+        <UserText text={community.description} className="mt-3 max-w-sm text-base leading-relaxed text-muted-foreground" />
       )}
 
       <div className="mt-8 flex items-center gap-2 rounded-full bg-muted px-4 py-1.5 text-sm font-medium text-muted-foreground">

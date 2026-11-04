@@ -6,6 +6,7 @@ import { checkMemberFile, uploadMemberFile } from "./upload-button";
 import { useUploadTarget } from "./upload-target";
 import { parseVideoLink } from "@/lib/school/video-links";
 import { RichText } from "./rich-text";
+import { looksLikeHtml } from "./safe-html";
 import { PROSE_CLASS } from "@/lib/prose";
 import { cn } from "@/lib/utils";
 
@@ -185,6 +186,8 @@ export function RichEditor({
   className,
   onChange,
   allowMedia = false,
+  fromPlainText = false,
+  basic = false,
 }: {
   name: string;
   defaultValue?: string;
@@ -199,9 +202,17 @@ export function RichEditor({
    *  writer's own folder of the 'uploads' bucket, or of the space's private
    *  folder inside a space visitors can't open (see upload-target.tsx). */
   allowMedia?: boolean;
+  /** The field used to be a plain textarea, so a saved value may be plain
+   *  text: show its paragraphs and line breaks as paragraphs in the editor
+   *  instead of one run-on line. HTML values are left as they are. */
+  fromPlainText?: boolean;
+  /** Only Bold, Italic and Link (for short text such as the line under a
+   *  Stripe Pay button, which can't show headings or lists). */
+  basic?: boolean;
 }) {
   const uploadTarget = useUploadTarget();
-  const [value, setValue] = useState(defaultValue);
+  const initialValue = fromPlainText && defaultValue && !looksLikeHtml(defaultValue) ? plainTextToHtml(defaultValue) : defaultValue;
+  const [value, setValue] = useState(initialValue);
   const [mode, setMode] = useState<Mode>("write");
   const editorRef = useRef<HTMLDivElement>(null);
   const hiddenRef = useRef<HTMLInputElement>(null);
@@ -237,12 +248,28 @@ export function RichEditor({
     const form = hiddenRef.current?.form;
     if (!form) return;
     const onReset = () => {
-      setValue(defaultValue);
-      if (editorRef.current) editorRef.current.innerHTML = defaultValue;
+      setValue(initialValue);
+      if (editorRef.current) editorRef.current.innerHTML = initialValue;
     };
     form.addEventListener("reset", onReset);
     return () => form.removeEventListener("reset", onReset);
-  }, [defaultValue]);
+  }, [initialValue]);
+
+  // A form using useFormDraft saves the hidden input below (it's marked
+  // data-draft) and, after a refresh, hands the saved text back through a
+  // "draft-restore" event, so what was typed here survives a reload too.
+  useEffect(() => {
+    const hidden = hiddenRef.current;
+    if (!hidden) return;
+    const onRestore = (event: Event) => {
+      const saved = (event as CustomEvent<string>).detail;
+      if (typeof saved !== "string") return;
+      setValue(saved);
+      if (editorRef.current) editorRef.current.innerHTML = saved;
+    };
+    hidden.addEventListener("draft-restore", onRestore);
+    return () => hidden.removeEventListener("draft-restore", onRestore);
+  }, []);
 
   // Bulletproof the submitted value: when the form builds its FormData, write
   // the editor's *current* content straight in, so a save never depends on the
@@ -394,6 +421,8 @@ export function RichEditor({
         <ToolbarButton label="Italic" disabled={!inWrite} onClick={() => exec("italic")}>
           <Italic className="h-4 w-4" />
         </ToolbarButton>
+        {!basic && (
+          <>
         <ToolbarButton label="Heading" disabled={!inWrite} onClick={() => exec("formatBlock", "h2")}>
           <Heading className="h-4 w-4" />
         </ToolbarButton>
@@ -403,6 +432,8 @@ export function RichEditor({
         <ToolbarButton label="Numbered list" disabled={!inWrite} onClick={() => exec("insertOrderedList")}>
           <ListOrdered className="h-4 w-4" />
         </ToolbarButton>
+          </>
+        )}
         <ToolbarButton label="Link" disabled={!inWrite} onClick={insertLink}>
           <LinkIcon className="h-4 w-4" />
         </ToolbarButton>
@@ -508,7 +539,7 @@ export function RichEditor({
       )}
 
       {mediaError && <p className="border-t border-border px-3 py-1.5 text-xs text-danger">{mediaError}</p>}
-      <input ref={hiddenRef} type="hidden" name={name} value={value} />
+      <input ref={hiddenRef} type="hidden" name={name} value={value} data-draft data-draft-restore />
     </div>
   );
 }

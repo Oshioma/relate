@@ -34,3 +34,9 @@ test("a tier with nothing of its own uses the community's look", () => {
   assert.equal(look.imageUrl, "https://a/c.jpg");
   assert.equal(checkoutLookFor({ name: "X" }, { tier: null }).submitMessage, defaultCheckoutMessage("X"));
 });
+
+test("a line written in the rich text editor goes to Stripe as Markdown", () => {
+  const look = checkoutLookFor({ name: "Escape Space", checkout_message: "<p><strong>Welcome</strong> home.</p><p>See you inside.</p>" });
+  assert.equal(look.submitMessage, "**Welcome** home.\n\nSee you inside.");
+  assert.equal(checkoutLookFor({ name: "Escape Space", checkout_message: "<p><br></p>" }).submitMessage, defaultCheckoutMessage("Escape Space"));
+});
