@@ -285,7 +285,7 @@ export function RegionalTips({
                   </div>
                 )}
               </div>
-              <p className="mt-2 text-sm text-foreground">{t.body}</p>
+              <p className="whitespace-pre-line mt-2 text-sm text-foreground">{t.body}</p>
               <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
                 <Sprout className="h-3 w-3" />
                 {authorName(t.author)}

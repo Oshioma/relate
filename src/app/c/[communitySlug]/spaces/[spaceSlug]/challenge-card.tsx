@@ -90,7 +90,7 @@ export function ChallengeCard({
           )}
         </div>
 
-        {challenge.description && <p className="mt-2 text-sm text-foreground">{challenge.description}</p>}
+        {challenge.description && <p className="whitespace-pre-line mt-2 text-sm text-foreground">{challenge.description}</p>}
 
         <div className="mt-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">

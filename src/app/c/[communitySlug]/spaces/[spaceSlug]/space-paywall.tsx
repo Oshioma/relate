@@ -173,7 +173,7 @@ export function SpacePaywall({
                             {formatPrice(tier.priceCents, tier.currency)}/mo · unlocks {tier.spaceCount} space
                             {tier.spaceCount === 1 ? "" : "s"}
                           </p>
-                          {tier.description && <p className="mt-1 text-xs text-muted-foreground">{tier.description}</p>}
+                          {tier.description && <p className="whitespace-pre-line mt-1 text-xs text-muted-foreground">{tier.description}</p>}
                         </div>
                         <Button size="sm" className="w-auto shrink-0" onClick={() => handleSubscribeTier(tier.id)} disabled={busy}>
                           {busyKey === tier.id ? "…" : "Join"}

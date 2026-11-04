@@ -313,7 +313,7 @@ export function PeriodDetail({
         </div>
       )}
 
-      {period.summary && <p className="mt-4 text-base text-foreground">{period.summary}</p>}
+      {period.summary && <p className="whitespace-pre-line mt-4 text-base text-foreground">{period.summary}</p>}
       {period.description && (
         <div className="mt-3 max-w-3xl">
           <RichText content={period.description} />

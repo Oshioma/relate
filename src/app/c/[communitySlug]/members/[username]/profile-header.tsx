@@ -55,7 +55,7 @@ export function ProfileHeader({
             </p>
           )}
 
-          {profile.bio && <p className="mt-3 max-w-xl text-sm text-foreground">{profile.bio}</p>}
+          {profile.bio && <p className="whitespace-pre-line mt-3 max-w-xl text-sm text-foreground">{profile.bio}</p>}
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Badge tone="accent">{profile.contribution_score} points</Badge>

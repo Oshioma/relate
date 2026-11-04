@@ -63,7 +63,7 @@ export function MembersOnlyGate({
           <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={88} className="mb-5" />
           <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{community.name}</h1>
           {community.description && (
-            <p className="mt-3 max-w-sm text-base leading-relaxed text-muted-foreground">{community.description}</p>
+            <p className="whitespace-pre-line mt-3 max-w-sm text-base leading-relaxed text-muted-foreground">{community.description}</p>
           )}
         </>
       )}

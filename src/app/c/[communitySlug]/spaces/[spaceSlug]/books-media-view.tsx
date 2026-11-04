@@ -421,7 +421,7 @@ function AiWriteUp({ analysis }: { analysis: unknown }) {
       <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         The AI review{typeof a.confidence === "string" ? ` · ${a.confidence} confidence` : ""}
       </h4>
-      {summary && <p className="mt-1 text-sm text-foreground">{summary}</p>}
+      {summary && <p className="whitespace-pre-line mt-1 text-sm text-foreground">{summary}</p>}
       {sources.length > 0 && (
         <ul className="mt-1 space-y-0.5 text-xs">
           {sources.map((s) => (

@@ -515,7 +515,7 @@ export function NaturesGardenersLanding({
                   {formatPrice(tier.priceCents, tier.currency)}
                   <span className="text-base font-normal text-[#56624f]"> / month</span>
                 </p>
-                {tier.description && <p className="mt-6 flex-1 text-[15px] leading-relaxed text-[#3d4a37]">{tier.description}</p>}
+                {tier.description && <p className="whitespace-pre-line mt-6 flex-1 text-[15px] leading-relaxed text-[#3d4a37]">{tier.description}</p>}
                 <Link
                   href={tierSignupHref}
                   className="mt-8 inline-flex items-center justify-center rounded-full border border-[#1f3d17] px-6 py-3 font-semibold text-[#1f3d17] hover:bg-[#1f3d17] hover:text-white"

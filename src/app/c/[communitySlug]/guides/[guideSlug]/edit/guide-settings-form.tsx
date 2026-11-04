@@ -228,7 +228,7 @@ export function GuideUpdatesManager({
                   Noted {u.noted_on}
                   {u.expires_on && <> · {u.expires_on < today ? "expired" : "hides after"} {u.expires_on}</>}
                 </p>
-                <p className="mt-1 text-foreground/90">{u.body}</p>
+                <p className="whitespace-pre-line mt-1 text-foreground/90">{u.body}</p>
               </div>
               <button type="button" onClick={() => remove(u.id)} aria-label="Remove update" className="rounded p-1 text-danger hover:bg-muted">
                 <Trash2 className="h-4 w-4" />

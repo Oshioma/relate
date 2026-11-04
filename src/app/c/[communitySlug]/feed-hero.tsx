@@ -93,7 +93,7 @@ export function FeedHero({
             {description && (
               <p
                 className={cn(
-                  "mt-4 line-clamp-4 max-w-2xl text-base leading-relaxed sm:text-lg",
+                  "mt-4 line-clamp-4 max-w-2xl whitespace-pre-line text-base leading-relaxed sm:text-lg",
                   onPhoto ? "text-white/90" : "text-foreground/80"
                 )}
               >

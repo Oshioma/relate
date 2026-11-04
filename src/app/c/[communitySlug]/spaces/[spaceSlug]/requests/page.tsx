@@ -122,7 +122,7 @@ export default async function RequestsPage({
                         </div>
                       </div>
                       {r.message && <p className="mt-4 whitespace-pre-line rounded-2xl bg-muted/70 p-4 text-sm text-foreground">{r.message}</p>}
-                      {mp?.intro && <p className="mt-3 text-sm text-muted-foreground">{mp.intro}</p>}
+                      {mp?.intro && <p className="whitespace-pre-line mt-3 text-sm text-muted-foreground">{mp.intro}</p>}
                       {mp && (
                         <dl className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
                           <Answer label="Region" value={[mp.region, mp.country].filter(Boolean).join(", ")} />

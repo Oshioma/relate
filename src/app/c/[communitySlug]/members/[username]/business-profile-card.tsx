@@ -25,7 +25,7 @@ export function BusinessProfileCard({ business }: { business: BusinessProfile })
         </div>
       </div>
 
-      {business.description && <p className="mt-3 text-sm text-foreground">{business.description}</p>}
+      {business.description && <p className="whitespace-pre-line mt-3 text-sm text-foreground">{business.description}</p>}
 
       {business.services.length > 0 && (
         <div className="mt-3">

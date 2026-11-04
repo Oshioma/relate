@@ -221,7 +221,7 @@ export function DestinationSection({
               <li key={u.id} className="text-sm">
                 <span className="font-medium text-foreground">{UPDATE_KIND_LABELS[u.kind]}</span>{" "}
                 <span className="text-xs text-muted-foreground">· noted {formatDate(u.noted_on)}</span>
-                <p className="text-foreground/90">{u.body}</p>
+                <p className="whitespace-pre-line text-foreground/90">{u.body}</p>
               </li>
             ))}
           </ul>

@@ -379,7 +379,7 @@ export function EventDetail({
             </p>
           )}
 
-          {event.summary && <p className="mt-3 max-w-4xl text-[15px] text-muted-foreground">{event.summary}</p>}
+          {event.summary && <p className="whitespace-pre-line mt-3 max-w-4xl text-[15px] text-muted-foreground">{event.summary}</p>}
           {/* WHAT THE RECORD TYPE MEANS, said out loud.
               "Mainstream / established view" on a chip is exactly the sort of
               label a reader will take for a verdict if nobody tells them
