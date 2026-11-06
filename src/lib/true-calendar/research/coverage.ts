@@ -2,7 +2,7 @@
 // engine can place on a modern date, and how confidently. Counted record by
 // record from the research bundle the database returns; nothing is estimated.
 
-import type { ResearchBundle } from "./daily";
+import { type ResearchBundle, historyBundle } from "./daily";
 import { type MappingLevel, type MappingProfile, MAPPING_PROFILES, profileFor } from "./mapping";
 import { type CivilDate, formatIsoDate } from "../dates";
 import { moonDays } from "../astronomy";
@@ -35,7 +35,8 @@ export interface MappingCoverage {
 
 const LISTED_A = new Set(["official", "culturally_verified", "published_secondary"]);
 
-export function mappingCoverage(bundle: ResearchBundle): MappingCoverage {
+export function mappingCoverage(all: ResearchBundle): MappingCoverage {
+  const bundle = historyBundle(all);
   const systems = new Map(bundle.systems.map((s) => [s.key, s]));
   const cycles = new Map(bundle.cycles.map((c) => [c.key, c]));
   const perProfile = new Map<string, number>();

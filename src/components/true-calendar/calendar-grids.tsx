@@ -21,6 +21,8 @@ import { FIXED_MONTHS, type FixedDate, addFixedMonths, fixedGridMonth, fixedToGr
 import { type DayMoon, type LunarDate, QUARTER_NAMES, moonDays, stepLunarMonth } from "@/lib/true-calendar/astronomy";
 import { isGregorianLeapYear } from "@/lib/true-calendar/dates";
 import { type MercuryDay, mercuryOn } from "@/lib/true-calendar/mercury";
+import type { HighlightKind } from "@/lib/true-calendar/personal-moon";
+import { KIND_LABEL, PersonalGridKey, PersonalMark, usePersonalDayKinds } from "./personal-moon";
 import { MoonGlyph } from "./moon-glyph";
 
 // The three month grids. All of them are plain buttons in a role="grid", so
@@ -134,7 +136,9 @@ function DayCell({
   children,
   className,
   mercury,
+  personal,
 }: {
+  personal?: HighlightKind | null;
   selected: boolean;
   isToday: boolean;
   muted?: boolean;
@@ -151,7 +155,7 @@ function DayCell({
       role="gridcell"
       aria-selected={selected}
       aria-current={isToday ? "date" : undefined}
-      aria-label={`${label}${retro}`}
+      aria-label={`${label}${retro}${personal ? `, ${KIND_LABEL[personal]}` : ""}`}
       tabIndex={selected ? 0 : -1}
       onClick={onClick}
       className={cn(
@@ -164,6 +168,7 @@ function DayCell({
       )}
     >
       {children}
+      {personal ? <PersonalMark kind={personal} className="absolute top-1 right-1" /> : null}
       {mercury?.retrograde ? (
         <span
           aria-hidden
@@ -224,6 +229,7 @@ export function GregorianGrid({ date, today, tz, southern, onSelect }: GridProps
   const gridStart = addDays(first, -lead);
   const moons = moonDays(gridStart, weeks * 7, tz);
   const mercury = mercuryDays(gridStart, weeks * 7, tz);
+  const personal = usePersonalDayKinds(gridStart, weeks * 7, tz);
 
   return (
     <div>
@@ -250,6 +256,7 @@ export function GregorianGrid({ date, today, tz, southern, onSelect }: GridProps
               label={`${formatLongDate(d)}${moonLabel(moon)}`}
               onClick={() => onSelect(d)}
               mercury={mercury[i]}
+              personal={personal[i]}
             >
               <span className="text-base tabular-nums leading-none">{d.day}</span>
               <MoonGlyph illumination={moon.state.illumination} waxing={moon.state.waxing} size={17} southern={southern} />
@@ -259,6 +266,7 @@ export function GregorianGrid({ date, today, tz, southern, onSelect }: GridProps
         })}
       </div>
       <MercuryKey days={mercury} />
+      <PersonalGridKey kinds={personal} />
     </div>
   );
 }
@@ -279,6 +287,7 @@ export function FixedGrid({ date, today, tz, southern, onSelect }: GridProps) {
   const count = 28 + (extra ? 1 : 0);
   const moons = moonDays(firstG, count, tz);
   const mercury = mercuryDays(firstG, count, tz);
+  const personal = usePersonalDayKinds(firstG, count, tz);
   const step = (n: number) => {
     const target = addFixedMonths(fixed, n);
     onSelect(fixedToGregorian(target));
@@ -308,6 +317,7 @@ export function FixedGrid({ date, today, tz, southern, onSelect }: GridProps) {
               label={`${WEEKDAYS[i % 7]} ${i + 1} ${FIXED_MONTHS[month - 1]} (fixed), ${formatLongDate(g)}${moonLabel(moon)}`}
               onClick={() => onSelect(g)}
               mercury={mercury[i]}
+              personal={personal[i]}
             >
               <span className="text-base tabular-nums leading-none">{i + 1}</span>
               <span className={cn("text-[11px] leading-none tabular-nums", selected ? "text-[var(--tc-selected-ink)]" : "text-[var(--tc-muted)]")}>{shortGregorian(g)}</span>
@@ -327,6 +337,7 @@ export function FixedGrid({ date, today, tz, southern, onSelect }: GridProps) {
                 label={`${formatFixedDate(extra)}, outside the week, ${formatLongDate(g)}${moonLabel(moon)}`}
                 onClick={() => onSelect(g)}
                 mercury={mercury[28]}
+                personal={personal[28]}
                 className="col-span-7 min-h-0 flex-row justify-center gap-2 py-2"
               >
                 <span className="text-base font-medium">{extra.kind === "leap-day" ? "Leap Day" : "Year Day"}</span>
@@ -340,6 +351,7 @@ export function FixedGrid({ date, today, tz, southern, onSelect }: GridProps) {
         ) : null}
       </div>
       <MercuryKey days={mercury} />
+      <PersonalGridKey kinds={personal} />
     </div>
   );
 }
@@ -351,6 +363,7 @@ export function LunarGrid({ date, today, tz, southern, onSelect, lunar }: GridPr
   const { month } = lunar;
   const moons = moonDays(month.start, month.length, tz);
   const mercury = mercuryDays(month.start, month.length, tz);
+  const personal = usePersonalDayKinds(month.start, month.length, tz);
 
   return (
     <div>
@@ -381,6 +394,7 @@ export function LunarGrid({ date, today, tz, southern, onSelect, lunar }: GridPr
               label={`Lunar day ${i + 1}, ${formatLongDate(g)}${moonLabel(moon)}`}
               onClick={() => onSelect(g)}
               mercury={mercury[i]}
+              personal={personal[i]}
             >
               <span className="text-base tabular-nums leading-none">{i + 1}</span>
               <MoonGlyph illumination={moon.state.illumination} waxing={moon.state.waxing} size={19} southern={southern} />
@@ -394,6 +408,7 @@ export function LunarGrid({ date, today, tz, southern, onSelect, lunar }: GridPr
         })}
       </div>
       <MercuryKey days={mercury} />
+      <PersonalGridKey kinds={personal} />
     </div>
   );
 }

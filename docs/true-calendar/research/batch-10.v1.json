@@ -1,0 +1,1267 @@
+{
+ "format": "true-calendar/v1",
+ "sources": [
+  {
+   "key": "src.firmicus-mathesis-kroll-1897",
+   "title": "Iulii Firmici Materni Matheseos libri VIII, vol. 1",
+   "author": "Julius Firmicus Maternus (ed. W. Kroll and F. Skutsch)",
+   "publisher": "Teubner, Leipzig",
+   "published": "1897",
+   "url": "https://archive.org/details/matheseoslibrivi01firmuoft",
+   "accessed_on": "2026-11-06",
+   "source_type": "primary_text",
+   "notes": "Latin text, written about 335 CE. Book II, chapter 19 ('De duodecim locorum potestatibus') gives what each of the twelve places shows, counted from the horoscopus (the rising sign); II.17 names the idle places. English renderings here are our own, from the Latin. Public domain.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.albiruni-instruction-wright-1934",
+   "title": "The Book of Instruction in the Elements of the Art of Astrology",
+   "author": "Abū al-Rayḥān al-Bīrūnī (tr. R. Ramsay Wright)",
+   "publisher": "Luzac & Co., London",
+   "published": "1934",
+   "url": "https://archive.org/details/albirunibookofinstruction",
+   "accessed_on": "2026-11-06",
+   "source_type": "primary_text",
+   "notes": "Written in Ghazna in 1029 CE; Arabic text with English translation facing. §461 'Special indications of the houses peculiar to nativities' lists what each of the twelve houses signifies. Short quotations only; the 1934 translation may still be in copyright outside the US.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.brihat-samhita-iyer-1884",
+   "title": "The Brihat Samhita of Varaha Mihira, translated into English",
+   "author": "Varāhamihira (tr. N. Chidambaram Iyer)",
+   "publisher": "South Indian Press, Madura",
+   "published": "1884",
+   "url": "https://archive.org/details/dli.csl.4675",
+   "accessed_on": "2026-11-06",
+   "source_type": "primary_text",
+   "notes": "Varāhamihira wrote in the 6th century CE. The chapter 'On the Effects of Planetary Motions' (the transit chapter, gocāra), verses 8 to 10, gives the effect of the Moon passing through each of the twelve signs counted from the sign the Moon occupied at birth. Public domain.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-house-astrology",
+   "title": "House (astrology)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/House_(astrology)",
+   "accessed_on": "2026-11-06",
+   "source_type": "reference",
+   "notes": "The whole-sign house system and its history (Hellenistic, Indian, early medieval; revived in the West in the 1980s and 1990s), and summaries of how modern astrologers (Liz Greene, Deborah Houlding, Dane Rudhyar, Stephen Arroyo) read each of the twelve houses.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-horoscope",
+   "title": "Horoscope",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Horoscope",
+   "accessed_on": "2026-11-06",
+   "source_type": "reference",
+   "notes": "Sun-sign astrology (the sign the Sun was in at birth, in the tropical zodiac) as used in newspaper and magazine columns; the difference between the tropical and sidereal zodiacs.",
+   "review_status": "draft"
+  }
+ ],
+ "cultures": [
+  {
+   "key": "astrology.hellenistic",
+   "name": "Hellenistic astrology",
+   "alt_names": [
+    "Greco-Roman astrology"
+   ],
+   "continent": "Europe",
+   "region": "The Greek- and Latin-speaking Mediterranean and Roman Egypt",
+   "countries": [
+    "Egypt",
+    "Greece",
+    "Italy"
+   ],
+   "continues_today": "partly",
+   "people": "Astrologers writing in Greek and Latin from about the 1st century BCE to the 7th century CE (Dorotheus, Ptolemy, Vettius Valens, Firmicus Maternus); revived by modern practitioners",
+   "overview": "Horoscopic astrology of the Hellenistic and Roman world. The tropical (or near-tropical) zodiac of twelve signs, and twelve 'places' counted by whole signs from the rising sign at birth.",
+   "research_status": "in_progress",
+   "sort_order": 90,
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.firmicus-mathesis-kroll-1897"
+    },
+    {
+     "source": "src.wikipedia-house-astrology"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha",
+   "name": "Jyotiṣa (Indian astrology)",
+   "alt_names": [
+    "Jyotisha",
+    "Vedic astrology"
+   ],
+   "continent": "Asia",
+   "region": "South Asia",
+   "countries": [
+    "India",
+    "Nepal",
+    "Sri Lanka"
+   ],
+   "continues_today": "yes",
+   "people": "Jyotiṣa practitioners (jyotiṣī) across South Asia, from the early centuries CE to today",
+   "overview": "Indian astrology. It uses the sidereal zodiac, which today sits about 24° behind the tropical zodiac, so a tropical Taurus Moon is mostly in sidereal Aries. Transits (gocāra) are read from the sign the Moon occupied at birth.",
+   "research_status": "in_progress",
+   "sort_order": 91,
+   "evidence": [
+    "historically_documented",
+    "ethnographically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884"
+    },
+    {
+     "source": "src.wikipedia-horoscope"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic",
+   "name": "Medieval Arabic astrology",
+   "alt_names": [
+    "ʿilm aḥkām al-nujūm"
+   ],
+   "continent": "Middle East",
+   "region": "The Abbasid world, Persia and Central Asia",
+   "countries": [
+    "Iraq",
+    "Iran",
+    "Afghanistan",
+    "Uzbekistan"
+   ],
+   "continues_today": "no",
+   "people": "Astrologers writing in Arabic and Persian from the 8th to the 13th century (Māshāʾallāh, Abū Maʿshar, al-Bīrūnī)",
+   "overview": "Astrology of the medieval Islamic world, building on Hellenistic, Persian and Indian sources. Tropical signs; houses counted from the ascendant at birth.",
+   "research_status": "in_progress",
+   "sort_order": 92,
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.albiruni-instruction-wright-1934"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western",
+   "name": "Modern Western astrology",
+   "alt_names": [
+    "Sun-sign astrology"
+   ],
+   "continent": "Europe",
+   "region": "Europe, the Americas and beyond",
+   "countries": [
+    "United Kingdom",
+    "United States"
+   ],
+   "continues_today": "yes",
+   "people": "20th- and 21st-century astrologers and horoscope columnists",
+   "overview": "Modern Western astrology, including Sun-sign astrology: the sign the Sun was in at birth in the tropical zodiac. Counting 'solar houses' from the Sun sign is a modern practice used where the birth time (and so the rising sign) is not known, as in newspaper columns.",
+   "research_status": "in_progress",
+   "sort_order": 93,
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-horoscope"
+    },
+    {
+     "source": "src.wikipedia-house-astrology"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "systems": [
+  {
+   "key": "astrology.hellenistic.places",
+   "culture_key": "astrology.hellenistic",
+   "name": "The twelve places",
+   "original_name": "loca (Latin, Firmicus)",
+   "translation": "places",
+   "kind": "other",
+   "day_rule": "Not a day count. Each place is one whole sign, counted from the rising sign at birth: the rising sign is the 1st place, the next sign the 2nd, and so on.",
+   "description": "What each of the twelve places shows in a birth chart, as Firmicus Maternus lists them (Mathesis II.19). Counted from the rising sign (horoscopus) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something these texts do.",
+   "uncertainty": "Firmicus describes birth charts, not the Moon's monthly passage. We have not found a Hellenistic text that reads the Moon's passage through places counted from the Sun sign; if one exists it isn't in this batch.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.firmicus-mathesis-kroll-1897",
+     "locator": "Book II, ch. 19"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit",
+   "culture_key": "astrology.jyotisha",
+   "name": "The Moon's transit from the birth Moon",
+   "original_name": "gocāra",
+   "translation": "transit",
+   "kind": "other",
+   "day_rule": "Not a day count. The Moon's present sign is counted from the sign the Moon occupied at birth, in the sidereal zodiac: the birth sign is the 1st, the next the 2nd, and so on.",
+   "description": "The effect of the Moon passing through each of the twelve signs from the birth Moon, as the Bṛhat Saṃhitā gives it. Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "uncertainty": "Uses the sidereal zodiac and the birth Moon sign, so it needs the birth time and place to be precise; Personal Moon does not yet calculate your sidereal birth Moon sign. The 1884 translation's scan is unclear in places.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, vv. 8–10"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic.houses",
+   "culture_key": "astrology.arabic",
+   "name": "The twelve houses in nativities",
+   "original_name": "al-buyūt",
+   "translation": "the houses",
+   "kind": "other",
+   "day_rule": "Not a day count. Houses counted from the ascendant at birth.",
+   "description": "What each house signifies in a nativity, as al-Bīrūnī lists them (Book of Instruction §461). Counted from the ascendant (rising degree) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something al-Bīrūnī does.",
+   "uncertainty": "Al-Bīrūnī describes birth charts, not the Moon's monthly passage through houses counted from the Sun sign. We have not found such a reading in this text.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "sources": [
+    {
+     "source": "src.albiruni-instruction-wright-1934",
+     "locator": "§461"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western.solar-houses",
+   "culture_key": "astrology.modern-western",
+   "name": "Solar houses",
+   "translation": "houses counted from the Sun sign",
+   "kind": "other",
+   "day_rule": "Not a day count. The Sun sign is the 1st house, the next sign the 2nd, and so on round the zodiac; the Moon's present sign falls in one of them.",
+   "description": "The modern reading of the twelve houses, applied to signs counted from the Sun sign. Counted from your Sun sign (the Sun sign is house 1). This is the frame Personal Moon uses.",
+   "uncertainty": "A modern practice. The house meanings are modern astrologers' readings (summarised by Wikipedia), not ancient ones; the older names (Life, Gain, Brothers…) are the traditional Latin ones.",
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "sources": [
+    {
+     "source": "src.wikipedia-house-astrology",
+     "locator": "Houses (First to Twelfth House)"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "cycles": [
+  {
+   "key": "astrology.hellenistic.places.twelve",
+   "system_key": "astrology.hellenistic.places",
+   "name": "Twelve places",
+   "length_days": 12,
+   "description": "The twelve places from the rising sign. Positions 0–11 are the 1st to 12th. Not a count of days: Personal Moon places the Moon in one of them from its calculated sign.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve",
+   "system_key": "astrology.jyotisha.moon-transit",
+   "name": "Twelve signs from the birth Moon",
+   "length_days": 12,
+   "description": "The twelve signs counted from the birth Moon. Positions 0–11 are the 1st to 12th. Not a count of days: Personal Moon places the Moon in one of them from its calculated sign.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic.houses.twelve",
+   "system_key": "astrology.arabic.houses",
+   "name": "Twelve houses",
+   "length_days": 12,
+   "description": "The twelve houses from the ascendant. Positions 0–11 are the 1st to 12th. Not a count of days: Personal Moon places the Moon in one of them from its calculated sign.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western.solar-houses.twelve",
+   "system_key": "astrology.modern-western.solar-houses",
+   "name": "Twelve solar houses",
+   "length_days": 12,
+   "description": "The twelve houses from the Sun sign. Positions 0–11 are the 1st to 12th. Not a count of days: Personal Moon places the Moon in one of them from its calculated sign.",
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "cycle_positions": [
+  {
+   "key": "astrology.hellenistic.places.twelve.p01",
+   "cycle_key": "astrology.hellenistic.places.twelve",
+   "position": 0,
+   "name": "1st place: Life and spirit",
+   "meaning": "In this place are contained people's life and spirit (vita hominum et spiritus); from it the foundations of the whole nativity are known. The first angle (cardo).",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the rising sign (horoscopus) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something these texts do.",
+   "sources": [
+    {
+     "source": "src.firmicus-mathesis-kroll-1897",
+     "locator": "Mathesis II.19.2"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.hellenistic.places.twelve.p02",
+   "cycle_key": "astrology.hellenistic.places.twelve",
+   "position": 1,
+   "name": "2nd place: Gate of the underworld",
+   "meaning": "From this sign the growth of hope and possessions (spei ac possessionis incrementa) is known. An idle place, called the gate of the underworld (inferna porta) because it casts no ray to the rising sign.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the rising sign (horoscopus) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something these texts do.",
+   "sources": [
+    {
+     "source": "src.firmicus-mathesis-kroll-1897",
+     "locator": "Mathesis II.19.3; II.17"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.hellenistic.places.twelve.p03",
+   "cycle_key": "astrology.hellenistic.places.twelve",
+   "position": 2,
+   "name": "3rd place: Goddess",
+   "meaning": "From this place we speak of brothers and friends. It is called Goddess (Dea), and is the place of travelling abroad.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the rising sign (horoscopus) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something these texts do.",
+   "sources": [
+    {
+     "source": "src.firmicus-mathesis-kroll-1897",
+     "locator": "Mathesis II.19.4"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.hellenistic.places.twelve.p04",
+   "cycle_key": "astrology.hellenistic.places.twelve",
+   "position": 3,
+   "name": "4th place: Lowest heaven",
+   "meaning": "The lowest heaven (imum caelum): parents, inheritance, property, foundations, movable goods and whatever belongs to the hidden and stored wealth of the inheritance. An angle of the nativity.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the rising sign (horoscopus) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something these texts do.",
+   "sources": [
+    {
+     "source": "src.firmicus-mathesis-kroll-1897",
+     "locator": "Mathesis II.19.5"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.hellenistic.places.twelve.p05",
+   "cycle_key": "astrology.hellenistic.places.twelve",
+   "position": 4,
+   "name": "5th place: Good fortune",
+   "meaning": "From this place the number of children and the quality of the family are found. Called Good Fortune (Bona fortuna), the place of Venus.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the rising sign (horoscopus) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something these texts do.",
+   "sources": [
+    {
+     "source": "src.firmicus-mathesis-kroll-1897",
+     "locator": "Mathesis II.19.6"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.hellenistic.places.twelve.p06",
+   "cycle_key": "astrology.hellenistic.places.twelve",
+   "position": 5,
+   "name": "6th place: Bad fortune",
+   "meaning": "In this sign we find the cause of faults and of health (causam vitii ac valitudinis). Called Bad Fortune (Mala fortuna), the place of Mars. An idle place.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the rising sign (horoscopus) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something these texts do.",
+   "sources": [
+    {
+     "source": "src.firmicus-mathesis-kroll-1897",
+     "locator": "Mathesis II.19.7"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.hellenistic.places.twelve.p07",
+   "cycle_key": "astrology.hellenistic.places.twelve",
+   "position": 6,
+   "name": "7th place: Setting",
+   "meaning": "The setting (occasus; Greek dysis), the angle opposite the rising sign. From it we look into the quality and number of marriages.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the rising sign (horoscopus) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something these texts do.",
+   "sources": [
+    {
+     "source": "src.firmicus-mathesis-kroll-1897",
+     "locator": "Mathesis II.19.8"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.hellenistic.places.twelve.p08",
+   "cycle_key": "astrology.hellenistic.places.twelve",
+   "position": 7,
+   "name": "8th place: Epicatafora",
+   "meaning": "An idle place. From it the manner of death is found. Only the Moon rejoices here, and only in night births.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the rising sign (horoscopus) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something these texts do.",
+   "sources": [
+    {
+     "source": "src.firmicus-mathesis-kroll-1897",
+     "locator": "Mathesis II.19.9"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.hellenistic.places.twelve.p09",
+   "cycle_key": "astrology.hellenistic.places.twelve",
+   "position": 8,
+   "name": "9th place: God the Sun",
+   "meaning": "The place of the god Sun. In it we find people's schools of thought; it concerns religion and journeys abroad.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the rising sign (horoscopus) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something these texts do.",
+   "sources": [
+    {
+     "source": "src.firmicus-mathesis-kroll-1897",
+     "locator": "Mathesis II.19.10"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.hellenistic.places.twelve.p10",
+   "cycle_key": "astrology.hellenistic.places.twelve",
+   "position": 9,
+   "name": "10th place: Midheaven",
+   "meaning": "The midheaven (medium caelum), the strongest of the angles: life and spirit, all actions, homeland, dwelling and whole way of life, crafts and whatever comes from them; and the faults of the mind.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the rising sign (horoscopus) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something these texts do.",
+   "sources": [
+    {
+     "source": "src.firmicus-mathesis-kroll-1897",
+     "locator": "Mathesis II.19.11"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.hellenistic.places.twelve.p11",
+   "cycle_key": "astrology.hellenistic.places.twelve",
+   "position": 10,
+   "name": "11th place: Good daemon",
+   "meaning": "Called the Good Daemon or Good Genius (Bonus daemon, Greek agathos daemon), the place of Jupiter.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the rising sign (horoscopus) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something these texts do.",
+   "sources": [
+    {
+     "source": "src.firmicus-mathesis-kroll-1897",
+     "locator": "Mathesis II.19.12"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.hellenistic.places.twelve.p12",
+   "cycle_key": "astrology.hellenistic.places.twelve",
+   "position": 11,
+   "name": "12th place: Bad daemon",
+   "meaning": "Called the Bad Daemon (Malus daemon, Greek cacos daemon), the place of Saturn. From it the nature of enemies and the condition of slaves are shown; faults and illnesses are found here too. An idle place.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the rising sign (horoscopus) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something these texts do.",
+   "sources": [
+    {
+     "source": "src.firmicus-mathesis-kroll-1897",
+     "locator": "Mathesis II.19.13"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic.houses.twelve.h01",
+   "cycle_key": "astrology.arabic.houses.twelve",
+   "position": 0,
+   "name": "1st house",
+   "meaning": "In a nativity: Soul, life, length of life, education, native land.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the ascendant (rising degree) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something al-Bīrūnī does.",
+   "sources": [
+    {
+     "source": "src.albiruni-instruction-wright-1934",
+     "locator": "§461 (Wright's translation, abridged)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic.houses.twelve.h02",
+   "cycle_key": "astrology.arabic.houses.twelve",
+   "position": 1,
+   "name": "2nd house",
+   "meaning": "In a nativity: Nutriment, livelihood, household requisites, assistants; disaster to the eyes if it meets ill luck.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the ascendant (rising degree) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something al-Bīrūnī does.",
+   "sources": [
+    {
+     "source": "src.albiruni-instruction-wright-1934",
+     "locator": "§461 (Wright's translation, abridged)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic.houses.twelve.h03",
+   "cycle_key": "astrology.arabic.houses.twelve",
+   "position": 2,
+   "name": "3rd house",
+   "meaning": "In a nativity: Brothers, sisters and relations, jewels, friends, migration, short journeys, intelligence, knowledge, expertness in religious law.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the ascendant (rising degree) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something al-Bīrūnī does.",
+   "sources": [
+    {
+     "source": "src.albiruni-instruction-wright-1934",
+     "locator": "§461 (Wright's translation, abridged)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic.houses.twelve.h04",
+   "cycle_key": "astrology.arabic.houses.twelve",
+   "position": 3,
+   "name": "4th house",
+   "meaning": "In a nativity: Parents, grandparents, descendants, real estate, fields, houses, water supply, knowledge of genealogy, and what follows death.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the ascendant (rising degree) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something al-Bīrūnī does.",
+   "sources": [
+    {
+     "source": "src.albiruni-instruction-wright-1934",
+     "locator": "§461 (Wright's translation, abridged)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic.houses.twelve.h05",
+   "cycle_key": "astrology.arabic.houses.twelve",
+   "position": 4,
+   "name": "5th house",
+   "meaning": "In a nativity: Children, friends, clothes, pleasure, joy, a little acquisition of property, the father's accumulated wealth.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the ascendant (rising degree) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something al-Bīrūnī does.",
+   "sources": [
+    {
+     "source": "src.albiruni-instruction-wright-1934",
+     "locator": "§461 (Wright's translation, abridged)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic.houses.twelve.h06",
+   "cycle_key": "astrology.arabic.houses.twelve",
+   "position": 5,
+   "name": "6th house",
+   "meaning": "In a nativity: Sickness, defects of the body, overwork, loss of property, disease of the internal organs, slaves, maids, cattle.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the ascendant (rising degree) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something al-Bīrūnī does.",
+   "sources": [
+    {
+     "source": "src.albiruni-instruction-wright-1934",
+     "locator": "§461 (Wright's translation, abridged)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic.houses.twelve.h07",
+   "cycle_key": "astrology.arabic.houses.twelve",
+   "position": 6,
+   "name": "7th house",
+   "meaning": "In a nativity: Women, giving in marriage, marriage feasts, contentions, partnership, losses, lawsuits.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the ascendant (rising degree) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something al-Bīrūnī does.",
+   "sources": [
+    {
+     "source": "src.albiruni-instruction-wright-1934",
+     "locator": "§461 (Wright's translation, abridged)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic.houses.twelve.h08",
+   "cycle_key": "astrology.arabic.houses.twelve",
+   "position": 7,
+   "name": "8th house",
+   "meaning": "In a nativity: Death and its causes, inheritance, the wife's property, expenditure, poverty.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the ascendant (rising degree) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something al-Bīrūnī does.",
+   "sources": [
+    {
+     "source": "src.albiruni-instruction-wright-1934",
+     "locator": "§461 (Wright's translation, abridged)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic.houses.twelve.h09",
+   "cycle_key": "astrology.arabic.houses.twelve",
+   "position": 8,
+   "name": "9th house",
+   "meaning": "In a nativity: Travel, religion, piety, fate, seriousness, gaining knowledge from the stars and divination, philosophy, interpreting visions and dreams.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the ascendant (rising degree) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something al-Bīrūnī does.",
+   "sources": [
+    {
+     "source": "src.albiruni-instruction-wright-1934",
+     "locator": "§461 (Wright's translation, abridged)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic.houses.twelve.h10",
+   "cycle_key": "astrology.arabic.houses.twelve",
+   "position": 9,
+   "name": "10th house",
+   "meaning": "In a nativity: Rule of the sultan, government, absolute authority, success in business, commerce, professions, well-behaved children, liberality.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the ascendant (rising degree) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something al-Bīrūnī does.",
+   "sources": [
+    {
+     "source": "src.albiruni-instruction-wright-1934",
+     "locator": "§461 (Wright's translation, abridged)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic.houses.twelve.h11",
+   "cycle_key": "astrology.arabic.houses.twelve",
+   "position": 10,
+   "name": "11th house",
+   "meaning": "In a nativity: Happiness, friends, enemies, concern for the next world, prayer and praise, love, dress, perfume, ornaments, commerce, long life.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the ascendant (rising degree) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something al-Bīrūnī does.",
+   "sources": [
+    {
+     "source": "src.albiruni-instruction-wright-1934",
+     "locator": "§461 (Wright's translation, abridged)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.arabic.houses.twelve.h12",
+   "cycle_key": "astrology.arabic.houses.twelve",
+   "position": 11,
+   "name": "12th house",
+   "meaning": "In a nativity: Enemies, misery, anxieties, prison, debt, fines, fear, adversity, disease, slaves, servants, armies, exile, tumults.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the ascendant (rising degree) at birth, not from the Sun sign. Applying these meanings to your Sun-sign houses is a modern transfer, not something al-Bīrūnī does.",
+   "sources": [
+    {
+     "source": "src.albiruni-instruction-wright-1934",
+     "locator": "§461 (Wright's translation, abridged)"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s01",
+   "cycle_key": "astrology.jyotisha.moon-transit.twelve",
+   "position": 0,
+   "name": "Moon in the 1st sign from the birth Moon",
+   "meaning": "The person will get meals, an excellent bed and clothes.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 8"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s02",
+   "cycle_key": "astrology.jyotisha.moon-transit.twelve",
+   "position": 1,
+   "name": "Moon in the 2nd sign from the birth Moon",
+   "meaning": "The person will suffer loss of respectability and of wealth, and obstacles.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 8"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s03",
+   "cycle_key": "astrology.jyotisha.moon-transit.twelve",
+   "position": 2,
+   "name": "Moon in the 3rd sign from the birth Moon",
+   "meaning": "The person will get clothes, women and wealth in abundance.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 8"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s04",
+   "cycle_key": "astrology.jyotisha.moon-transit.twelve",
+   "position": 3,
+   "name": "Moon in the 4th sign from the birth Moon",
+   "meaning": "An unfavourable passage; the translation's wording is garbled in the 1884 scan, so we don't quote it.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 8"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s05",
+   "cycle_key": "astrology.jyotisha.moon-transit.twelve",
+   "position": 4,
+   "name": "Moon in the 5th sign from the birth Moon",
+   "meaning": "The person will suffer humiliation, diseases, pain of mind and obstacles in his path.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 9"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s06",
+   "cycle_key": "astrology.jyotisha.moon-transit.twelve",
+   "position": 5,
+   "name": "Moon in the 6th sign from the birth Moon",
+   "meaning": "The person will enjoy wealth and comfort and the ruin of his enemies, and will be freed from diseases.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 9"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s07",
+   "cycle_key": "astrology.jyotisha.moon-transit.twelve",
+   "position": 6,
+   "name": "Moon in the 7th sign from the birth Moon",
+   "meaning": "The person will enjoy a carriage, respectability, a good bed, good meals and wealth.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 9"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s08",
+   "cycle_key": "astrology.jyotisha.moon-transit.twelve",
+   "position": 7,
+   "name": "Moon in the 8th sign from the birth Moon",
+   "meaning": "The person will live in fear of evils.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 9"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s09",
+   "cycle_key": "astrology.jyotisha.moon-transit.twelve",
+   "position": 8,
+   "name": "Moon in the 9th sign from the birth Moon",
+   "meaning": "The person will suffer imprisonment, pain of mind, fatigue of body and chest pain.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 10"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s10",
+   "cycle_key": "astrology.jyotisha.moon-transit.twelve",
+   "position": 9,
+   "name": "Moon in the 10th sign from the birth Moon",
+   "meaning": "The person's orders will be carried out and he will succeed in his work.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 10"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s11",
+   "cycle_key": "astrology.jyotisha.moon-transit.twelve",
+   "position": 10,
+   "name": "Moon in the 11th sign from the birth Moon",
+   "meaning": "The person will enjoy prosperity and will get new friends and wealth.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 10"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s12",
+   "cycle_key": "astrology.jyotisha.moon-transit.twelve",
+   "position": 11,
+   "name": "Moon in the 12th sign from the birth Moon",
+   "meaning": "He will suffer from injuries received from a bullock.",
+   "favourability": "unfavourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 10"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western.solar-houses.twelve.h01",
+   "cycle_key": "astrology.modern-western.solar-houses.twelve",
+   "position": 0,
+   "name": "1st house: Self",
+   "original_name": "Vita, Life",
+   "meaning": "Self-identity, physical appearance and the way you meet the world.",
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "uncertainty": "Modern astrologers' reading (Greene, Houlding, Rudhyar, Arroyo as summarised by Wikipedia); the Latin names are the traditional ones.",
+   "sources": [
+    {
+     "source": "src.wikipedia-house-astrology",
+     "locator": "First House"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western.solar-houses.twelve.h02",
+   "cycle_key": "astrology.modern-western.solar-houses.twelve",
+   "position": 1,
+   "name": "2nd house: Value",
+   "original_name": "Lucrum, Gain",
+   "meaning": "Personal resources, possessions, money and self-worth.",
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "uncertainty": "Modern astrologers' reading (Greene, Houlding, Rudhyar, Arroyo as summarised by Wikipedia); the Latin names are the traditional ones.",
+   "sources": [
+    {
+     "source": "src.wikipedia-house-astrology",
+     "locator": "Second House"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western.solar-houses.twelve.h03",
+   "cycle_key": "astrology.modern-western.solar-houses.twelve",
+   "position": 2,
+   "name": "3rd house: Sharing",
+   "original_name": "Fratres, Brothers",
+   "meaning": "Communication, learning, siblings and your immediate surroundings.",
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "uncertainty": "Modern astrologers' reading (Greene, Houlding, Rudhyar, Arroyo as summarised by Wikipedia); the Latin names are the traditional ones.",
+   "sources": [
+    {
+     "source": "src.wikipedia-house-astrology",
+     "locator": "Third House"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western.solar-houses.twelve.h04",
+   "cycle_key": "astrology.modern-western.solar-houses.twelve",
+   "position": 3,
+   "name": "4th house: Home and family",
+   "original_name": "Genitor, Parent",
+   "meaning": "Home, family and emotional roots.",
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "uncertainty": "Modern astrologers' reading (Greene, Houlding, Rudhyar, Arroyo as summarised by Wikipedia); the Latin names are the traditional ones.",
+   "sources": [
+    {
+     "source": "src.wikipedia-house-astrology",
+     "locator": "Fourth House"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western.solar-houses.twelve.h05",
+   "cycle_key": "astrology.modern-western.solar-houses.twelve",
+   "position": 4,
+   "name": "5th house: Pleasure",
+   "original_name": "Nati, Children",
+   "meaning": "Creativity, romance, play and self-expression.",
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "uncertainty": "Modern astrologers' reading (Greene, Houlding, Rudhyar, Arroyo as summarised by Wikipedia); the Latin names are the traditional ones.",
+   "sources": [
+    {
+     "source": "src.wikipedia-house-astrology",
+     "locator": "Fifth House"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western.solar-houses.twelve.h06",
+   "cycle_key": "astrology.modern-western.solar-houses.twelve",
+   "position": 5,
+   "name": "6th house: Health and service",
+   "original_name": "Valetudo, Health",
+   "meaning": "Health, daily routines, work and service to others.",
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "uncertainty": "Modern astrologers' reading (Greene, Houlding, Rudhyar, Arroyo as summarised by Wikipedia); the Latin names are the traditional ones.",
+   "sources": [
+    {
+     "source": "src.wikipedia-house-astrology",
+     "locator": "Sixth House"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western.solar-houses.twelve.h07",
+   "cycle_key": "astrology.modern-western.solar-houses.twelve",
+   "position": 6,
+   "name": "7th house: Balance",
+   "original_name": "Uxor, Spouse",
+   "meaning": "Relationships: marriage, business partnerships and contracts.",
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "uncertainty": "Modern astrologers' reading (Greene, Houlding, Rudhyar, Arroyo as summarised by Wikipedia); the Latin names are the traditional ones.",
+   "sources": [
+    {
+     "source": "src.wikipedia-house-astrology",
+     "locator": "Seventh House"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western.solar-houses.twelve.h08",
+   "cycle_key": "astrology.modern-western.solar-houses.twelve",
+   "position": 7,
+   "name": "8th house: Transformation",
+   "original_name": "Mors, Death",
+   "meaning": "Transformation, shared resources and intimacy.",
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "uncertainty": "Modern astrologers' reading (Greene, Houlding, Rudhyar, Arroyo as summarised by Wikipedia); the Latin names are the traditional ones.",
+   "sources": [
+    {
+     "source": "src.wikipedia-house-astrology",
+     "locator": "Eighth House"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western.solar-houses.twelve.h09",
+   "cycle_key": "astrology.modern-western.solar-houses.twelve",
+   "position": 8,
+   "name": "9th house: Purpose",
+   "original_name": "Iter, Journey",
+   "meaning": "Higher learning, philosophy, belief and long journeys.",
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "uncertainty": "Modern astrologers' reading (Greene, Houlding, Rudhyar, Arroyo as summarised by Wikipedia); the Latin names are the traditional ones.",
+   "sources": [
+    {
+     "source": "src.wikipedia-house-astrology",
+     "locator": "Ninth House"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western.solar-houses.twelve.h10",
+   "cycle_key": "astrology.modern-western.solar-houses.twelve",
+   "position": 9,
+   "name": "10th house: Enterprise",
+   "original_name": "Regnum, Kingdom",
+   "meaning": "Career, public reputation and standing.",
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "uncertainty": "Modern astrologers' reading (Greene, Houlding, Rudhyar, Arroyo as summarised by Wikipedia); the Latin names are the traditional ones.",
+   "sources": [
+    {
+     "source": "src.wikipedia-house-astrology",
+     "locator": "Tenth House"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western.solar-houses.twelve.h11",
+   "cycle_key": "astrology.modern-western.solar-houses.twelve",
+   "position": 10,
+   "name": "11th house: Blessings",
+   "original_name": "Benefacta, Support",
+   "meaning": "Friendships, networks, community and shared hopes.",
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "uncertainty": "Modern astrologers' reading (Greene, Houlding, Rudhyar, Arroyo as summarised by Wikipedia); the Latin names are the traditional ones.",
+   "sources": [
+    {
+     "source": "src.wikipedia-house-astrology",
+     "locator": "Eleventh House"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.modern-western.solar-houses.twelve.h12",
+   "cycle_key": "astrology.modern-western.solar-houses.twelve",
+   "position": 11,
+   "name": "12th house: Sacrifice",
+   "original_name": "Carcer, Rehabilitation",
+   "meaning": "The subconscious, spirituality, solitude, retreat and hidden things.",
+   "evidence": [
+    "modern_interpretation"
+   ],
+   "uncertainty": "Modern astrologers' reading (Greene, Houlding, Rudhyar, Arroyo as summarised by Wikipedia); the Latin names are the traditional ones.",
+   "sources": [
+    {
+     "source": "src.wikipedia-house-astrology",
+     "locator": "Twelfth House"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "meanings": [],
+ "recommendations": [
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s01.transit",
+   "culture_key": "astrology.jyotisha",
+   "system_key": "astrology.jyotisha.moon-transit",
+   "cycle_position_key": "astrology.jyotisha.moon-transit.twelve.s01",
+   "activity": "other",
+   "historical_practice": "When the Moon passes through the 1st sign from the sign it occupied at birth: the person will get meals, an excellent bed and clothes.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 8"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s02.transit",
+   "culture_key": "astrology.jyotisha",
+   "system_key": "astrology.jyotisha.moon-transit",
+   "cycle_position_key": "astrology.jyotisha.moon-transit.twelve.s02",
+   "activity": "other",
+   "historical_practice": "When the Moon passes through the 2nd sign from the sign it occupied at birth: the person will suffer loss of respectability and of wealth, and obstacles.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 8"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "astrology.jyotisha.moon-transit.twelve.s12.transit",
+   "culture_key": "astrology.jyotisha",
+   "system_key": "astrology.jyotisha.moon-transit",
+   "cycle_position_key": "astrology.jyotisha.moon-transit.twelve.s12",
+   "activity": "other",
+   "historical_practice": "When the Moon passes through the 12th sign from the sign it occupied at birth: he will suffer from injuries received from a bullock.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "Counted from the sign the Moon was in at your birth, in the sidereal zodiac, not from your tropical Sun sign. These are the Moon's own transit results in Jyotiṣa, shown here for comparison; they do not fall on the same days as your solar houses.",
+   "sources": [
+    {
+     "source": "src.brihat-samhita-iyer-1884",
+     "locator": "On the Effects of Planetary Motions, v. 10"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ]
+}

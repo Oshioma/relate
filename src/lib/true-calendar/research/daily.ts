@@ -43,6 +43,55 @@ export interface ResearchBundle {
 
 export const EMPTY_BUNDLE: ResearchBundle = { cultures: [], systems: [], cycles: [], positions: [], observances: [], meanings: [], recommendations: [], correspondences: [], notes: [], lunarDays: [], months: [], sources: [], citations: [] };
 
+// --- Astrology traditions ------------------------------------------------------
+//
+// The astrology traditions (culture keys "astrology.…") describe houses and
+// transits, not days. Personal Moon reads them; the history feed, the day hub
+// and the coverage counts never see them, so personal readings and historical
+// day records stay independent.
+
+export const isAstrologyKey = (key: string | null | undefined): boolean => Boolean(key && key.startsWith("astrology."));
+
+const splitCache = new WeakMap<ResearchBundle, { history: ResearchBundle; astrology: ResearchBundle }>();
+
+function split(b: ResearchBundle) {
+  const hit = splitCache.get(b);
+  if (hit) return hit;
+  const part = (astro: boolean): ResearchBundle => {
+    const keep = (k: string | null | undefined) => isAstrologyKey(k) === astro;
+    const cycles = b.cycles.filter((c) => keep(c.system_key));
+    const cycleKeys = new Set(cycles.map((c) => c.key));
+    return {
+      cultures: b.cultures.filter((c) => keep(c.key)),
+      systems: b.systems.filter((s) => keep(s.culture_key)),
+      cycles,
+      positions: b.positions.filter((p) => cycleKeys.has(p.cycle_key)),
+      observances: b.observances.filter((o) => keep(o.culture_key)),
+      meanings: b.meanings.filter((m) => keep(m.culture_key)),
+      recommendations: b.recommendations.filter((r) => keep(r.culture_key)),
+      correspondences: b.correspondences.filter((c) => keep(c.culture_key)),
+      notes: astro ? [] : b.notes,
+      lunarDays: b.lunarDays.filter((d) => keep(d.system_key)),
+      months: b.months.filter((m) => keep(m.system_key)),
+      sources: b.sources,
+      citations: b.citations.filter((c) => keep(c.claim_key)),
+    };
+  };
+  const out = { history: part(false), astrology: part(true) };
+  splitCache.set(b, out);
+  return out;
+}
+
+/** The bundle without the astrology traditions (what the history feed uses). */
+export function historyBundle(b: ResearchBundle): ResearchBundle {
+  return b.cultures.some((c) => isAstrologyKey(c.key)) || b.systems.some((s) => isAstrologyKey(s.key)) ? split(b).history : b;
+}
+
+/** Only the astrology traditions (what Personal Moon uses). */
+export function astrologyBundle(b: ResearchBundle): ResearchBundle {
+  return split(b).astrology;
+}
+
 /** The modern suggestions written for this date. */
 export function notesForDay(bundle: ResearchBundle, date: CivilDate): Row<DailyNoteRecord>[] {
   const iso = formatIsoDate(date);
@@ -108,7 +157,8 @@ function onDate(c: Row<CorrespondenceRecord>, iso: string): boolean {
   return c.gregorian_from <= iso && iso <= (c.gregorian_to ?? c.gregorian_from);
 }
 
-export function entriesForDay(bundle: ResearchBundle, date: CivilDate, moon: DayMoon | null): DayEntry[] {
+export function entriesForDay(all: ResearchBundle, date: CivilDate, moon: DayMoon | null): DayEntry[] {
+  const bundle = historyBundle(all);
   const cultures = new Map(bundle.cultures.map((c) => [c.key, c]));
   const systems = new Map(bundle.systems.map((s) => [s.key, s]));
   const out: DayEntry[] = [];

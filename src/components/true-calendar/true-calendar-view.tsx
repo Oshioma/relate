@@ -30,13 +30,27 @@ import { DayWisdom } from "./day-wisdom";
 import type { ResearchBundle } from "@/lib/true-calendar/research/daily";
 import type { ResearchStats } from "@/lib/data/true-calendar";
 import { useCalendarPrefs, useCalendarState } from "./use-calendar-state";
+import { PersonalMoonPanel, PersonalMoonProvider } from "./personal-moon";
+import type { BirthProfileRow } from "@/lib/data/true-calendar";
 
 // The True Calendar: two synchronised calendars for one selected day.
 // Left, the Gregorian month; right, the International Fixed Calendar or the
 // astronomical lunar calendar. Every control just changes the selected date
 // (kept in the URL), and both sides and the Moon panel follow it.
 
-export function TrueCalendarView({ bundle, stats, historyPath }: { bundle: ResearchBundle; stats: ResearchStats | null; historyPath: string }) {
+export function TrueCalendarView({
+  bundle,
+  stats,
+  historyPath,
+  birthProfile = null,
+  spacePath = "",
+}: {
+  bundle: ResearchBundle;
+  stats: ResearchStats | null;
+  historyPath: string;
+  birthProfile?: BirthProfileRow | null;
+  spacePath?: string;
+}) {
   const state = useCalendarState();
   const [prefs, setPrefs] = useCalendarPrefs();
   // On a phone the two calendars share one slot; this picks which shows.
@@ -45,7 +59,9 @@ export function TrueCalendarView({ bundle, stats, historyPath }: { bundle: Resea
   return !state.ready ? (
     <LoadingFrame />
   ) : (
-    <Calendar state={state} prefs={prefs} setPrefs={setPrefs} mobileSide={mobileSide} setMobileSide={setMobileSide} bundle={bundle} stats={stats} historyPath={historyPath} />
+    <PersonalMoonProvider row={birthProfile} bundle={bundle} calendarTz={state.tz} spacePath={spacePath}>
+      <Calendar state={state} prefs={prefs} setPrefs={setPrefs} mobileSide={mobileSide} setMobileSide={setMobileSide} bundle={bundle} stats={stats} historyPath={historyPath} />
+    </PersonalMoonProvider>
   );
 }
 
@@ -168,6 +184,8 @@ function Calendar({
       </div>
 
       <MoonPanel date={date} tz={tz} prefs={prefs} onPrefs={setPrefs} />
+
+      <PersonalMoonPanel />
 
       <DayWisdom bundle={bundle} stats={stats} date={date} tz={tz} historyPath={historyPath} isToday={isToday} />
     </div>

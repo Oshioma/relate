@@ -3830,6 +3830,12 @@ export type Database = {
         Update: Partial<TC.CalendarBookmark>;
         Relationships: [];
       };
+      calendar_birth_profiles: {
+        Row: TC.CalendarBirthProfile;
+        Insert: Partial<TC.CalendarBirthProfile> & { user_id: string; birth_date: string };
+        Update: Partial<TC.CalendarBirthProfile>;
+        Relationships: [];
+      };
       lesson_batch_jobs: {
         Row: LessonBatchJob;
         Insert: Partial<LessonBatchJob> & {
