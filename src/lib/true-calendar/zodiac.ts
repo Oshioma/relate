@@ -21,18 +21,18 @@ import * as Astronomy from "astronomy-engine";
 import { type CivilDate, addDays, daysFromCivil, isValidTimeZone, startOfDayIn, zoneOffsetMinutes } from "./dates";
 
 export const SIGNS = [
-  { key: "aries", name: "Aries", symbol: "♈" },
-  { key: "taurus", name: "Taurus", symbol: "♉" },
-  { key: "gemini", name: "Gemini", symbol: "♊" },
-  { key: "cancer", name: "Cancer", symbol: "♋" },
-  { key: "leo", name: "Leo", symbol: "♌" },
-  { key: "virgo", name: "Virgo", symbol: "♍" },
-  { key: "libra", name: "Libra", symbol: "♎" },
-  { key: "scorpio", name: "Scorpio", symbol: "♏" },
-  { key: "sagittarius", name: "Sagittarius", symbol: "♐" },
-  { key: "capricorn", name: "Capricorn", symbol: "♑" },
-  { key: "aquarius", name: "Aquarius", symbol: "♒" },
-  { key: "pisces", name: "Pisces", symbol: "♓" },
+  { key: "aries", name: "Aries", symbol: "♈\uFE0E" },
+  { key: "taurus", name: "Taurus", symbol: "♉\uFE0E" },
+  { key: "gemini", name: "Gemini", symbol: "♊\uFE0E" },
+  { key: "cancer", name: "Cancer", symbol: "♋\uFE0E" },
+  { key: "leo", name: "Leo", symbol: "♌\uFE0E" },
+  { key: "virgo", name: "Virgo", symbol: "♍\uFE0E" },
+  { key: "libra", name: "Libra", symbol: "♎\uFE0E" },
+  { key: "scorpio", name: "Scorpio", symbol: "♏\uFE0E" },
+  { key: "sagittarius", name: "Sagittarius", symbol: "♐\uFE0E" },
+  { key: "capricorn", name: "Capricorn", symbol: "♑\uFE0E" },
+  { key: "aquarius", name: "Aquarius", symbol: "♒\uFE0E" },
+  { key: "pisces", name: "Pisces", symbol: "♓\uFE0E" },
 ] as const;
 export type SignIndex = number; // 0 = Aries … 11 = Pisces
 
@@ -302,4 +302,22 @@ export function stayDates(stay: MoonSignStay, tz: string, civilAt: (d: Date, tz:
   const out: CivilDate[] = [];
   for (let d = first; daysFromCivil(d) <= daysFromCivil(last); d = addDays(d, 1)) out.push(d);
   return out;
+}
+
+// --- Sidereal comparison (Jyotiṣa) ---------------------------------------------
+
+/**
+ * The Lahiri (Chitrapaksha) ayanāṃśa, the offset of the sidereal zodiac used
+ * by the Indian national calendar: about 23.85° at the start of 2000, growing
+ * by about 50.3″ a year with precession. Good to a few hundredths of a degree,
+ * enough to name a sign (and flag when the Moon is near a sign's edge).
+ */
+export function lahiriAyanamsa(instant: Date | number): number {
+  const years = (new Date(instant).getTime() - Date.UTC(2000, 0, 1, 12)) / (365.25 * DAY);
+  return 23.853 + (50.29 / 3600) * years;
+}
+
+/** The sidereal (Lahiri) sign of the Moon at an instant. */
+export function siderealMoonSign(instant: Date | number): SignIndex {
+  return signOfLongitude(moonLongitude(instant) - lahiriAyanamsa(instant));
 }

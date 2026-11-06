@@ -31,6 +31,7 @@ import { explainItem } from "@/lib/true-calendar/research/explanations";
 import { EvidenceChips } from "./history-bits";
 import { MercuryNotes, mercuryHeadline } from "./mercury-status";
 import { MoonGlyph } from "./moon-glyph";
+import { MoonModeToggle, PersonalDayLines, PersonalEventList, usePersonalMoon } from "./personal-moon";
 
 // "Next Advice From the Past": one chronological calendar of traditional
 // knowledge. Each date in the range that has a sourced record gets one card:
@@ -122,6 +123,9 @@ export function NextAdvice({ bundle, stats, date, tz, historyPath }: { bundle: R
     setShown(FIRST_DAYS);
   };
   const last = addDays(start, range - 1);
+  // Personal Moon | All Moon Events (only once the member has added their birth date).
+  const personal = usePersonalMoon();
+  const personalOnly = Boolean(personal?.sun) && personal?.mode === "personal";
 
   return (
     <section
@@ -133,7 +137,13 @@ export function NextAdvice({ bundle, stats, date, tz, historyPath }: { bundle: R
       <h2 id="tc-next-advice-heading" className="font-serif text-3xl font-semibold sm:text-4xl">Next Advice From the Past</h2>
       <p className="mt-1 text-lg text-[var(--tc-muted)]">Traditional knowledge for each day ahead, in date order.</p>
 
-      <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Filter by kind of knowledge">
+      {personal?.sun ? (
+        <div className="mt-3">
+          <MoonModeToggle />
+        </div>
+      ) : null}
+
+      <div className={`mt-4 flex flex-wrap gap-2 ${personalOnly ? "hidden" : ""}`} role="group" aria-label="Filter by kind of knowledge">
         <Chip active={filter.category === "all"} onClick={() => set({ category: "all" })}>All</Chip>
         {ADVICE_CATEGORIES.map((c) => {
           const ui = CATEGORY_UI[c.key];
@@ -203,9 +213,11 @@ export function NextAdvice({ bundle, stats, date, tz, historyPath }: { bundle: R
         ) : null}
       </p>
 
-      <ModelChoice choice={choice} setChoice={(c) => setChoice(c)} />
+      {personalOnly ? null : <ModelChoice choice={choice} setChoice={(c) => setChoice(c)} />}
 
-      {everything.length === 0 ? (
+      {personalOnly ? (
+        <PersonalEventList start={start} days={range} tz={tz} />
+      ) : everything.length === 0 ? (
         <p className="mt-5 text-base text-[var(--tc-muted)]">
           No research has been published yet. Knowledge appears here as soon as a reviewer publishes it.{" "}
           <Link href={historyPath} className="underline underline-offset-2 hover:text-[var(--tc-ink)]">Browse the traditions in History</Link>.
@@ -220,7 +232,7 @@ export function NextAdvice({ bundle, stats, date, tz, historyPath }: { bundle: R
         </ol>
       )}
 
-      {days.length > shown ? (
+      {!personalOnly && days.length > shown ? (
         <div className="mt-5 flex justify-center">
           <button
             type="button"
@@ -232,7 +244,7 @@ export function NextAdvice({ bundle, stats, date, tz, historyPath }: { bundle: R
         </div>
       ) : null}
 
-      {undated.length > 0 ? <AwaitingAlignment items={undated} historyPath={historyPath} /> : null}
+      {!personalOnly && undated.length > 0 ? <AwaitingAlignment items={undated} historyPath={historyPath} /> : null}
 
       {stats && stats.records > 0 ? (
         <p className="mt-4 text-center text-sm text-[var(--tc-muted)]">
@@ -294,6 +306,7 @@ export function DayCard({ day, tz, historyPath, expanded = false, as: Tag = "li"
             <span className="text-sm text-[var(--tc-muted)]">{lit}% lit · calculated</span>
           </p>
           <MercuryLine date={date} tz={tz} />
+          <PersonalDayLines date={date} tz={tz} />
           {inside.length > 0 ? <PeriodLine periods={inside} /> : null}
           {day.categories.length > 0 ? (
             <p className="mt-1 flex flex-wrap gap-1.5" aria-label="Kinds of advice on this day">
