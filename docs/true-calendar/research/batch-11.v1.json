@@ -1,0 +1,1029 @@
+{
+ "format": "true-calendar/v1",
+ "sources": [
+  {
+   "key": "src.sayce-hibbert-1887",
+   "title": "Lectures on the Origin and Growth of Religion as Illustrated by the Religion of the Ancient Babylonians (Hibbert Lectures, 1887)",
+   "author": "A. H. Sayce",
+   "publisher": "Williams and Norgate, London",
+   "published": "1887",
+   "pages": "70–76",
+   "url": "https://archive.org/details/cu31924007925252",
+   "accessed_on": "2026-11-06",
+   "source_type": "academic",
+   "notes": "Sayce's translation of the hemerology of the second (intercalary) Elul, a tablet from Ashurbanipal's library (W.A.I. IV 32–33), giving the god, the luck and the king's rites and restrictions for each of the 30 days of the month. A 19th-century translation: some readings (\"Sabbath\", \"fast-day\", gods' names such as Merodach, Nebo, Adar, Rimmon) are dated. Public domain.",
+   "review_status": "draft"
+  }
+ ],
+ "lunar_days": [
+  {
+   "key": "middle-east.babylonian.lunisolar.day-02",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 2,
+   "name": "Day 2",
+   "meaning": "Day 2 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: The two Ishtars.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 70"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-03",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 3,
+   "name": "Day 3",
+   "meaning": "Day 3 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Marduk and Zarpanitu.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 71"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-04",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 4,
+   "name": "Day 4",
+   "meaning": "Day 4 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Feast of Nabû.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 71"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-05",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 5,
+   "name": "Day 5",
+   "meaning": "Day 5 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Lord and Lady of the underworld.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 71"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-06",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 6,
+   "name": "Day 6",
+   "meaning": "Day 6 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Adad and Ninlil.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 71"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-08",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 8,
+   "name": "Day 8",
+   "meaning": "Day 8 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Feast of Nabû.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 72"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-09",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 9,
+   "name": "Day 9",
+   "meaning": "Day 9 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Ninurta and Gula.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 72"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-10",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 10,
+   "name": "Day 10",
+   "meaning": "Day 10 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: The divine Judge.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 72"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-11",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 11,
+   "name": "Day 11",
+   "meaning": "Day 11 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Offering to Tašmetu and Zarpanitu.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 72"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-12",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 12,
+   "name": "Day 12",
+   "meaning": "Day 12 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Gift-day of Bēl and Bēltiya.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 72"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-13",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 13,
+   "name": "Day 13",
+   "meaning": "Day 13 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: The Moon god.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 72"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-16",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 16,
+   "name": "Day 16",
+   "meaning": "Day 16 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Marduk and Zarpanitu.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 73"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-17",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 17,
+   "name": "Day 17",
+   "meaning": "Day 17 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Feast of Nabû and Tašmetu.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 73"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-18",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 18,
+   "name": "Day 18",
+   "meaning": "Day 18 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Festival of the Moon and Sun.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 73"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-20",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 20,
+   "name": "Day 20",
+   "meaning": "Day 20 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Day of light.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 74"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-22",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 22,
+   "name": "Day 22",
+   "meaning": "Day 22 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Festival of the Mistress of the Palace.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 74"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-23",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 23,
+   "name": "Day 23",
+   "meaning": "Day 23 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Festival of Šamaš and Adad.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 74"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-24",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 24,
+   "name": "Day 24",
+   "meaning": "Day 24 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Festival of the Lord and Mistress of the Palace.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 74"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-25",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 25,
+   "name": "Day 25",
+   "meaning": "Day 25 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Procession of Bēl and Bēltiya.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 74"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-26",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 26,
+   "name": "Day 26",
+   "meaning": "Day 26 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Ea's enclosing wall.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 75"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-27",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 27,
+   "name": "Day 27",
+   "meaning": "Day 27 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Nergal's hunt and Zikum.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 75"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-29",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 29,
+   "name": "Day 29",
+   "meaning": "Day 29 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: The Moon god rests.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 75"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-30",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "day_number": 30,
+   "name": "Day 30",
+   "meaning": "Day 30 of the Babylonian month. In the day-by-day calendar of the second Ulūlu: Anu and Enlil.",
+   "favourability": "favourable",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 75"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "recommendations": [
+  {
+   "key": "middle-east.babylonian.lunisolar.day-01.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-01",
+   "activity": "ceremony",
+   "historical_practice": "Dedicated to Anu and Enlil (Sayce: \"Anu and Bel\"). A lucky day. When the Moon is seen, the king offers the Moon a gazelle without blemish, and makes offerings to the Sun and the Moon.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 70, day 1"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-02.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-02",
+   "activity": "ceremony",
+   "historical_practice": "Dedicated to the two Ishtar goddesses. A lucky day. The king makes his offering to the Sun and the Moon.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 70, day 2"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-03.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-03",
+   "activity": "ceremony",
+   "historical_practice": "A \"fast-day\" (Sayce's rendering; the Akkadian word he read as nuḫattu, which he glossed \"day of mourning\") dedicated to Marduk and Zarpanitu. A lucky day. At night the king makes his offering before Marduk and Ishtar.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 71, day 3"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-04.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-04",
+   "activity": "ceremony",
+   "historical_practice": "The feast-day of Nabû (Sayce: \"Nebo\"), son of Marduk. A lucky day. At night the king makes his offering before Nabû and Tašmetu.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 71, day 4"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-05.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-05",
+   "activity": "ceremony",
+   "historical_practice": "Dedicated to the Lord and the Lady of the lower firmament (the Assyrian copy names Aššur and Ninlil). A lucky day. At night the king makes his offering before them.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 71, day 5"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-06.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-06",
+   "activity": "ceremony",
+   "historical_practice": "Dedicated to Adad (Sayce: \"Rimmon\") and Ninlil. A lucky day. The king recites a penitential psalm and a litany. At night, facing the east wind, he makes his offering to Adad.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 71, day 6"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-07.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-07",
+   "activity": "rest",
+   "historical_practice": "A \"fast-day\" dedicated to Marduk and Zarpanitu, which Sayce calls \"a day of rest (Sabbath)\". Restrictions on the king: he must not eat meat cooked over a fire or in smoke, change his clothes, put on white garments, offer sacrifice, ride in his chariot or issue royal decrees; the diviner must not give a secret oracle; no medicine for the body; not a day for cursing. At night the king makes his offering before Marduk and Ishtar.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 71, day 7"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-08.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-08",
+   "activity": "ceremony",
+   "historical_practice": "The feast of Nabû. A lucky day. At night the king sacrifices a sheep and makes his vow to Nabû and Tašmetu.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 72, day 8"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-09.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-09",
+   "activity": "ceremony",
+   "historical_practice": "Dedicated to Ninurta (Sayce: \"Adar\") and Gula. A lucky day. At night the king makes his offering before them.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 72, day 9"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-10.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-10",
+   "activity": "ceremony",
+   "historical_practice": "Dedicated to the Mistress of the lower firmament and the divine Judge. A lucky day. At night the king makes his offering before the star of the Chariot and the star of the son of Ishtar.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 72, day 10"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-11.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-11",
+   "activity": "ceremony",
+   "historical_practice": "The completion of the meal-offering to Tašmetu and Zarpanitu. A lucky day. When the Moon \"lifts up its crown of moonlight, and its orb rejoices\", the king makes his offering to the Moon.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 72, day 11"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-12.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-12",
+   "activity": "ceremony",
+   "historical_practice": "The gift-day of Bēl and Bēltiya (Sayce: \"Bel and Beltis\"). A lucky day. The king makes his offering to them.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 72, day 12"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-13.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-13",
+   "activity": "ceremony",
+   "historical_practice": "Sacred to the Moon god. A lucky day. \"The moon lifts up its crown of moonlight towards the earth.\" The king makes his offering to the Sun and the Moon.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 72, day 13"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-14.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-14",
+   "activity": "rest",
+   "historical_practice": "Sacred to Bēltiya and Nergal. Sayce: \"A lucky day. A Sabbath.\" Restrictions on the king: he must not eat meat cooked over a fire or in smoke, change his clothes, put on white garments, offer sacrifice, ride in his chariot or issue royal decrees; the diviner must not give a secret oracle; no medicine for the body; not a day for cursing. At night the king makes his offering to Bēltiya and Nergal.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 72, day 14"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-15.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-15",
+   "activity": "ceremony",
+   "historical_practice": "Sacred to the Sun (\"Lady of the House of Heaven\"); the day for the stated offering to Sin the Moon god. A lucky day. The king makes his offering to Šamaš and Sin.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 73, day 15"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-16.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-16",
+   "activity": "ceremony",
+   "historical_practice": "A \"fast-day\" to Marduk and Zarpanitu. A lucky day. The king must not recite a penitential psalm. At night he makes his offering before Marduk and Ishtar.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 73, day 16"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-17.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-17",
+   "activity": "ceremony",
+   "historical_practice": "The feast-day of Nabû and Tašmetu. A lucky day. At night the king makes his offering before them.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 73, day 17"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-18.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-18",
+   "activity": "ceremony",
+   "historical_practice": "The festival (isinnu) of Sin and Šamaš. A lucky day. The king makes his offering to Šamaš and Sin.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 73, day 18"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-19.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-19",
+   "activity": "rest",
+   "historical_practice": "The \"white\" (holy) day of the great goddess Gula. Sayce: \"A lucky day. A Sabbath.\" Restrictions on the king: he must not eat meat cooked over a fire or in smoke, change his clothes, put on white garments, offer sacrifice, ride in his chariot or issue royal decrees; the diviner must not give a secret oracle; no medicine for the body; not a day for cursing. The king makes his offering to Ninurta and Gula.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 73, day 19"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-20.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-20",
+   "activity": "ceremony",
+   "historical_practice": "A day of light, the gift-day of Sin and Šamaš. A lucky day. The king makes his offering to Šamaš and Sin.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 74, day 20"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-21.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-21",
+   "activity": "rest",
+   "historical_practice": "The day for the stated offering to Sin and Šamaš. Sayce: \"A lucky day. A Sabbath.\" Restrictions on the king: he must not eat meat cooked over a fire or in smoke, change his clothes, put on white garments, offer sacrifice, ride in his chariot or issue royal decrees; the diviner must not give a secret oracle; no medicine for the body; not a day for cursing. At dawn the king makes his offering to Šamaš and Sin.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 74, day 21"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-22.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-22",
+   "activity": "ceremony",
+   "historical_practice": "The day for the stated offering to Sin and Šamaš; the festival of the Mistress of the Palace. A lucky day. The king makes his offering to Šamaš and Sin.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 74, day 22"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-23.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-23",
+   "activity": "ceremony",
+   "historical_practice": "The festival of Šamaš and Adad. A lucky day. The king makes his offering to them.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 74, day 23"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-24.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-24",
+   "activity": "ceremony",
+   "historical_practice": "The festival of the Lord of the Palace and the Mistress of the Palace. A lucky day. The king makes his offering to them.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 74, day 24"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-25.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-25",
+   "activity": "ceremony",
+   "historical_practice": "The processional day of Bēl and Bēltiya of Babylon. A lucky day. At night the king makes his offering to Bēl before the star of the Foundation, and to Bēltiya before the star of the Chariot.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 74, day 25"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-26.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-26",
+   "activity": "ceremony",
+   "historical_practice": "The day of the establishment of the enclosing wall of Ea. A lucky day. Sayce reads, with a query, that the king must recite a penitential psalm. At nightfall he makes his offering to Ea.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 75, day 26"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-27.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-27",
+   "activity": "ceremony",
+   "historical_practice": "The day of \"the chase\" of Nergal and the festival of Zikum. A lucky day. The king makes his offering to Nergal and Zikum.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 75, day 27"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-28.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-28",
+   "activity": "rest",
+   "historical_practice": "Sacred to Ea; the day of the resting of Nergal. Sayce: \"A lucky day. A Sabbath.\" Restrictions on the king: he must not eat meat cooked over a fire or in smoke, change his clothes, put on white garments, offer sacrifice, ride in his chariot or issue royal decrees; the diviner must not give a secret oracle; no medicine for the body; not a day for cursing. The king makes his offering to Ea.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 75, day 28"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-29.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-29",
+   "activity": "ceremony",
+   "historical_practice": "The day of the resting of the Moon god, when the spirits of heaven and earth are honoured. A lucky day. The king makes his offering to Sin.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 75, day 29"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "middle-east.babylonian.lunisolar.day-30.second-ululu-hemerology",
+   "culture_key": "middle-east.babylonian",
+   "system_key": "middle-east.babylonian.lunisolar",
+   "lunar_day_key": "middle-east.babylonian.lunisolar.day-30",
+   "activity": "ceremony",
+   "historical_practice": "Sacred to Anu and Enlil (Sayce: \"Anu and Bel\"). A lucky day. The king makes his offering to them.",
+   "evidence": [
+    "historically_documented"
+   ],
+   "uncertainty": "From one Assyrian copy, in Ashurbanipal's library (7th century BCE), of the day-by-day calendar for the extra (second) Ulūlu, as translated by A. H. Sayce in 1887. Its rules are addressed to the king. Sayce's \"Sabbath\" and \"fast-day\" are his 1887 renderings: modern scholars read the 7th, 14th, 19th, 21st and 28th as \"evil days\" (ūmu lemnu) restricting the king's acts. Tablets for other months differ in details. The modern date comes from an illustrative model of the Babylonian month.",
+   "sources": [
+    {
+     "source": "src.sayce-hibbert-1887",
+     "locator": "p. 75, day 30"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ]
+}

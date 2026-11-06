@@ -72,6 +72,12 @@ export const BUNDLED_RESEARCH = [
     description: "Personal Moon's astrology traditions, each kept separate: the twelve places of Hellenistic astrology (Firmicus Maternus, Latin text of 1897), the twelve houses of medieval Arabic astrology (al-Bīrūnī, 1029), the Moon's transits from the birth Moon in Jyotiṣa (Bṛhat Saṃhitā, 1884 translation) and modern Western solar houses. Read by Personal Moon only, never shown as day records.",
     load: () => import("../../../../docs/true-calendar/research/batch-10.v1.json").then((m) => m.default as unknown),
   },
+  {
+    id: "batch-11",
+    title: "Research batch 11",
+    description: "A Babylonian line for every day of the Moon's month: the day-by-day calendar of the second Ulūlu from Ashurbanipal's library (Sayce's 1887 translation), with each day's god, luck, the king's offering and, on the 7th, 14th, 19th, 21st and 28th, the restrictions.",
+    load: () => import("../../../../docs/true-calendar/research/batch-11.v1.json").then((m) => m.default as unknown),
+  },
 ] as const;
 
 export type BundledResearchId = (typeof BUNDLED_RESEARCH)[number]["id"];
