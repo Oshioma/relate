@@ -21,7 +21,7 @@
 
 import { type CivilDate, addDays, civilDateAt, compareDates, daysFromCivil, formatIsoDate, parseIsoDate } from "../dates";
 import type { DayMoon, QuarterKind } from "../astronomy";
-import { type ResearchBundle, cyclePositionOn, isAnchored, phaseKeysFor } from "./daily";
+import { type ResearchBundle, cyclePositionOn, historyBundle, isAnchored, phaseKeysFor } from "./daily";
 import type { Activity, CorrespondenceRecord, DateStatusKey, EvidenceTag, MoonPhaseKey } from "./model";
 import { jianchuDates } from "./day-rules";
 import { type MappingChoice, type MappingLevel, type MappingProfile, type MonthSpan, anchorDates, lunarNightDates, monthSpans, profileFor } from "./mapping";
@@ -263,7 +263,9 @@ export interface AdviceFeed {
  * Everything ahead from `from` (inclusive). `moons` is the calculated Moon for
  * consecutive days starting at `from` (about 35 days covers every phase).
  */
-export function adviceAhead(bundle: ResearchBundle, from: CivilDate, moons: DayMoon[], opts: { monthStart?: CivilDate; choice?: MappingChoice; tz?: string } = {}): AdviceFeed {
+export function adviceAhead(all: ResearchBundle, from: CivilDate, moons: DayMoon[], opts: { monthStart?: CivilDate; choice?: MappingChoice; tz?: string } = {}): AdviceFeed {
+  // Astrology traditions are read by Personal Moon only, never as day records.
+  const bundle = historyBundle(all);
   const cultures = new Map(bundle.cultures.map((c) => [c.key, c]));
   const systems = new Map(bundle.systems.map((s) => [s.key, s]));
   const sourceByKey = new Map(bundle.sources.map((s) => [s.key, s]));
