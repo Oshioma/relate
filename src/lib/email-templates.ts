@@ -11,7 +11,25 @@
 
 import type { CommunityEmailTemplate, CommunityEmailTemplateKind } from "@/types/database";
 
-export const EMAIL_TEMPLATE_KINDS: CommunityEmailTemplateKind[] = ["invite_new", "invite_existing", "welcome"];
+// In the order the Emails page shows them: the "we've moved" emails for
+// members brought over from another platform, the two invitations, then the
+// welcome.
+export const EMAIL_TEMPLATE_KINDS: CommunityEmailTemplateKind[] = [
+  "migration_inactive",
+  "migration_active",
+  "invite_new",
+  "invite_existing",
+  "welcome",
+];
+
+// The emails that go to people who are already members, each with its own
+// activation link (see src/app/invite/activate/[token]).
+export const MIGRATION_EMAIL_KINDS = ["migration_inactive", "migration_active"] as const;
+export type MigrationEmailKind = (typeof MIGRATION_EMAIL_KINDS)[number];
+
+export function isMigrationEmailKind(value: string): value is MigrationEmailKind {
+  return (MIGRATION_EMAIL_KINDS as readonly string[]).includes(value);
+}
 
 export type EmailPlaceholder = { token: string; meaning: string };
 
@@ -24,6 +42,22 @@ export const EMAIL_TEMPLATE_INFO: Record<
   CommunityEmailTemplateKind,
   { title: string; description: string; defaultButton: string; placeholders: EmailPlaceholder[]; hasToggle: boolean }
 > = {
+  migration_inactive: {
+    title: "We've moved – members who weren't regulars",
+    description:
+      "For members brought over from your old platform. They keep general access; paid spaces stay theirs to subscribe to. Send it from “Send an email” above.",
+    defaultButton: "Activate new membership",
+    placeholders: [FIRST_NAME, COMMUNITY_NAME],
+    hasToggle: false,
+  },
+  migration_active: {
+    title: "We've moved – regular members (free access)",
+    description:
+      "For members brought over from your old platform who showed up regularly. Their activation link also gives them the tiers you pick free. Send it from “Send an email” above.",
+    defaultButton: "Activate new membership",
+    placeholders: [FIRST_NAME, COMMUNITY_NAME],
+    hasToggle: false,
+  },
   invite_new: {
     title: "Invitation – new to Relate",
     description: "Sent when you invite an email address that doesn't have a Relate account yet.",
@@ -53,6 +87,20 @@ export const EMAIL_TEMPLATE_STARTERS: Record<
   CommunityEmailTemplateKind,
   { subject: string; body_html: string; footer_html: string; button_label: string }
 > = {
+  migration_inactive: {
+    subject: "{Community_Name} has moved to Relate",
+    body_html:
+      "<p>Hi {First_Name},</p><p>{Community_Name} has moved to a new home on Relate. You're still a member, with general access.</p><p>Click here to activate your new membership:</p>",
+    footer_html: "<p>If you think you have received this email in error, please ignore it.</p>",
+    button_label: "Activate new membership",
+  },
+  migration_active: {
+    subject: "{Community_Name} has moved to Relate",
+    body_html:
+      "<p>Hi {First_Name},</p><p>{Community_Name} has moved to a new home on Relate. You're still a member, and as a thank you for showing up, your membership is free.</p><p>Click here to activate your new membership:</p>",
+    footer_html: "<p>If you think you have received this email in error, please ignore it.</p>",
+    button_label: "Activate new membership",
+  },
   invite_new: {
     subject: "{Host_Name} has invited you to join {Community_Name}",
     body_html: "<p>Hi {First_Name},</p><p>{Host_Name} has invited you to join the {Community_Name} community.</p>",
@@ -202,7 +250,11 @@ export function renderCommunityEmail(input: RenderCommunityEmailInput): Rendered
 
   const subject =
     fillPlaceholders(template.subject, values).replace(/[\r\n]+/g, " ").trim() ||
-    (template.kind === "welcome" ? `Welcome to ${input.communityName}` : `You're invited to join ${input.communityName}`);
+    (template.kind === "welcome"
+      ? `Welcome to ${input.communityName}`
+      : isMigrationEmailKind(template.kind)
+        ? input.communityName
+        : `You're invited to join ${input.communityName}`);
 
   const html = `<!doctype html>
 <html>

@@ -83,6 +83,11 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
   // Optional: fills {First_Name} in a community's own invite wording when the
   // invitee has no Relate profile to take it from.
   const givenFirstName = String(formData.get("first_name") ?? "").trim().slice(0, 80);
+  // Optional: which of the community's invitations to use (Admin → Emails →
+  // Send an email). Left out, it is picked by whether the address already has
+  // a Relate account.
+  const kindRaw = String(formData.get("template_kind") ?? "");
+  const templateKind = kindRaw === "invite_new" || kindRaw === "invite_existing" ? kindRaw : null;
   const roleRaw = String(formData.get("role") ?? "member");
   const role = INVITE_ROLES.includes(roleRaw as (typeof INVITE_ROLES)[number]) ? (roleRaw as (typeof INVITE_ROLES)[number]) : "member";
 
@@ -148,6 +153,7 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
       hostName: inviterName,
       hostEmail: user.email ?? null,
       inviteUrl,
+      kind: templateKind,
     });
 
     const sent = custom
@@ -166,6 +172,7 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
     }
 
     revalidatePath(`/c/${communitySlug}/members`);
+    revalidatePath(`/c/${communitySlug}/admin/emails`);
     return undefined;
   }
 
@@ -257,6 +264,7 @@ async function customInviteEmail(input: {
   hostName: string | null;
   hostEmail: string | null;
   inviteUrl: string;
+  kind?: "invite_new" | "invite_existing" | null;
 }) {
   let admin;
   try {
@@ -266,7 +274,7 @@ async function customInviteEmail(input: {
   }
 
   const { data: existingUserId } = await admin.rpc("find_user_id_by_email", { p_email: input.email });
-  const kind = existingUserId ? "invite_existing" : "invite_new";
+  const kind = input.kind ?? (existingUserId ? "invite_existing" : "invite_new");
 
   const { data: template } = await admin
     .from("community_email_templates")

@@ -11,7 +11,7 @@ import { clearFormDraft, useFormDraftRef } from "@/lib/use-form-draft";
 import { EMAIL_TEMPLATE_INFO, EMAIL_TEMPLATE_STARTERS, renderCommunityEmail } from "@/lib/email-templates";
 import type { CommunityEmailTemplate, CommunityEmailTemplateKind } from "@/types/database";
 
-// One of a community's three emails, edited in place. The words are rich text
+// One of a community's emails, edited in place. The words are rich text
 // (pictures allowed); the logo and banner are uploaded beside them. Whatever is
 // typed is kept in this browser until it is saved or put back to standard.
 export function EmailTemplateForm({
@@ -209,7 +209,13 @@ export function EmailTemplateForm({
         <Label htmlFor={`${kind}_button`}>Button</Label>
         <Input id={`${kind}_button`} name="button_label" maxLength={80} defaultValue={start.button_label} placeholder={info.defaultButton} />
         <p className="mt-1 text-xs text-muted-foreground">
-          {kind === "welcome" ? "Takes them to the community." : "Opens their invitation."}
+          {kind === "welcome"
+            ? "Takes them to the community."
+            : kind === "migration_active"
+              ? "Activates their membership, signs them in and gives them the free membership you pick when sending."
+              : kind === "migration_inactive"
+                ? "Activates their membership and signs them in."
+                : "Opens their invitation."}
         </p>
       </div>
 
