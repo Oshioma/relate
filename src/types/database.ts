@@ -638,7 +638,23 @@ export type CommunityInvite = {
 // A community's own wording for one of its emails. No row = the built-in
 // email. See 20261020221900_community_email_templates.sql and
 // src/lib/email-templates.ts.
-export type CommunityEmailTemplateKind = "invite_new" | "invite_existing" | "welcome";
+export type CommunityEmailTemplateKind = "invite_new" | "invite_existing" | "welcome" | "migration_inactive" | "migration_active";
+
+// A "we've moved" email's single-use activation link for one member. See
+// 20261110063211_community_migration_emails.sql.
+export type CommunityActivationKind = "migration_inactive" | "migration_active";
+export type CommunityActivation = {
+  id: string;
+  token: string;
+  community_id: string;
+  user_id: string;
+  kind: CommunityActivationKind;
+  free_tier_ids: string[];
+  created_by: string | null;
+  created_at: string;
+  expires_at: string;
+  used_at: string | null;
+};
 export type CommunityEmailTemplate = {
   community_id: string;
   kind: CommunityEmailTemplateKind;
@@ -3502,6 +3518,11 @@ export type Database = {
         Row: CommunityInvite;
         Insert: Partial<CommunityInvite> & { community_id: string; code: string; created_by: string };
         Update: Partial<CommunityInvite>;
+      } & NoRel;
+      community_activations: {
+        Row: CommunityActivation;
+        Insert: Partial<CommunityActivation> & { token: string; community_id: string; user_id: string; kind: CommunityActivationKind };
+        Update: Partial<CommunityActivation>;
       } & NoRel;
       community_email_templates: {
         Row: CommunityEmailTemplate;

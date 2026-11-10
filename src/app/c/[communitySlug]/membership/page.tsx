@@ -122,6 +122,7 @@ export default async function MembershipPage({
                 isSubscribed={Boolean(mySubs.get(tier.id)?.active)}
                 cancelAtPeriodEnd={Boolean(mySubs.get(tier.id)?.cancelAtPeriodEnd)}
                 currentPeriodEnd={mySubs.get(tier.id)?.currentPeriodEnd ?? null}
+                isFree={Boolean(mySubs.get(tier.id)?.free)}
                 isStaff={Boolean(isStaff)}
                 isSignedIn={Boolean(user)}
                 paymentsReady={community.stripe_charges_enabled}
