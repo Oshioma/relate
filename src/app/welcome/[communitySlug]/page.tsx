@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "@/components/ui/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { ArrowRight, CalendarDays, Lock, MapPin, MessageSquare, Store, UsersRound } from "lucide-react";
+import { ArrowRight, BookOpen, CalendarDays, CarTaxiFront, Lock, MapPin, MessageSquare, Store, UsersRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { absoluteUrl, canonicalUrl, communityCanonicalOrigin, communitySiteJsonLd, jsonLd, metaDescription, SEO_PATH_HEADER } from "@/lib/seo";
 import { CommunityHostProvider } from "@/components/ui/community-host";
@@ -36,6 +36,7 @@ import { joinPolicyOf } from "@/lib/join-policy";
 import { readTestimonials } from "@/lib/testimonials";
 import { getTestimonialMemberPhotos } from "@/lib/data/testimonial-photos";
 import { TestimonialsSection } from "./testimonials-section";
+import { showsZanzibarRentalsTaxis, TAXI_CATEGORY } from "@/lib/zanzibar-rentals/taxis";
 
 // Communities with their own designed front page instead of the generic one.
 const BESPOKE_LANDINGS = new Set(["naturesgardeners"]);
@@ -226,6 +227,17 @@ async function WelcomePage({
     : [];
 
   const onPhoto = Boolean(community.cover_image_url);
+  // Straight ways in to what a visitor most often comes for, both open to
+  // signed-out visitors: every guide (when there's more than the one the
+  // hero already names) and, where taxis are fed in from Zanzibar Rentals,
+  // the directory's Taxi category.
+  const publishedGuides = editorialGuides.filter((g) => g.status === "published");
+  const featuredGuide = publishedGuides[0] ?? null;
+  const directorySpace = spaces.find((s) => s.space_type === "business_directory") ?? null;
+  const taxisHref =
+    directorySpace && showsZanzibarRentalsTaxis(community.slug)
+      ? `${base}/spaces/${directorySpace.slug}?category=${TAXI_CATEGORY}`
+      : null;
   const accentStyle = communityAccentStyle(community.accent_color);
 
   // Who publishes the site and the site itself, so search results can show the
@@ -298,9 +310,23 @@ async function WelcomePage({
             </HeroLink>
             {/* A curated guide is the best first read for a visitor, and it is
                 public whatever the feed's visibility. */}
-            {editorialGuides[0] && (
-              <HeroLink href={`${base}/guides/${editorialGuides[0].slug}`} variant="glass" onPhoto={onPhoto}>
-                {editorialGuides[0].title}
+            {featuredGuide && (
+              <HeroLink href={`${base}/guides/${featuredGuide.slug}`} variant="glass" onPhoto={onPhoto}>
+                {featuredGuide.title}
+                <ArrowRight className="h-4 w-4" />
+              </HeroLink>
+            )}
+            {publishedGuides.length > 1 && (
+              <HeroLink href={`${base}/guides`} variant="glass" onPhoto={onPhoto}>
+                <BookOpen className="h-4 w-4" />
+                All our guides
+                <ArrowRight className="h-4 w-4" />
+              </HeroLink>
+            )}
+            {taxisHref && (
+              <HeroLink href={taxisHref} variant="glass" onPhoto={onPhoto}>
+                <CarTaxiFront className="h-4 w-4" />
+                Taxis
                 <ArrowRight className="h-4 w-4" />
               </HeroLink>
             )}
