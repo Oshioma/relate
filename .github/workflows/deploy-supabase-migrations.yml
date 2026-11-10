@@ -36,4 +36,6 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: supabase db push
+        # Newer Supabase CLIs push to a local stack unless told otherwise, so
+        # name the linked project explicitly.
+        run: supabase db push --remote
