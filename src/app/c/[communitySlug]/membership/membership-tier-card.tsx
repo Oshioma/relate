@@ -33,6 +33,7 @@ export function MembershipTierCard({
   isSubscribed,
   cancelAtPeriodEnd = false,
   currentPeriodEnd = null,
+  isFree = false,
   isStaff,
   isSignedIn,
   paymentsReady,
@@ -49,6 +50,8 @@ export function MembershipTierCard({
   // Set when the member's subscription is scheduled to cancel at period end.
   cancelAtPeriodEnd?: boolean;
   currentPeriodEnd?: string | null;
+  // Given free by the community: nothing to pay, so nothing to cancel.
+  isFree?: boolean;
   isStaff: boolean;
   isSignedIn: boolean;
   paymentsReady: boolean;
@@ -163,7 +166,9 @@ export function MembershipTierCard({
 
         <div className="mt-6">
           {isSubscribed ? (
-            cancelAtPeriodEnd ? (
+            isFree ? (
+              <p className="text-sm text-muted-foreground">You&apos;re a member of this tier, free, as a gift from the community.</p>
+            ) : cancelAtPeriodEnd ? (
               <div>
                 <p className="text-sm text-muted-foreground">
                   Cancels{periodEndLabel ? ` on ${periodEndLabel}` : " at the end of the period"}. You keep access until
