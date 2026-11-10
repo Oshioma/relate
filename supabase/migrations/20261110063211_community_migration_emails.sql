@@ -113,3 +113,13 @@ where c.id = t.community_id
   and c.slug = 'escapespace'
   and t.kind = 'invite_new'
   and t.footer_html = '<p>If you think you have received this invitation in error, please ignore this email.</p>';
+
+-- The next session in the new-member invite (Oshi, 2026-11-10): the old date
+-- had passed. Only touches the wording if it still names the old date.
+update public.community_email_templates t
+set body_html = replace(t.body_html, 'Friday 23 October', 'Friday 13 November')
+from public.communities c
+where c.id = t.community_id
+  and c.slug = 'escapespace'
+  and t.kind = 'invite_new'
+  and t.body_html like '%Friday 23 October%';
