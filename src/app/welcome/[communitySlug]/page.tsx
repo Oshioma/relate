@@ -18,11 +18,11 @@ import {
 } from "@/lib/data/businesses";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getCommunityFeatures } from "@/lib/data/features";
-import { spaceImage } from "@/lib/space-images";
+import { defaultSpaceImage, spaceImage } from "@/lib/space-images";
 import { communityAccentStyle } from "@/lib/accent-color";
 import { coverPositionClass } from "@/lib/cover-position";
 import { FeedHero, HeroLink, type HeroStat } from "@/app/c/[communitySlug]/feed-hero";
-import { SpaceCards } from "@/app/c/[communitySlug]/space-cards";
+import { SpaceCards, type ExtraCard } from "@/app/c/[communitySlug]/space-cards";
 import { UpcomingEventsCard } from "@/app/c/[communitySlug]/upcoming-events-card";
 import type { CategorySlide } from "@/app/c/[communitySlug]/category-carousel-card";
 import { Card } from "@/components/ui/card";
@@ -36,7 +36,8 @@ import { joinPolicyOf } from "@/lib/join-policy";
 import { readTestimonials } from "@/lib/testimonials";
 import { getTestimonialMemberPhotos } from "@/lib/data/testimonial-photos";
 import { TestimonialsSection } from "./testimonials-section";
-import { showsZanzibarRentalsTaxis, TAXI_CATEGORY } from "@/lib/zanzibar-rentals/taxis";
+import { getZanzibarRentalsTaxis, showsZanzibarRentalsTaxis, TAXI_CATEGORY } from "@/lib/zanzibar-rentals/taxis";
+import { editorialGuideEntry } from "@/lib/guides/registry";
 
 // Communities with their own designed front page instead of the generic one.
 const BESPOKE_LANDINGS = new Set(["naturesgardeners"]);
@@ -227,17 +228,44 @@ async function WelcomePage({
     : [];
 
   const onPhoto = Boolean(community.cover_image_url);
-  // Straight ways in to what a visitor most often comes for, both open to
-  // signed-out visitors: every guide (when there's more than the one the
-  // hero already names) and, where taxis are fed in from Zanzibar Rentals,
-  // the directory's Taxi category.
+  // Two more cards after the spaces, for what a visitor most often comes
+  // for — both open to signed-out visitors: every guide (when there's more
+  // than the one the hero already names) and, where taxis are fed in from
+  // Zanzibar Rentals, the directory's Taxi category. Cards rather than hero
+  // buttons, so the cover photo isn't crowded.
   const publishedGuides = editorialGuides.filter((g) => g.status === "published");
   const featuredGuide = publishedGuides[0] ?? null;
   const directorySpace = spaces.find((s) => s.space_type === "business_directory") ?? null;
-  const taxisHref =
-    directorySpace && showsZanzibarRentalsTaxis(community.slug)
-      ? `${base}/spaces/${directorySpace.slug}?category=${TAXI_CATEGORY}`
-      : null;
+  const showTaxis = Boolean(directorySpace) && showsZanzibarRentalsTaxis(community.slug);
+  const taxis = showTaxis ? await getZanzibarRentalsTaxis().catch(() => null) : null;
+  const extraCards: ExtraCard[] = [];
+  if (publishedGuides.length > 1) {
+    // The second guide's photo, so the card doesn't repeat the one the
+    // hero button already names; else any guide's.
+    const heroPhoto =
+      [publishedGuides[1], ...publishedGuides]
+        .map((g) => editorialGuideEntry(g.slug)?.hero(g.content) ?? null)
+        .find((photo) => photo !== null) ?? null;
+    extraCards.push({
+      key: "guides",
+      href: `${base}/guides`,
+      title: "Guides",
+      blurb: `All ${publishedGuides.length} of our guides in one place: where to stay, eat and explore.`,
+      imageUrl: heroPhoto?.src ?? defaultSpaceImage("guides"),
+      icon: BookOpen,
+    });
+  }
+  if (showTaxis && directorySpace) {
+    const routes = taxis?.length ?? 0;
+    extraCards.push({
+      key: "taxis",
+      href: `${base}/spaces/${directorySpace.slug}?category=${TAXI_CATEGORY}`,
+      title: "Taxis",
+      blurb: routes > 0 ? `${routes} taxi ${routes === 1 ? "route" : "routes"} from local drivers, airport transfers included.` : "Local drivers and airport transfers.",
+      imageUrl: taxis?.find((t) => t.photoUrl)?.photoUrl ?? spaceImage(directorySpace),
+      icon: CarTaxiFront,
+    });
+  }
   const accentStyle = communityAccentStyle(community.accent_color);
 
   // Who publishes the site and the site itself, so search results can show the
@@ -316,20 +344,6 @@ async function WelcomePage({
                 <ArrowRight className="h-4 w-4" />
               </HeroLink>
             )}
-            {publishedGuides.length > 1 && (
-              <HeroLink href={`${base}/guides`} variant="glass" onPhoto={onPhoto}>
-                <BookOpen className="h-4 w-4" />
-                All our guides
-                <ArrowRight className="h-4 w-4" />
-              </HeroLink>
-            )}
-            {taxisHref && (
-              <HeroLink href={taxisHref} variant="glass" onPhoto={onPhoto}>
-                <CarTaxiFront className="h-4 w-4" />
-                Taxis
-                <ArrowRight className="h-4 w-4" />
-              </HeroLink>
-            )}
             {joinPolicy !== "open" && (
               <p className={`flex w-full items-center gap-1.5 text-sm ${onPhoto ? "text-white/85" : "text-muted-foreground"}`}>
                 <Lock className="h-4 w-4" />
@@ -341,7 +355,7 @@ async function WelcomePage({
       />
 
       <main className="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
-        <SpaceCards spaces={[...cardSpaces, ...teaserCards]} base={base} carousels={categoryCarousels} showOnMobile />
+        <SpaceCards spaces={[...cardSpaces, ...teaserCards]} base={base} carousels={categoryCarousels} showOnMobile extraCards={extraCards} />
 
         <TestimonialsSection communityName={community.name} testimonials={testimonials} memberPhotos={testimonialPhotos} />
 
