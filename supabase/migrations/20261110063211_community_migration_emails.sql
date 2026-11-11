@@ -17,7 +17,8 @@
 -- Stripe ids and no period end, so has_active_tier_for_space() lets them in
 -- with no other change.
 --
--- Safe to re-run.
+-- Safe to re-run. (Applied by the deploy job; re-sent 2026-11-11 after the
+-- job was fixed in #874, since its first deploy failed.)
 -- =============================================================================
 
 -- --- Two more kinds of email ---------------------------------------------------
