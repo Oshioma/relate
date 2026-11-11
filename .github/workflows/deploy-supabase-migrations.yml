@@ -6,6 +6,9 @@ on:
       - main
     paths:
       - "supabase/migrations/**"
+      # A fix to this job re-runs it, so migrations a broken run missed go in.
+      - ".github/workflows/deploy-supabase-migrations.yml"
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -36,5 +39,6 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        # Newer Supabase CLIs push to a local stack unless told otherwise.
-        run: supabase db push --remote
+        # Newer Supabase CLIs push to a local stack unless told otherwise, and
+        # ask for confirmation before touching production, which CI can't give.
+        run: supabase db push --remote --yes
