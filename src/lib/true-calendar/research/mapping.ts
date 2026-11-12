@@ -21,7 +21,7 @@
 
 import { type CivilDate, addDays, civilDateAt, compareDates, daysFromCivil, startOfDayIn } from "../dates";
 import { type QuarterKind, quartersBetween, seasonsOf } from "../astronomy";
-import { tithiDates } from "./day-rules";
+import { type TithiTime, HINDU_MONTHS, hinduMonths, tithiDates } from "./day-rules";
 
 export type MappingLevel = "A" | "B" | "C";
 export const MAPPING_LEVELS: Record<MappingLevel, { name: string; short: string; explain: string }> = {
@@ -99,7 +99,48 @@ export type YearStart =
    * date of that year (e.g. the Matariki public holiday, set by the "Tangaroa
    * of Pipiri" method). Years with no listed date are not named.
    */
-  | { kind: "listed"; night: number; dates: Record<number, string>; sourceKey: string; label: string; url: string };
+  | { kind: "listed"; night: number; dates: Record<number, string>; sourceKey: string; label: string; url: string }
+  /**
+   * Hindu months (amānta): each new-Moon-to-new-Moon month is named by the
+   * sidereal sign the Sun enters during it, Caitra for Meṣa; a month the Sun
+   * enters no sign in is an extra (adhika) month and gets no ordinal.
+   */
+  | { kind: "hindu_sankranti" };
+
+/**
+ * When in the day almanacs check a festival's tithi (research batch 12): the
+ * day the tithi is in force at that time is the festival. Checked against
+ * published dates in mapping.test.ts.
+ */
+export const HINDU_FESTIVAL_TIMES: Record<string, TithiTime> = {
+  "asia.south.vedic-hindu.tithi.festival.ugadi-gudi-padwa": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.rama-navami": "midday",
+  "asia.south.vedic-hindu.tithi.festival.akshaya-tritiya": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.narasimha-jayanti": "evening",
+  "asia.south.vedic-hindu.tithi.festival.hariyali-teej": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.krishna-janmashtami": "midnight",
+  "asia.south.vedic-hindu.tithi.festival.nandotsava": "midnight",
+  "asia.south.vedic-hindu.tithi.festival.hartalika-teej": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.ganesh-chaturthi": "midday",
+  "asia.south.vedic-hindu.tithi.festival.radhashtami": "midday",
+  "asia.south.vedic-hindu.tithi.festival.ananta-chaturdashi": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.maha-navami": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.vijayadashami": "afternoon",
+  "asia.south.vedic-hindu.tithi.festival.karva-chauth": "evening",
+  "asia.south.vedic-hindu.tithi.festival.govatsa-dvadashi": "evening",
+  "asia.south.vedic-hindu.tithi.festival.naraka-chaturdashi": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.diwali": "evening",
+  "asia.south.vedic-hindu.tithi.festival.govardhan-puja-bali-pratipada": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.bhai-dooj": "afternoon",
+  "asia.south.vedic-hindu.tithi.festival.chhath": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.vivaha-panchami": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.kurma-dvadashi": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.ganesh-jayanti": "midday",
+  "asia.south.vedic-hindu.tithi.festival.vasant-panchami": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.ratha-saptami": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.maha-shivaratri": "midnight",
+  "asia.south.vedic-hindu.tithi.festival.holika-dahana": "evening"
+};
 
 const MAORI_SYSTEMS = /^oceania\.maori\.(maramataka|tepapa-sequence|kahungunu-maramataka)$/;
 
@@ -485,7 +526,8 @@ export const MAPPING_PROFILES: MappingProfile[] = [
     historicalPeriod: "Vedic period to today",
     validFrom: null,
     validTo: null,
-    assumption: "The tithi of a day is the one in force at sunrise in Ujjain, the traditional meridian of Indian astronomy, calculated from the true positions of the Sun and Moon (one tithi for each 12° the Moon gains on the Sun).",
+    assumption: "The tithi of a day is the one in force at sunrise in Ujjain, the traditional meridian of Indian astronomy, calculated from the true positions of the Sun and Moon (one tithi for each 12° the Moon gains on the Sun). Months run new Moon to new Moon (amānta) and take the name of the sidereal sign (Lahiri) the Sun enters during them; a yearly festival falls on the day its tithi is in force at the time of day almanacs use for it.",
+    yearStart: { kind: "hindu_sankranti" },
   },
 ];
 
@@ -567,8 +609,10 @@ export function dayCycleDates(anchor: CivilDate, anchorPosition: number, length:
 }
 
 export interface MonthSpan {
-  /** 1 = the tradition's first month; above 12 an extra month (e.g. Addaru II). Null when the year start is unknown. */
+  /** 1 = the tradition's first month; above 12 an extra month (e.g. Addaru II). Null when the year start is unknown, or for a Hindu adhika month. */
   ordinal: number | null;
+  /** The name of an extra month that has no ordinal of its own (a Hindu adhika month). */
+  extra?: string;
   /** First and last local dates of the month. */
   start: CivilDate;
   end: CivilDate;
@@ -580,6 +624,10 @@ export interface MonthSpan {
  */
 export function monthSpans(profile: MappingProfile, from: CivilDate, to: CivilDate): MonthSpan[] {
   if (!profile.yearStart || profile.level === "C") return [];
+  if (profile.yearStart.kind === "hindu_sankranti") {
+    const place = profile.anchor.kind === "tithi" ? profile.anchor.place : undefined;
+    return hinduMonths(from, to, place).map((m) => ({ ordinal: m.adhika ? null : m.index + 1, start: m.start, end: m.end, ...(m.adhika ? { extra: `Adhika ${HINDU_MONTHS[m.index]}` } : {}) }));
+  }
   const lunar = profile.monthsFrom ? MAPPING_PROFILES.find((p) => p.key === profile.monthsFrom) : profile;
   if (!lunar) return [];
   const a = lunar.anchor;

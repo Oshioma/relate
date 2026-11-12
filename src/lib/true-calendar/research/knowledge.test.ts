@@ -203,8 +203,8 @@ test("Hindu tithi at sunrise: 2 Nov 2026 is Kṛṣṇa Aṣṭamī; Ekādaśī 
   const { days } = view(d(2026, 11, 1), 60);
   const ek = days.filter((x) => x.rows.some((r) => /Ekādaśī/.test(r.item.name)));
   assert.ok(ek.length >= 3 && ek.length <= 5, ek.map((x) => iso(x.date)).join(","));
-  // Never two tithis on one day.
-  for (const x of days) assert.ok(x.rows.filter((r) => r.item.systemKey === "asia.south.vedic-hindu.tithi").length <= 1, iso(x.date));
+  // Never two tithis on one day (a yearly festival on the same day is its own row).
+  for (const x of days) assert.ok(x.rows.filter((r) => r.item.systemKey === "asia.south.vedic-hindu.tithi" && r.item.id.startsWith("night|")).length <= 1, iso(x.date));
 });
 
 test("Chinese day officers: 2 Nov 2026 (庚辰) is 破; the officer repeats when Lidong opens the 亥 month", () => {
@@ -222,4 +222,27 @@ test("every line has a plain-words explanation", () => {
   const missing = new Set<string>();
   for (const x of days) for (const r of x.rows) if (!explainItem(r.item)) missing.add(r.item.id);
   assert.deepEqual([...missing], []);
+});
+
+test("Hindu yearly festivals land on their published dates", () => {
+  // Published dates (Wikipedia infoboxes, which cite Drik Panchang and news listings).
+  const cases: [string, string[]][] = [
+    ["ugadi-gudi-padwa", ["2025-03-30", "2026-03-19"]],
+    ["vasant-panchami", ["2026-01-23", "2027-02-11"]],
+    ["ganesh-chaturthi", ["2025-08-27", "2026-09-14", "2027-09-04"]],
+    ["krishna-janmashtami", ["2026-09-04"]],
+    ["vijayadashami", ["2026-10-20"]],
+    ["karva-chauth", ["2026-10-29"]],
+    ["diwali", ["2027-10-29"]],
+    ["maha-shivaratri", ["2027-03-06"]],
+    ["rama-navami", ["2027-04-15"]],
+  ];
+  const { days } = view(d(2025, 1, 1), 1095);
+  for (const [slug, dates] of cases) {
+    const got = days.filter((x) => x.rows.some((r) => r.item.id === `obs|asia.south.vedic-hindu.tithi.festival.${slug}`)).map((x) => iso(x.date));
+    for (const want of dates) assert.ok(got.includes(want), `${slug}: ${got.join(",")} lacks ${want}`);
+  }
+  // 2026 has an extra (adhika) Jyeshtha, 17 May to 15 June: no festival falls in it.
+  const adhika = days.filter((x) => iso(x.date) >= "2026-05-17" && iso(x.date) <= "2026-06-15" && x.rows.some((r) => r.item.id.includes(".festival.")));
+  assert.deepEqual(adhika.map((x) => iso(x.date)), []);
 });
