@@ -26,6 +26,7 @@ import { parseYearInput } from "@/lib/true-calendar/url-state";
 import { FixedGrid, GregorianGrid, LunarGrid } from "./calendar-grids";
 import { MercuryStatus } from "./mercury-status";
 import { MoonPanel } from "./moon-panel";
+import { MoonsOfYear } from "./moons-of-year";
 import { DayWisdom } from "./day-wisdom";
 import type { ResearchBundle } from "@/lib/true-calendar/research/daily";
 import type { ResearchStats } from "@/lib/data/true-calendar";
@@ -182,6 +183,8 @@ function Calendar({
           </label>
         </section>
       </div>
+
+      <MoonsOfYear date={date} tz={tz} bundle={bundle} southern={prefs.southernView} />
 
       <MoonPanel date={date} tz={tz} prefs={prefs} onPrefs={setPrefs} />
 
