@@ -292,3 +292,35 @@ export function renderCommunityEmail(input: RenderCommunityEmailInput): Rendered
 export function isOwnJoinNotificationTitle(title: string): boolean {
   return title.startsWith("You joined ") || title.startsWith("You're now a member of ");
 }
+
+export type InlineImageAttachment = { path: string; filename: string; content_id: string };
+
+// Inboxes often hold back pictures that are loaded from a link (a new sender,
+// Gmail's suspicion, Outlook's "download pictures"), which left the logo as an
+// empty box with the community's name in it. Each picture is instead sent
+// inside the email as an inline attachment (Resend fetches `path` itself) and
+// the <img> points at it with cid:. The same picture used twice is attached
+// once. At most `max` pictures are attached; any beyond that keep their link.
+export function inlineEmailImages(html: string, max = 8): { html: string; attachments: InlineImageAttachment[] } {
+  const byUrl = new Map<string, InlineImageAttachment>();
+  const out = html.replace(/(<img\b[^>]*?\ssrc=")(https:\/\/[^"]+)(")/gi, (whole, before: string, rawUrl: string, after: string) => {
+    const url = rawUrl.replace(/&amp;/g, "&");
+    let attachment = byUrl.get(url);
+    if (!attachment) {
+      if (byUrl.size >= max) return whole;
+      const n = byUrl.size + 1;
+      let name = "";
+      try {
+        name = decodeURIComponent(new URL(url).pathname.split("/").pop() ?? "");
+      } catch {
+        name = "";
+      }
+      name = name.replace(/[^A-Za-z0-9._-]+/g, "-").slice(-80);
+      if (!/\.(png|jpe?g|gif|webp)$/i.test(name)) name = `${name || "image"}.png`;
+      attachment = { path: url, filename: `${n}-${name}`, content_id: `relate-img-${n}` };
+      byUrl.set(url, attachment);
+    }
+    return `${before}cid:${attachment.content_id}${after}`;
+  });
+  return { html: out, attachments: [...byUrl.values()] };
+}
