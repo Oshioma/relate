@@ -160,15 +160,28 @@ function MoonDetail({ moon: m, tz, id }: { moon: MoonOfYear; tz: string; id: str
                   </p>
                 ))}
                 {t.observances.length > 0 ? (
-                  <ul className="mt-1.5 list-disc space-y-0.5 pl-5">
-                    {t.observances.map((o) => (
-                      <li key={o.name}>
-                        <span className="font-medium">{o.name}</span>
-                        {o.description ? `: ${o.description}` : null}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
+                  <div className="mt-2">
+                    <p className="text-sm font-semibold">What they say to do this month</p>
+                    <ul className="mt-1 space-y-1.5">
+                      {t.observances.map((o) => (
+                        <li key={`${o.name}-${o.date ? short(o.date) : ""}`} className="flex gap-2">
+                          <span className="w-14 shrink-0 text-sm tabular-nums text-[var(--tc-muted)]">{o.date ? short(o.date) : "No date"}</span>
+                          <span>
+                            <span className="font-medium">{o.name}</span>
+                            {o.description ? `: ${o.description}` : null}
+                            {o.practices.map((p) => (
+                              <span key={p} className="block text-[var(--tc-ink)]">
+                                {p}
+                              </span>
+                            ))}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="mt-2 text-sm text-[var(--tc-muted)]">Our sources for this tradition don&apos;t give advice for particular days of this month.</p>
+                )}
                 <p className="mt-2 text-sm text-[var(--tc-muted)]">
                   Their month runs {short(t.start)} to {short(t.end)}.                   {t.rule}
                   {t.caution ? ` ${t.caution}` : null}

@@ -78,6 +78,12 @@ export const BUNDLED_RESEARCH = [
     description: "A Babylonian line for every day of the Moon's month: the day-by-day calendar of the second Ulūlu from Ashurbanipal's library (Sayce's 1887 translation), with each day's god, luck, the king's offering and, on the 7th, 14th, 19th, 21st and 28th, the restrictions.",
     load: () => import("../../../../docs/true-calendar/research/batch-11.v1.json").then((m) => m.default as unknown),
   },
+  {
+    id: "batch-12",
+    title: "Research batch 12",
+    description: "The twelve Hindu months (Chaitra to Phalguna) and 27 yearly Hindu festivals, each on its tithi in its month: Ugadi, Rama Navami, Akshaya Tritiya, Teej, Janmashtami, Ganesh Chaturthi, Dussehra, Karva Chauth, Diwali, Bhai Dooj, Chhath, Vasant Panchami, Maha Shivaratri, Holika Dahana and more.",
+    load: () => import("../../../../docs/true-calendar/research/batch-12.v1.json").then((m) => m.default as unknown),
+  },
 ] as const;
 
 export type BundledResearchId = (typeof BUNDLED_RESEARCH)[number]["id"];

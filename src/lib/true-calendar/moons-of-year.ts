@@ -20,7 +20,7 @@ import {
   seasonsOf,
 } from "./astronomy";
 import { type ResearchBundle, historyBundle } from "./research/daily";
-import { type MonthSpan, monthSpans, profileFor } from "./research/mapping";
+import { type MonthSpan, hinduFestivalDatesFor, monthSpans, profileFor } from "./research/mapping";
 
 export interface MoonTradition {
   key: string;
@@ -29,8 +29,8 @@ export interface MoonTradition {
   label: string;
   translation: string | null;
   says: string[];
-  /** Festivals or rules the source ties to this month. */
-  observances: { name: string; description: string | null }[];
+  /** What the tradition says to do or avoid on particular days of this month, in date order. */
+  observances: { name: string; description: string | null; date: CivilDate | null; practices: string[] }[];
   /** How the month was lined up with this Moon (and whether it's a reconstruction). */
   rule: string;
   illustrative: boolean;
@@ -140,7 +140,7 @@ export function withTraditions(moons: MoonOfYear[], all: ResearchBundle): MoonOf
     if (!system || !culture || !profile || profile.level === "C" || !profile.yearStart) continue;
     if (!spanCache.has(profile.key)) spanCache.set(profile.key, monthSpans(profile, from, to));
     const spans = spanCache.get(profile.key)!.filter((s) => s.ordinal === month.ordinal);
-    const calendar = profile.calendarSystem.replace(/ (months|lunisolar calendar)$/, "");
+    const calendar = profile.anchor.kind === "tithi" ? "Hindu" : profile.calendarSystem.replace(/ (months|lunisolar calendar)$/, "");
     const observances = bundle.observances.filter((o) => o.month_key === month.key);
     for (const span of spans) {
       const moon = out.find((m) => overlapDays(m, span) >= 15);
@@ -151,7 +151,18 @@ export function withTraditions(moons: MoonOfYear[], all: ResearchBundle): MoonOf
         label: `${month.original_name ?? month.name} (${calendar} month ${month.ordinal})`,
         translation: month.translation ?? null,
         says: [...new Set([month.description, month.season].filter((s): s is string => Boolean(s)))],
-        observances: observances.map((o) => ({ name: o.original_name ?? o.name, description: o.description ?? null })),
+        observances: observances
+          .map((o) => {
+            // The day this year: a Hindu festival by its tithi and time of day; otherwise day N of the tradition's month.
+            const date = !o.lunar_day
+              ? null
+              : profile.anchor.kind === "tithi"
+                ? (hinduFestivalDatesFor(o.key, month.ordinal - 1, o.lunar_day, addDays(span.start, -1), addDays(span.end, 1), profile.anchor.place)[0] ?? null)
+                : addDays(span.start, o.lunar_day - 1);
+            const practices = [...new Set(bundle.recommendations.filter((r) => r.observance_key === o.key).map((r) => r.historical_practice))].filter((x) => x !== o.description);
+            return { name: o.original_name ?? o.name, description: o.description ?? null, date, practices };
+          })
+          .sort((a, b) => (a.date && b.date ? compareDates(a.date, b.date) : a.date ? -1 : b.date ? 1 : 0)),
         rule: `${profile.illustrative ? "Illustrative reconstruction" : "Approximate alignment"} (${profile.label}): ${profile.assumption}`,
         illustrative: Boolean(profile.illustrative),
         start: span.start,
