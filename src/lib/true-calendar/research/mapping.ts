@@ -21,7 +21,7 @@
 
 import { type CivilDate, addDays, civilDateAt, compareDates, daysFromCivil, startOfDayIn } from "../dates";
 import { type QuarterKind, quartersBetween, seasonsOf } from "../astronomy";
-import { type TithiTime, HINDU_MONTHS, hinduMonths, tithiDates } from "./day-rules";
+import { type Place, type TithiTime, HINDU_MONTHS, hinduFestivalDates, hinduMonths, tithiDates } from "./day-rules";
 
 export type MappingLevel = "A" | "B" | "C";
 export const MAPPING_LEVELS: Record<MappingLevel, { name: string; short: string; explain: string }> = {
@@ -124,14 +124,14 @@ export const HINDU_FESTIVAL_TIMES: Record<string, TithiTime> = {
   "asia.south.vedic-hindu.tithi.festival.ganesh-chaturthi": "midday",
   "asia.south.vedic-hindu.tithi.festival.radhashtami": "midday",
   "asia.south.vedic-hindu.tithi.festival.ananta-chaturdashi": "sunrise",
-  "asia.south.vedic-hindu.tithi.festival.maha-navami": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.maha-navami": "midday",
   "asia.south.vedic-hindu.tithi.festival.vijayadashami": "afternoon",
   "asia.south.vedic-hindu.tithi.festival.karva-chauth": "evening",
   "asia.south.vedic-hindu.tithi.festival.govatsa-dvadashi": "evening",
   "asia.south.vedic-hindu.tithi.festival.naraka-chaturdashi": "sunrise",
   "asia.south.vedic-hindu.tithi.festival.diwali": "evening",
   "asia.south.vedic-hindu.tithi.festival.govardhan-puja-bali-pratipada": "sunrise",
-  "asia.south.vedic-hindu.tithi.festival.bhai-dooj": "afternoon",
+  "asia.south.vedic-hindu.tithi.festival.bhai-dooj": "sunrise",
   "asia.south.vedic-hindu.tithi.festival.chhath": "sunrise",
   "asia.south.vedic-hindu.tithi.festival.vivaha-panchami": "sunrise",
   "asia.south.vedic-hindu.tithi.festival.kurma-dvadashi": "sunrise",
@@ -141,6 +141,22 @@ export const HINDU_FESTIVAL_TIMES: Record<string, TithiTime> = {
   "asia.south.vedic-hindu.tithi.festival.maha-shivaratri": "midnight",
   "asia.south.vedic-hindu.tithi.festival.holika-dahana": "evening"
 };
+
+/** Festivals kept as "the day after" another one, whatever the tithi does that day. */
+export const HINDU_FESTIVAL_DAY_AFTER: Record<string, string> = {
+  "asia.south.vedic-hindu.tithi.festival.nandotsava": "asia.south.vedic-hindu.tithi.festival.krishna-janmashtami",
+};
+
+/** The dates of a Hindu yearly festival (by its observance key) between `from` and `to`. */
+export function hinduFestivalDatesFor(key: string, monthIndex: number, tithi: number, from: CivilDate, to: CivilDate, place?: Place): CivilDate[] {
+  const before = HINDU_FESTIVAL_DAY_AFTER[key];
+  if (before) {
+    const t = tithi === 1 ? 30 : tithi - 1;
+    return hinduFestivalDates(monthIndex, t, HINDU_FESTIVAL_TIMES[before] ?? "sunrise", addDays(from, -1), addDays(to, -1), place)
+      .map((d) => addDays(d, 1));
+  }
+  return hinduFestivalDates(monthIndex, tithi, HINDU_FESTIVAL_TIMES[key] ?? "sunrise", from, to, place);
+}
 
 const MAORI_SYSTEMS = /^oceania\.maori\.(maramataka|tepapa-sequence|kahungunu-maramataka)$/;
 

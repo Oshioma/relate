@@ -38,3 +38,16 @@ test("named months are placed only by a tradition's own year rule, with sources"
   // No astrology in the traditions' months.
   assert.ok(moons.every((m) => m.traditions.every((t) => !/astrolog/i.test(t.cultureName))));
 });
+
+test("each tradition's month carries its dated advice: Kartika's Chhath, Nisānu's day rules", () => {
+  const moons = withTraditions(moonsOfYear(2026, TZ), publishedBundle());
+  const kartika = moons[10].traditions.find((t) => /^Kartika/.test(t.label));
+  assert.ok(kartika, moons[10].traditions.map((t) => t.label).join("; "));
+  const chhath = kartika.observances.find((o) => o.name === "Chhath");
+  assert.deepEqual(chhath?.date, { year: 2026, month: 11, day: 15 });
+  const nisanu = moons.flatMap((m) => m.traditions).find((t) => /Nisānu/.test(t.label))!;
+  assert.ok(nisanu.observances.length >= 5);
+  // In date order, each inside the tradition's month.
+  const dates = nisanu.observances.map((o) => o.date!);
+  dates.slice(1).forEach((d, i) => assert.ok(d.year * 400 + d.month * 32 + d.day >= dates[i].year * 400 + dates[i].month * 32 + dates[i].day));
+});

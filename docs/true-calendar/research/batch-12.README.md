@@ -26,10 +26,11 @@ for Diwali and Karva Chauth, midnight for Janmashtami and Maha Shivaratri
 (`HINDU_FESTIVAL_TIMES`). A tithi that is never in force at that hour falls on
 the day it ran. Shown as "Approx.": local almanacs can differ by a day.
 
-Checked against 16 published dates (the Wikipedia infoboxes, which cite Drik
+Checked against 20 published dates (the Wikipedia infoboxes, which cite Drik
 Panchang): Ugadi 2025 and 2026, Vasant Panchami 2026 and 2027, Ganesh Chaturthi
 2025 to 2027, Janmashtami 2026, Dussehra 2026, Karva Chauth 2026, Diwali 2027,
-Maha Shivaratri 2027 and Rama Navami 2027 all match
+Maha Shivaratri 2027, Rama Navami 2027, Maha Navami 2026 (19 Oct), Govardhan
+Puja 2025, Bhai Dooj 2026 (11 Nov) and Chhath 2026 (15 Nov) all match
 (`knowledge.test.ts`). The hours were set to the almanac windows while checking
 against these dates.
 
@@ -41,5 +42,10 @@ against these dates.
 - Holika Dahana is placed on the full-Moon evening of Phalguna, the night
   before Holi (Wikipedia's Holi article and almanacs). Its own Wikipedia
   infobox says the day before (Śukla Caturdaśī); its line says so.
-- Nandotsava, the day after Janmashtami, is checked at midnight like
-  Janmashtami so the two stay a day apart.
+- Nandotsava is dated as the day after Janmashtami
+  (`HINDU_FESTIVAL_DAY_AFTER`), so the two never land on the same day.
+
+## On the Moon cards
+Each Moon card lists, under every tradition's month, what that tradition says
+to do on particular days of it (its observances and their recorded practices),
+with this year's date. Months whose sources give no day advice say so.

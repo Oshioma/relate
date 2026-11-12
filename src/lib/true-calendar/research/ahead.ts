@@ -23,8 +23,8 @@ import { type CivilDate, addDays, civilDateAt, compareDates, daysFromCivil, form
 import type { DayMoon, QuarterKind } from "../astronomy";
 import { type ResearchBundle, cyclePositionOn, historyBundle, isAnchored, phaseKeysFor } from "./daily";
 import type { Activity, CorrespondenceRecord, DateStatusKey, EvidenceTag, MoonPhaseKey } from "./model";
-import { hinduFestivalDates, jianchuDates } from "./day-rules";
-import { type MappingChoice, type MappingLevel, type MappingProfile, type MonthSpan, HINDU_FESTIVAL_TIMES, anchorDates, lunarNightDates, monthSpans, profileFor } from "./mapping";
+import { jianchuDates } from "./day-rules";
+import { type MappingChoice, type MappingLevel, type MappingProfile, type MonthSpan, anchorDates, hinduFestivalDatesFor, lunarNightDates, monthSpans, profileFor } from "./mapping";
 import { MERCURY_NOTES, retrogradePeriods } from "../mercury";
 
 type Row<R> = Omit<R, "sources">;
@@ -647,7 +647,7 @@ export function adviceAhead(all: ResearchBundle, from: CivilDate, moons: DayMoon
     const month = o.month_key ? bundle.months.find((m) => m.key === o.month_key) : undefined;
     if (month && profile && profile.anchor.kind === "tithi" && o.lunar_day) {
       // A Hindu yearly festival: its tithi in its named month, checked at the festival's time of day.
-      const dates = hinduFestivalDates(month.ordinal - 1, o.lunar_day, HINDU_FESTIVAL_TIMES[o.key] ?? "sunrise", from, horizon, profile.anchor.place);
+      const dates = hinduFestivalDatesFor(o.key, month.ordinal - 1, o.lunar_day, from, horizon, profile.anchor.place);
       counted = dates.length > 0 ? { date: dates[0], dates } : null;
     } else if (counted && month && profile) {
       const spans = spansFor(profile).filter((sp) => sp.ordinal === month.ordinal);
