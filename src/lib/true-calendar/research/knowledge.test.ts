@@ -251,3 +251,19 @@ test("Hindu yearly festivals land on their published dates", () => {
   const adhika = days.filter((x) => iso(x.date) >= "2026-05-17" && iso(x.date) <= "2026-06-15" && x.rows.some((r) => r.item.id.includes(".festival.")));
   assert.deepEqual(adhika.map((x) => iso(x.date)), []);
 });
+
+test("a day shows only what belongs to that day or month", () => {
+  const { days } = view(d(2026, 11, 1), 120);
+  const items = new Map(days.flatMap((x) => x.rows.map((r) => [r.item.id, r.item] as const)));
+  for (const item of items.values()) {
+    if (!item.id.startsWith("night|")) continue;
+    const text = [...item.says, ...item.modern, item.caution ?? "", explainItem(item) ?? ""].join(" ");
+    // A lunar day shown every month never lists other months' festivals.
+    assert.doesNotMatch(text, /particular months|big festival|some months/i, item.id);
+    // Sayce's rules for the second (inserted) Ulūlu are not shown in ordinary months.
+    assert.doesNotMatch(text, /second\)? Ulūlu|Sayce/, item.id);
+  }
+  // Day 19 held only in Ulūlu: shown as Ulūlu's own rule, not every month.
+  assert.ok(![...items.keys()].includes("night|middle-east.babylonian.lunisolar.day-19"));
+  assert.ok(![...items.keys()].includes("night|middle-east.babylonian.lunisolar.day-02"));
+});

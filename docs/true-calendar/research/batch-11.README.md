@@ -26,3 +26,15 @@ recommendation per day (all 30), attached to the day so it shows every month.
 The fuller modern editions (Labat 1965; Livingstone 2013, *Hemerologies of
 Assyrian and Babylonian Scholars*) are in copyright and weren't reachable; a
 later batch could add their month-by-month differences as short summaries.
+
+## Shown only in its own month (12 November 2026)
+Oshi asked that nothing be shown on a date or month it wasn't written for.
+These rules are for the second (inserted) Ulūlu, and our illustrative model
+only ever inserts an Addaru II, so they are kept in the research but not shown
+on any date (`SINGLE_MONTH_SOURCES` in `daily.ts`). Day 19, which earlier
+scholarship gives for Ulūlu only, now shows only as Ulūlu's own rule. Placing a
+real Ulūlu II would need the 19-year cycle's year numbering (Ulūlu II in year 17
+or 18, by different accounts), checked against Parker and Dubberstein.
+
+The Hindu tithi lines no longer list the festivals of other months; each
+festival is its own event on its own date (batch 12).
