@@ -114,17 +114,16 @@ function Calendar({
           <p className="font-serif text-2xl">{formatLongDate(date)}</p>
           {isToday ? <span className="rounded-full bg-[var(--tc-gold)] px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-[var(--tc-bg)]">Today</span> : null}
         </div>
-        <dl className="mt-1.5 grid gap-x-6 gap-y-1 text-base sm:grid-cols-2">
+        {/* The Moon's date, as large as the day's own: the lunar month is the clock this space keeps. */}
+        <p className="mt-1 font-serif text-2xl leading-snug sm:text-3xl">
+          <span className="text-[var(--tc-gold)]">Day {lunar.day}</span> of lunar month {lunar.month.numberInYear}
+          <span className="text-[var(--tc-muted)]">, {lunar.month.year}</span>
+        </p>
+        <dl className="mt-1.5 grid gap-x-6 gap-y-1 text-base">
           <div className="flex gap-2">
             <dt className="text-[var(--tc-muted)]">Fixed calendar</dt>
             <dd>
               {fixedDay === null ? `${formatFixedDate(fixed)} (outside the week)` : `${WEEKDAYS[fixedDay]} ${formatFixedDate(fixed)}`}
-            </dd>
-          </div>
-          <div className="flex gap-2">
-            <dt className="text-[var(--tc-muted)]">Lunar calendar</dt>
-            <dd>
-              Day {lunar.day} of lunar month {lunar.month.numberInYear}, {lunar.month.year}
             </dd>
           </div>
         </dl>

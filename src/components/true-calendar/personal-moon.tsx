@@ -6,6 +6,7 @@ import { CalendarClock, ChevronRight, Pencil, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type CivilDate, SUGGESTED_TIME_ZONES, addDays, civilDateAt, daysFromCivil, formatIsoDate, isValidTimeZone, startOfDayIn } from "@/lib/true-calendar/dates";
 import { QUARTER_NAMES, quartersBetween } from "@/lib/true-calendar/astronomy";
+import { retrogradePeriods } from "@/lib/true-calendar/mercury";
 import {
   type PersonalMoonEvent,
   SIGNS,
@@ -23,6 +24,7 @@ import {
   DEFAULT_PERIODS,
   HIGHLIGHT_KINDS,
   HOUSE_GUIDANCE,
+  guidanceDuring,
   type HighlightKind,
   MODERN_ATTRIBUTION,
   type PersonalProfile,
@@ -668,7 +670,8 @@ function EventDetail({ event: e, onClose }: { event: PersonalMoonEvent; onClose:
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
   const k = pm.kindOf(e);
-  const g = HOUSE_GUIDANCE[e.house];
+  const mercury = retrogradePeriods(e.start.getUTCFullYear(), e.end.getUTCFullYear()).find((p) => p.start < e.end && p.end > e.start) ?? null;
+  const g = guidanceDuring(HOUSE_GUIDANCE[e.house], Boolean(mercury));
   const meaning = k ? pm.profile?.wording[k].guidance ?? DEFAULT_PERIODS[k].guidance : g.explanation;
   const readings = traditionReadings(pm.bundle, e.house);
   const discouraged = readings.filter((r) => r.favourability === "unfavourable");
@@ -724,6 +727,14 @@ function EventDetail({ event: e, onClose }: { event: PersonalMoonEvent; onClose:
           <p className="mt-1 text-base">{meaning}</p>
           <p className="mt-1 text-xs text-[var(--tc-muted)]">{k ? "Your own wording, or ours if you haven't changed it. " : ""}{MODERN_ATTRIBUTION}</p>
         </section>
+
+        {mercury ? (
+          <p className="mt-3 rounded-md border border-[var(--tc-line)] bg-[var(--tc-hover)] px-3 py-2 text-sm">
+            <strong>Mercury is retrograde {mercury.start <= e.start && mercury.end >= e.end ? "for all of this time" : "for part of this time"}</strong> ({fmt(mercury.start, tz)} to {fmt(mercury.end, tz)}).
+            Modern astrology reads that as a time to review, double-check and finish rather than start, especially talks, travel and contracts
+            {g.adjusted ? ", so we've changed the suggestions below to match." : ". The suggestions below already fit that."}
+          </p>
+        ) : null}
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <section>

@@ -124,6 +124,34 @@ export const HOUSE_GUIDANCE: Record<number, HouseGuidance> = {
   },
 };
 
+/**
+ * Suggestions that touch what modern Western astrology gives to Mercury
+ * (talk, travel, contracts, trade, launches), reworded for when Mercury is
+ * retrograde, which that same tradition reads as a time to review and finish
+ * rather than start. Our wording, like the lists above.
+ */
+export const MERCURY_RETROGRADE_SWAPS: Record<string, string> = {
+  "Start something you care about": "Pick up something you care about that you'd left unfinished",
+  "Build on what you started last week": "Finish what you started last week",
+  "Short trips and errands": "Short trips and errands, with time to spare for delays",
+  "Learn something small": "Go back over something you've learned",
+  "Meetings and negotiations": "Review agreements and follow up old conversations; leave new deals until Mercury turns direct",
+  "Agree terms in writing": "Re-read the terms you already have before you sign anything",
+  "Plan a journey": "Plan a journey, but check the details twice before you book",
+  "Career moves, applications, pitches": "Polish applications and pitches; send them once Mercury turns direct",
+  "Meet friends or join a group": "Get back in touch with old friends or groups",
+};
+
+export const MERCURY_RETROGRADE_AVOID = "Signing new contracts or launching something new while Mercury is retrograde";
+
+/** A house's suggestions, adjusted when Mercury is retrograde during the stay. */
+export function guidanceDuring(g: HouseGuidance, mercuryRetrograde: boolean): HouseGuidance & { adjusted: boolean } {
+  if (!mercuryRetrograde) return { ...g, adjusted: false };
+  const doList = g.doList.map((x) => MERCURY_RETROGRADE_SWAPS[x] ?? x);
+  const adjusted = doList.some((x, i) => x !== g.doList[i]);
+  return { ...g, doList, avoidList: adjusted ? [...g.avoidList, MERCURY_RETROGRADE_AVOID] : g.avoidList, adjusted };
+}
+
 export const MODERN_ATTRIBUTION = "Modern Western astrology, counted from your Sun sign. The wording is ours, after modern astrologers' house meanings.";
 
 /** A member's own wording, falling back to ours. Never trusts the stored shape. */
