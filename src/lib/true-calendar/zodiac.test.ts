@@ -99,3 +99,15 @@ test("the ingress cache round-trips and ignores bad data", () => {
   importIngressCache(null);
   assert.equal(moonIngresses(new Date("2026-11-22T00:00:00Z"), new Date("2026-11-23T00:00:00Z"))[0].sign, 1);
 });
+
+test("Mercury retrograde changes the house suggestions that clash with it", async () => {
+  const { HOUSE_GUIDANCE, MERCURY_RETROGRADE_SWAPS, guidanceDuring } = await import("./personal-moon");
+  const partners = guidanceDuring(HOUSE_GUIDANCE[7], true);
+  assert.equal(partners.adjusted, true);
+  assert.ok(!partners.doList.includes("Meetings and negotiations"));
+  assert.ok(partners.avoidList.some((x) => /retrograde/.test(x)));
+  assert.deepEqual(guidanceDuring(HOUSE_GUIDANCE[7], false).doList, HOUSE_GUIDANCE[7].doList);
+  // Every swap names a suggestion that really exists.
+  const all = new Set(Object.values(HOUSE_GUIDANCE).flatMap((g) => g.doList));
+  for (const k of Object.keys(MERCURY_RETROGRADE_SWAPS)) assert.ok(all.has(k), k);
+});
