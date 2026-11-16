@@ -84,6 +84,12 @@ export const BUNDLED_RESEARCH = [
     description: "The twelve Hindu months (Chaitra to Phalguna) and 27 yearly Hindu festivals, each on its tithi in its month: Ugadi, Rama Navami, Akshaya Tritiya, Teej, Janmashtami, Ganesh Chaturthi, Dussehra, Karva Chauth, Diwali, Bhai Dooj, Chhath, Vasant Panchami, Maha Shivaratri, Holika Dahana and more.",
     load: () => import("../../../../docs/true-calendar/research/batch-12.v1.json").then((m) => m.default as unknown),
   },
+  {
+    id: "batch-13",
+    title: "Research batch 13",
+    description: "Four more yearly Hindu festivals on their real dates: Phulera Dooj, Hala Shashthi, Vamana Jayanti and Kartika Purnima (Dev Deepawali).",
+    load: () => import("../../../../docs/true-calendar/research/batch-13.v1.json").then((m) => m.default as unknown),
+  },
 ] as const;
 
 export type BundledResearchId = (typeof BUNDLED_RESEARCH)[number]["id"];

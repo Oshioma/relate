@@ -139,7 +139,11 @@ export const HINDU_FESTIVAL_TIMES: Record<string, TithiTime> = {
   "asia.south.vedic-hindu.tithi.festival.vasant-panchami": "sunrise",
   "asia.south.vedic-hindu.tithi.festival.ratha-saptami": "sunrise",
   "asia.south.vedic-hindu.tithi.festival.maha-shivaratri": "midnight",
-  "asia.south.vedic-hindu.tithi.festival.holika-dahana": "evening"
+  "asia.south.vedic-hindu.tithi.festival.holika-dahana": "evening",
+  "asia.south.vedic-hindu.tithi.festival.phulera-dooj": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.hala-shashthi": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.vamana-jayanti": "midday",
+  "asia.south.vedic-hindu.tithi.festival.kartika-purnima": "sunrise"
 };
 
 /** Festivals kept as "the day after" another one, whatever the tithi does that day. */
