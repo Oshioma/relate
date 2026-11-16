@@ -8,9 +8,21 @@ import { MARKER_PICTURES } from "./marker-pictures";
 
 const markers = INVENTORY.flatMap((work) => (work.anchor && "event" in work.anchor ? [work.anchor.event] : []));
 
-test("marker pictures belong to markers the library creates", () => {
+const existingAnchors = new Set(INVENTORY.flatMap((work) => (work.anchor && "existingSlug" in work.anchor ? [work.anchor.existingSlug] : [])));
+
+test("marker pictures belong to markers the library creates or records a work hangs off", () => {
   const slugs = new Set(markers.map((marker) => marker.slug));
-  for (const slug of Object.keys(MARKER_PICTURES)) assert.ok(slugs.has(slug), slug);
+  for (const slug of Object.keys(MARKER_PICTURES)) assert.ok(slugs.has(slug) || existingAnchors.has(slug), slug);
+});
+
+test("pictures for an existing record: the first is the cover offered, and the copy step will bring every one in", () => {
+  for (const slug of existingAnchors) {
+    const media = MARKER_PICTURES[slug];
+    if (!media) continue;
+    const plan = hotlinkedPicturesToBringIn({ image_url: media[0].url, media });
+    assert.equal(plan.leftAlone, 0, slug);
+    assert.equal(plan.urls.length, media.length, slug);
+  }
 });
 
 test("every marker picture says what it shows, who made it and where it came from", () => {

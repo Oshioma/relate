@@ -1131,6 +1131,54 @@ export const MARKER_PICTURES: Record<string, SeedPicture[]> = {
       depictsActualRemains: false,
     },
   ],
+  // Not a marker this library creates: the existing record that Plutarch's
+  // On Isis and Osiris hangs off (set-sutekh-seed.ts). Install the library
+  // adds those of these it lacks; its own cover, if it has one, stays.
+  "plutarch-on-isis-and-osiris": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/6/6f/Plutarch%27s_Moralia%2C_Aldine_edition_%28March_1509%29%2C_title_page.jpg",
+      kind: "image",
+      shows: "historical_document",
+      caption:
+        "The title page of the first printing of Plutarch's Moralia in Greek, the Aldine edition, which includes On Isis and Osiris: 'PLVTARCHI OPVSCVLA. LXXXXII.', with Aldus Manutius's dolphin-and-anchor device. The file page says it was edited by Demetrius Ducas and printed in Venice in 1509, some fourteen centuries after Plutarch wrote; no manuscript of the essay is shown.",
+      credit: "Simon Fraser University Library, via Wikimedia Commons",
+      licence: "Public domain, as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Plutarch%27s_Moralia,_Aldine_edition_(March_1509),_title_page.jpg",
+      institution: "Simon Fraser University Library, Burnaby (the scanned copy, as the file page says)",
+      identificationStatus: "secure",
+      verifiedIdentity: true,
+      depictsActualRemains: false,
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/3/38/Plutarch_stele_inscription_100_AD%2C_AM_of_Delphi_4070060092.jpg",
+      kind: "image",
+      shows: "artefact",
+      caption:
+        "UNVERIFIED — The inscribed top of a marble pillar in the Archaeological Museum of Delphi: 'The Delphians together with the Chaeroneans set up Plutarch, obeying the decrees of the Amphictyons' (ΔΕΛΦΟΙ ΧΑΙΡΩΝΕΥΣΙΝ ΟΜΟΥ ΠΛΟΥΤΑΡΧΟΝ ΕΘΗΚΑΝ ...). Plutarch was a priest of Apollo at Delphi. That this Plutarch is the author, and the date of about 100 CE, are the file page's and were not checked.",
+      credit: "Zde, CC BY-SA 3.0, via Wikimedia Commons",
+      licence: "CC BY-SA 3.0",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Plutarch_stele_inscription_100_AD,_AM_of_Delphi_4070060092.jpg",
+      institution: "Archaeological Museum of Delphi (as the file page says)",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/8/86/OsirisBed.jpg",
+      kind: "image",
+      shows: "artefact",
+      caption:
+        "UNVERIFIED — Egyptian evidence, not an illustration of Plutarch: a dark stone figure of Osiris lying on a lion bier, with falcons. The file page says it is Cairo JE 32090, from the tomb of the First Dynasty king Djer (at Abydos), inscribed with the name of a Thirteenth Dynasty king; none of that was checked. Plutarch says Egyptians wished to be buried at Abydos, near the body of Osiris.",
+      credit: "Juan R. Lazaro, CC BY-SA 3.0, via Wikimedia Commons",
+      licence: "CC BY-SA 3.0",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:OsirisBed.jpg",
+      institution: "Egyptian Museum, Cairo (as the file page says)",
+      accessionNumber: "JE 32090 (as the file page says; not checked)",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+  ],
   "story-of-atlantis-published": [
     {
       url: "https://upload.wikimedia.org/wikipedia/commons/d/d3/ELLIOT%281896%29_Atlantis%2C_Map4.jpg",

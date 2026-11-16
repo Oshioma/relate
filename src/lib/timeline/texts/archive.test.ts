@@ -20,6 +20,9 @@ import { SECRETS_OF_ENOCH_UNITS } from "./corpus/secrets-of-enoch-text";
 import { TURBA_UNITS } from "./corpus/turba-philosophorum-text";
 import { CHALDEAN_ORACLE_SECTIONS, CHALDEAN_ORACLE_UNITS } from "./corpus/chaldean-oracles-text";
 import { IAMBLICHUS_CHAPTERS, IAMBLICHUS_UNITS } from "./corpus/iamblichus-mysteries-text";
+import { PLUTARCH_ISIS_NOTES, PLUTARCH_ISIS_NOTE_COUNT, PLUTARCH_ISIS_TAKEN_COUNT, PLUTARCH_ISIS_UNITS } from "./corpus/plutarch-isis-osiris-text";
+import { THAYER_PUBLIC_DOMAIN_STATEMENT } from "./corpus/plutarch-isis-osiris";
+import { SET_SUTEKH_EVENTS } from "../set-sutekh-seed";
 import { MARKER_PICTURES } from "./marker-pictures";
 import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
@@ -3411,6 +3414,194 @@ test("Iamblichus's pictures: the printings of 1497, 1678 and 1821 are secure; th
   assert.equal(marker[1].url, seen.get("iamb-ficino-prohemium-laurenziana")!.url);
   assert.equal(marker[1].identificationStatus, "unverified");
   assert.match(marker[1].caption ?? "", /^UNVERIFIED — /);
+});
+
+test("Plutarch's On Isis and Osiris is imported whole from Babbitt 1936 (US public domain), in 80 chapters with their Stephanus sections and Loeb pages", () => {
+  const file = corpusFor("greek.plutarch-isis-osiris")!;
+  const work = INVENTORY.find((w) => w.workKey === "greek.plutarch-isis-osiris")!;
+  assert.equal(work.passagePrefix, "greek.plut");
+  assert.equal(work.briefItem, 18);
+  assert.equal(work.corpusGroup, "greek_hermetic");
+  assert.equal(work.unitDivisionKind, "chapter");
+  assert.equal(work.expectedUnits, 80);
+  assert.equal(work.inventoryVerified, false, "the Greek was not compared");
+  assert.match(work.copyrightSummary, /public domain in the United States only/);
+  assert.match(work.attributionNote!, /not an Egyptian text/);
+  assert.ok(work.referenceOnlyEditions!.some((e) => e.includes("Griffiths") && /second-hand/.test(e) && /not read/.test(e)));
+  // Item 18 of the brief points here.
+  const related = INVENTORY.find((w) => w.workKey === "greek.related")!;
+  assert.ok(related.proposedMembers!.some((m) => m.startsWith("Plutarch, On Isis and Osiris") && m.endsWith("imported as its own work, greek.plutarch-isis-osiris")));
+  for (const key of [
+    "babbitt-1936-plutarch-isis-osiris",
+    "thayer-lacuscurtius-isis-osiris",
+    "loeb-moralia-v-scans",
+    "aldine-1509-plutarch-moralia",
+    "sep-plutarch",
+    "wikipedia-osiris-myth",
+  ]) {
+    assert.ok(INVENTORY_SOURCES.some((s) => s.key === key), key);
+    assert.ok(file.sources.some((s) => s.key === key), key);
+  }
+  const babbitt = INVENTORY_SOURCES.find((s) => s.key === "babbitt-1936-plutarch-isis-osiris")!;
+  assert.ok(babbitt.notes!.includes(THAYER_PUBLIC_DOMAIN_STATEMENT));
+  assert.match(babbitt.notes!, /Public domain in the United States only/);
+  // The book cites the Greek only; Griffiths is second-hand.
+  const book = file.passages[0];
+  assert.equal(book.key, "greek.plut.book");
+  assert.equal(book.layers.filter((l) => l.content && l.key !== PLAIN_LAYER_KEY).length, 0);
+  const greek = book.layers.find((l) => l.key === "grc")!;
+  assert.equal(greek.content, undefined);
+  assert.match(greek.contentAbsentReason!, /known here only second-hand, from the Wikipedia article 'Osiris myth'/);
+  assert.match(book.summary!, /not an Egyptian text\.$/);
+  assert.match(book.notes!, /Not imported, and listed here: Babbitt's introduction \(pp\. 3–5\)/);
+  assert.match(book.notes!, /Griffiths, in his commentary of 1970 \(known second-hand, not read\)/);
+  // 80 chapters, in order, each with Stephanus sections and Loeb pages.
+  assert.equal(PLUTARCH_ISIS_UNITS.length, 80);
+  const chapters = file.passages.filter((p) => p.divisionKind === "chapter");
+  assert.deepEqual(chapters.map((c) => c.key), Array.from({ length: 80 }, (_, i) => `greek.plut.${i + 1}`));
+  assert.equal(file.passages.length, 81);
+  assert.equal(PLUTARCH_ISIS_UNITS[0].sections[0], "351C");
+  assert.equal(PLUTARCH_ISIS_UNITS[0].firstPage, "7");
+  assert.equal(PLUTARCH_ISIS_UNITS[79].sections.at(-1), "384C");
+  assert.equal(PLUTARCH_ISIS_UNITS[79].lastPage, "191");
+  assert.deepEqual(PLUTARCH_ISIS_UNITS[42].sections, ["368B", "368D"], "the Loeb does not mark 368C, and none is invented");
+  const withText = file.passages.filter((p) => p.layers.some((l) => l.key === "eng-1936"));
+  assert.equal(withText.length, work.expectedUnits);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 80, verifiedUnits: 0 }), "verified_against_edition");
+  for (const unit of chapters) {
+    assert.equal(unit.parentKey, "greek.plut.book", unit.key);
+    assert.equal(unit.verificationStatus, "unverified", unit.key);
+    assert.match(unit.reference, /^Plutarch, On Isis and Osiris \d+ \(Moralia 3\d\d[A-F](–3\d\d[A-F])?\); Babbitt, Loeb Plutarch's Moralia V \(1936\), (p\. \d+|pp\. \d+–\d+)$/, unit.key);
+    const layer = unit.layers.find((l) => l.key === "eng-1936")!;
+    assert.equal(layer.licence, "public_domain_us", unit.key);
+    assert.equal(layer.layer, "translation", unit.key);
+    assert.equal(layer.sourceKey, "babbitt-1936-plutarch-isis-osiris", unit.key);
+    assert.match(layer.evidence, /scripts\/texts\/plutarch-isis-osiris\.py/, unit.key);
+    assert.ok(unit.layers.some((l) => l.key === PLAIN_LAYER_KEY), `${unit.key} has no plain words`);
+    assert.doesNotMatch(layer.content!, /™|_|�|\{|\||  |"|\w- [a-z]/, unit.key);
+    // Every chapter says whose voice it is in.
+    assert.match(unit.notes!, /^(Plutarch's own voice|Reports|The myth, told in reported speech|Plutarch's own)/, unit.key);
+  }
+  for (let n = 12; n <= 19; n++) assert.match(file.passages.find((p) => p.key === `greek.plut.${n}`)!.notes!, /^The myth, told in reported speech/, String(n));
+  const text = (n: number) => file.passages.find((p) => p.key === `greek.plut.${n}`)!.layers.find((l) => l.key === "eng-1936")!.content!;
+  assert.match(text(1), /^All good things, my dear Clea, sensible men must ask from the gods/);
+  assert.match(text(18), /divided it into fourteen parts and scattered them/);
+  assert.match(text(80), /^Cyphi is a compound composed of sixteen ingredients/);
+  assert.match(text(80), /they offer at nightfall\.$/);
+  // The hand corrections, each from the page image.
+  assert.match(text(20), /must be framed\) as if such deeds/);
+  assert.match(text(26), /gained from the gods,’/);
+  // Eight short notes imported, of 403.
+  assert.equal(PLUTARCH_ISIS_NOTE_COUNT, 403);
+  assert.deepEqual(Object.keys(PLUTARCH_ISIS_NOTES).map(Number), [1, 8, 77, 147, 264, 303, 385, 403]);
+  assert.equal(PLUTARCH_ISIS_TAKEN_COUNT, 47);
+  assert.match(file.passages.find((p) => p.key === "greek.plut.2")!.notes!, /Babbitt's note 8:/);
+});
+
+test("Plutarch's On Isis and Osiris is dated about 100–120 CE (inferred, from the SEP), and its printings to 1509 and 1936; the existing record is reused", () => {
+  const file = corpusFor("greek.plutarch-isis-osiris")!;
+  const book = file.passages[0];
+  assert.deepEqual(
+    book.dates!.map((d) => [d.role, d.startYear, d.endYear, d.datePrecision, d.isApproximate, d.sourceKey]),
+    [
+      ["composition", 100, 120, "decade", true, "sep-plutarch"],
+      ["translation_publication", 1509, 1509, "year", false, "aldine-1509-plutarch-moralia"],
+      ["translation_publication", 1936, 1936, "year", false, "babbitt-1936-plutarch-isis-osiris"],
+    ]
+  );
+  assert.match(book.dates![0].evidence, /^Inferred, not read as a date in a primary source/);
+  assert.match(book.dates![1].evidence, /the date is the file page's/);
+  // No new marker: the work hangs off the existing record, whose date is left as it is.
+  const work = INVENTORY.find((w) => w.workKey === "greek.plutarch-isis-osiris")!;
+  assert.ok(work.anchor && "existingSlug" in work.anchor);
+  assert.equal(work.anchor.existingSlug, "plutarch-on-isis-and-osiris");
+  const record = SET_SUTEKH_EVENTS.find((e) => e.slug === "plutarch-on-isis-and-osiris")!;
+  assert.deepEqual(
+    record.claims.map((c) => [c.startYear, c.datePrecision, c.isApproximate]),
+    [[100, "century", true]]
+  );
+  const extra = work.anchor.extraClaims ?? [];
+  assert.deepEqual(
+    extra.map((c) => [dateRoleFromWhatIsDated(c.whatIsDated!), c.startYear, c.endYear, c.sourceKey]),
+    [
+      ["composition", 100, 120, "sep-plutarch"],
+      ["translation_publication", 1509, undefined, "aldine-1509-plutarch-moralia"],
+      ["translation_publication", 1936, undefined, "babbitt-1936-plutarch-isis-osiris"],
+    ]
+  );
+  // The added composition range falls within the record's century.
+  assert.ok(extra[0].startYear! >= 100 && extra[0].endYear! < 200);
+});
+
+test("Plutarch's links are proposed; only Plato (named by Plutarch) and Hall (who names Plutarch) are documented, and none claims an Egyptian source", () => {
+  const file = corpusFor("greek.plutarch-isis-osiris")!;
+  const links = file.links ?? [];
+  const keys = new Set(ALL_CORPORA.flatMap((f) => f.passages.map((p) => p.key)));
+  assert.equal(new Set(links.map((l) => l.key)).size, links.length, "duplicate link key");
+  assert.equal(links.length, 25);
+  for (const link of links) {
+    assert.ok(keys.has(link.from) && keys.has(link.to), link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^greek\.plut\.\d+$/, link.key);
+    if (link.to.startsWith("greek.tim.5") || link.to.startsWith("modern.hall.")) assert.match(link.transmissionEvidence, /^Documented/, link.key);
+    else assert.match(link.transmissionEvidence, /^None shown/, link.key);
+    if (link.to.startsWith("egy.")) assert.match(link.transmissionEvidence, /he names no Egyptian text/, link.key);
+    assert.doesNotMatch(`${link.similarities} ${link.differences} ${link.transmissionEvidence}`, /\bcop(ied|y)\b/, link.key);
+  }
+  const byTarget = new Map(links.map((l) => [l.to, l.connectionClass]));
+  assert.equal(byTarget.get("greek.tim.51a"), "documented_transmission");
+  assert.equal(byTarget.get("greek.tim.50d"), "documented_transmission");
+  assert.equal(byTarget.get("modern.hpb.isis"), "speculative_connection");
+  assert.equal(byTarget.get("egy.pt.532"), "close_conceptual_parallel");
+  assert.ok(!links.some((l) => l.connectionClass === "direct_textual_parallel"), "no Egyptian or later text is claimed as quoted word for word");
+});
+
+test("Plutarch's pictures: the Aldine title page is secure; the manuscript, the Delphi pillar and bust and the Egyptian evidence are UNVERIFIED", () => {
+  const file = corpusFor("greek.plutarch-isis-osiris")!;
+  const placed = file.passages.flatMap((p) => (p.images ?? []).map((i) => [p.key, i] as const));
+  const images = [...(file.images ?? []), ...placed.map(([, i]) => i)];
+  const seen = new Map(images.map((i) => [i.key, i]));
+  assert.equal(seen.size, images.length, "duplicate image key");
+  assert.equal(seen.size, 7);
+  const elsewhere = new Set(ALL_CORPORA.filter((f) => f.workKey !== "greek.plutarch-isis-osiris").flatMap((f) => [...(f.images ?? []), ...f.passages.flatMap((p) => p.images ?? [])].map((i) => i.url)));
+  for (const image of seen.values()) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.ok(image.licence, image.key);
+    assert.ok(!elsewhere.has(image.url), `${image.key} repeats a picture shown elsewhere`);
+    if (image.identificationStatus === "unverified") {
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else {
+      assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+    }
+    // Egyptian evidence is never presented as illustrating Plutarch.
+    if (/osiris-(bed|bier)|bier-of-osiris/.test(image.key)) assert.match(image.caption, /not an illustration of Plutarch/, image.key);
+  }
+  assert.deepEqual(
+    placed.map(([key, i]) => [key, i.key, i.identificationStatus]),
+    [
+      ["greek.plut.book", "plut-aldine-1509-moralia-title-page", "secure"],
+      ["greek.plut.book", "plut-venice-gr-248-moralia-opening", "unverified"],
+      ["greek.plut.book", "plut-delphi-inscribed-pillar", "unverified"],
+      ["greek.plut.book", "plut-delphi-bust", "unverified"],
+      ["greek.plut.18", "plut-dendera-roof-bier-of-osiris", "unverified"],
+      ["greek.plut.20", "plut-osiris-bed-abydos", "unverified"],
+      ["greek.plut.20", "plut-philae-temple-of-isis", "unverified"],
+    ]
+  );
+  assert.equal(seen.get("plut-aldine-1509-moralia-title-page")!.shows, "historical_document");
+  assert.equal(seen.get("plut-venice-gr-248-moralia-opening")!.licenceStatus, "restricted");
+  assert.match(seen.get("plut-venice-gr-248-moralia-opening")!.caption, /^UNVERIFIED — Related evidence, not this essay/);
+  // The existing record gets pictures too: the Aldine title page first.
+  const marker = MARKER_PICTURES["plutarch-on-isis-and-osiris"];
+  assert.equal(marker.length, 3);
+  assert.equal(marker[0].url, seen.get("plut-aldine-1509-moralia-title-page")!.url);
+  assert.equal(marker[0].identificationStatus, "secure");
+  for (const picture of marker.slice(1)) {
+    assert.equal(picture.identificationStatus, "unverified");
+    assert.match(picture.caption ?? "", /^UNVERIFIED — /);
+  }
 });
 
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {

@@ -200,6 +200,8 @@ export async function installLibrary(supabase: Client, community: Community, use
   if (presentError) throw new Error(presentError.message);
   const idBySlug = new Map((present ?? []).map((row) => [row.slug, row.id]));
   const storedBySlug = new Map((present ?? []).map((row) => [row.slug, row]));
+  const eventAnchorSlugs = new Set(INVENTORY.flatMap((w) => (w.anchor && "event" in w.anchor ? [w.anchor.event.slug] : [])));
+  const picturedExisting = new Set<string>();
 
   for (const work of INVENTORY) {
     if (!work.anchor) continue;
@@ -259,6 +261,15 @@ export async function installLibrary(supabase: Client, community: Community, use
         continue;
       }
       result.claimsAdded += await addMissingClaims(supabase, community.id, userId, eventId, work.anchor.extraClaims ?? [], sourceIds);
+      // An existing record the library has pictures for (MARKER_PICTURES) gets
+      // the ones it lacks, by the same top-up rule, once however many works
+      // hang off it; a record a person already gave a cover keeps it.
+      const slug = work.anchor.existingSlug;
+      const pictures = MARKER_PICTURES[slug];
+      if (pictures && !eventAnchorSlugs.has(slug) && !picturedExisting.has(slug)) {
+        picturedExisting.add(slug);
+        result.picturesAdded += await addMissingPictures(supabase, eventId, storedBySlug.get(slug)!, { imageUrl: pictures[0]?.url, media: pictures });
+      }
     }
   }
 

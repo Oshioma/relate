@@ -1344,6 +1344,79 @@ export const INVENTORY_SOURCES: SeedSource[] = [
       "Cited, second-hand, for: Proclus 'seems to have ascribed to him the authorship'; differences of style and doctrine 'have led some to question whether Iamblichus was the actual author. Still, the treatise certainly originated from his school'; the work's ten books; the editions of Aldus (1497), Taylor (1821), Wilder (1911) and Clarke, Dillon and Hershbell (2003); from its article on Iamblichus, his dates (c. 245 – c. 325), Parthey's Teubner edition (1857) and des Places' Budé edition; and from its article on Porphyry, his dates (c. 234 – c. 305) and the edition of the Letter to Anebo by Sodano (1958). None of the editions was read.",
   },
   {
+    key: "babbitt-1936-plutarch-isis-osiris",
+    title: "Plutarch's Moralia, in fifteen volumes, V. With an English translation by Frank Cole Babbitt (Loeb Classical Library 306): 'Isis and Osiris'",
+    author: "Frank Cole Babbitt (trans.)",
+    publisher: "William Heinemann, London, and Harvard University Press, Cambridge, Mass.",
+    publishedYear: 1936,
+    reference:
+      "'Isis and Osiris', Moralia 351C–384C: Introduction pp. 3–5; Greek and English on facing pages, the English on the odd pages 7–191, in 80 chapters with the Stephanus sections in the margin and 403 footnotes; read in the archive.org scan of a 2003 reprint (plutarchs-moralia-vol.-5-loeb-306, 'First published 1936'), every English page of the essay",
+    url: "https://archive.org/details/plutarchs-moralia-vol.-5-loeb-306",
+    sourceType: "primary",
+    notes:
+      "The English imported. Public domain in the United States only, on the statement of Bill Thayer's LacusCurtius page: 'The work is now in the public domain pursuant to the 1978 revision of the U. S. Copyright Code, since the copyright expired in 1964 and was not renewed at the appropriate time, which would have been that year or the year before.' The copy text is Thayer's transcription, voted against the OCR of four scans of this volume and read on the page images of the 2003 reprint, which is photographic (the 1936 type and pages); every decision and hand correction is in scripts/texts/plutarch-isis-osiris.py. Eight of the 403 footnotes are imported; the introduction, the Greek and its apparatus, and the other notes are not. Babbitt's Greek text was not checked.",
+  },
+  {
+    key: "thayer-lacuscurtius-isis-osiris",
+    title: "Plutarch: Isis and Osiris (LacusCurtius)",
+    author: "Bill Thayer (transcription)",
+    publisher: "LacusCurtius (penelope.uchicago.edu)",
+    reference:
+      "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Moralia/Isis_and_Osiris*/home.html and its five text pages (chapters 1–19, 20–40, 41–52, 53–67, 68–80), read for this import in November 2026",
+    url: "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Moralia/Isis_and_Osiris*/home.html",
+    sourceType: "website",
+    notes:
+      "The copy text: Thayer's hand-typed transcription of Babbitt's English, 'as printed in pp1‑191 of Vol. V of the Loeb Classical Library edition of the Moralia, published in 1936', with the Loeb pages and Stephanus sections marked. His home page gives the copyright statement quoted for the Babbitt source, which is the basis of the US public-domain status. Where three of four OCRs of the printed volume agreed against him, the page image was looked at, and the printed reading was taken in 47 places; his own notes and emendations are not imported (see the generator). He notes that the Loeb does not mark section 368C.",
+  },
+  {
+    key: "loeb-moralia-v-scans",
+    title: "Plutarch's Moralia V (Loeb Classical Library 306), four scans on archive.org",
+    author: "Frank Cole Babbitt (trans.)",
+    publisher: "Internet Archive (scans of the Loeb volume)",
+    reference:
+      "archive.org: plutarchs-moralia-vol.-5-loeb-306 (a 2003 reprint; its page images used for all proofreading), moraliainfiftee05plut (a University of Toronto copy), plutarchsmoralia05plut (some leaves bound out of order) and plutarch-isis-osiris-loeb (the essay's pages from a 1999 printing); their OCR text read in November 2026",
+    url: "https://archive.org/details/moraliainfiftee05plut",
+    sourceType: "primary",
+    notes:
+      "Witnesses to the printed text, not separate editions: the reprints are photographic. Their OCR was aligned word by word with Thayer's transcription; 95 places were flagged where three of the four agreed against him or could not be aligned, and each was decided on the page image of the 2003 reprint. Used for the Loeb page numbers too: Thayer's page marks agree with the printed pages except that p. 89 is unmarked, which the generator adds.",
+  },
+  {
+    key: "aldine-1509-plutarch-moralia",
+    title: "Plutarchi Opuscula LXXXXII (the Greek Moralia), edited by Demetrius Ducas",
+    author: "Plutarch; Demetrius Ducas (ed.)",
+    publisher: "Aldus Manutius, Venice",
+    publishedYear: 1509,
+    reference:
+      "The title page only, seen on Wikimedia Commons ('Plutarch's Moralia, Aldine edition (March 1509), title page.jpg'), from the Simon Fraser University Library scan (digital.lib.sfu.ca/aldine/opuscula), which is behind a bot check and was not opened",
+    url: "https://commons.wikimedia.org/wiki/File:Plutarch%27s_Moralia,_Aldine_edition_(March_1509),_title_page.jpg",
+    sourceType: "historical_document",
+    notes:
+      "The first printing of the Greek Moralia. Read only at its title page, 'PLVTARCHI OPVSCVLA. LXXXXII.', with a Latin note on the table of contents and Aldus's device; the editor, the printer and the date (1509) are the Commons file page's, since the title page bears no date, and the colophon was not read. That On Isis and Osiris is in it rests on Babbitt's apparatus, which cites readings of 'the Aldine ed.' in this essay. Public domain.",
+  },
+  {
+    key: "sep-plutarch",
+    title: "Plutarch",
+    author: "George Karamanolis",
+    publisher: "Stanford Encyclopedia of Philosophy",
+    publishedYear: 2010,
+    reference: "https://plato.stanford.edu/entries/plutarch/, first published 7 September 2010, substantive revision 5 December 2024, read for this import in November 2026",
+    url: "https://plato.stanford.edu/entries/plutarch/",
+    sourceType: "encyclopedia",
+    notes:
+      "Cited for Plutarch's life ('Plutarch of Chaeronea in Boeotia (ca. 45–120 CE)', born between 45 and 47, 'must have died after 119 CE'), his service at Delphi 'including that of the priest of Apollo', that On Isis and Osiris is a 'late work' which relates the myth but 'interprets it allegorically as a story informative about God, being, and creation', and its reading of Isis as 'the receptacle or both the receptacle and the orderly world soul (De Iside 372E–F ...; Timaeus 49a, 51a)'. Second-hand for everything it reports from other scholars.",
+  },
+  {
+    key: "wikipedia-osiris-myth",
+    title: "Osiris myth",
+    author: "Wikipedia contributors",
+    publisher: "Wikipedia",
+    reference: "https://en.wikipedia.org/wiki/Osiris_myth, read for this import in November 2026 through the site's raw wikitext",
+    url: "https://en.wikipedia.org/wiki/Osiris_myth",
+    sourceType: "website",
+    notes:
+      "Cited, second-hand, for what it reports from J. Gwyn Griffiths's edition and commentary, Plutarch's De Iside et Osiride (University of Wales Press, 1970), which was not read: that Plutarch wrote 'in the early 2nd century CE' (Griffiths pp. 16–17); that Griffiths 'concluded that several elements of this account were taken from Greek mythology, and that the work as a whole was not based directly on Egyptian sources' (pp. 51–52, 98); and that the Byblos episode 'is not known from Egyptian sources' (pp. 319–322); and for the opposite view of John Baines (1996, p. 370), that 'temples may have kept written accounts of myths that were later lost, and that Plutarch could have drawn on such sources'. Neither Griffiths nor Baines was read.",
+  },
+  {
     key: "waite-1896-turba",
     title:
       "The Turba Philosophorum or Assembly of the Sages, called also the Book of Truth in the Art and the Third Pythagorical Synod: an ancient alchemical treatise translated from the Latin, the chief readings of the shorter codex, parallels from the Greek alchemists, and explanations of obscure terms",
@@ -2766,7 +2839,7 @@ export const INVENTORY: InventoryWork[] = [
     anchor: null,
     proposedMembers: [
       "Mithras Liturgy (PGM IV 475–829) — ascent through the heavens; Mead 1907 public domain; imported as its own work, greek.mithras-liturgy",
-      "Plutarch, On Isis and Osiris — already a timeline record (plutarch-on-isis-and-osiris)",
+      "Plutarch, On Isis and Osiris — Babbitt 1936 public domain in the US; imported as its own work, greek.plutarch-isis-osiris",
       "Iamblichus, On the Mysteries — Taylor 1821 public domain; imported as its own work, greek.iamblichus-mysteries",
       "Chaldean Oracles — imported as its own work, greek.chaldean-oracles",
       "Ptolemy, Tetrabiblos — planetary rulers",
@@ -3044,6 +3117,89 @@ export const INVENTORY: InventoryWork[] = [
           }),
         ],
       },
+    },
+    prominence: 2,
+  },
+  {
+    // Brief item 18 listed Plutarch's On Isis and Osiris among its proposed
+    // members; it is imported here as its own work, in Babbitt's English of
+    // 1936 (public domain in the US only). The timeline already has a record
+    // for it (plutarch-on-isis-and-osiris, in set-sutekh-seed.ts), whose date
+    // (about 100 CE, to the century, approximate) agrees with the sources read
+    // here, so the work hangs off that record and adds dates to it rather than
+    // making a second marker.
+    workKey: "greek.plutarch-isis-osiris",
+    passagePrefix: "greek.plut",
+    briefItem: 18,
+    title: "Plutarch, On Isis and Osiris, in Babbitt's English (1936)",
+    alternativeTitles: ["De Iside et Osiride", "Isis and Osiris", "Moralia 351C–384C"],
+    corpusGroup: "greek_hermetic",
+    traditionClass: "ancient_late_transmission",
+    civilisation: "Roman Empire",
+    geographicalOrigin: "Greece (Plutarch lived at Chaeronea and served at Delphi)",
+    originalLanguage: "Greek",
+    attribution: "Plutarch of Chaeronea (ca. 45–120 CE), priest of Apollo at Delphi",
+    attributionNote:
+      "The essay is addressed to Clea, a priestess at Delphi, and is no. 118 in Lamprias's list of Plutarch's works, 'where the title is given as an account of Isis and Serapis' (Babbitt's introduction). Its authorship is not in question. It is a Greek philosopher's account of Egyptian religion, from books and from what priests told, not an Egyptian text: Plutarch tells the myth in reported speech, reports others' explanations, and gives his own Platonist one. Wikipedia reports that J. Gwyn Griffiths (1970, not read) held that several elements of the story come from Greek myth and that the work is not based directly on Egyptian sources, while John Baines allows that Plutarch may have drawn on temple writings since lost.",
+    summary:
+      "A Greek essay on the Egyptian story of Osiris, Isis, Horus and Typhon (Set) and what it means: the fullest ancient telling of the myth, followed by the explanations of priests and of Greek writers (the Nile and the drought, the moon and the sun, the demigods) and by Plutarch's own Platonist reading, with the sacred animals, the robes of Isis and Osiris and the temple incense. In F. C. Babbitt's English (Loeb, 1936), in its 80 chapters.",
+    referenceEdition:
+      "Babbitt, Plutarch's Moralia V (Loeb Classical Library, 1936), 'Isis and Osiris', by its 80 chapters and the Stephanus sections of the Moralia (351C–384C), with Babbitt's pages 7–191",
+    expectedUnits: 80,
+    unitLabel: "chapters",
+    unitDivisionKind: "chapter",
+    inventoryBasis:
+      "Babbitt's 80 chapters, as numbered in the Loeb and in Thayer's transcription, checked against the page images of the 2003 reprint; each chapter carries the Stephanus sections it runs over (351C–384C; the Loeb does not mark 368C, so none is given) and its Loeb pages (7–191). All 80 imported. Listed, not imported: Babbitt's introduction (pp. 3–5), his Greek text and apparatus, 395 of his 403 footnotes, and Thayer's own notes. The Greek was not compared, so the count is not marked verified.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Babbitt's translation (1936) is public domain in the United States only: Bill Thayer's LacusCurtius page states that the copyright expired in 1964 and was not renewed. It may still be in copyright elsewhere. The pictures carry the licences their Commons file pages state.",
+    fullTextEditions: ["Babbitt, Plutarch's Moralia V (Loeb, 1936), 'Isis and Osiris': the English of all 80 chapters, via Thayer's LacusCurtius transcription"],
+    referenceOnlyEditions: [
+      "J. Gwyn Griffiths, Plutarch's De Iside et Osiride (Cardiff: University of Wales Press, 1970), Greek, English and commentary; known second-hand from Wikipedia, not read",
+      "G. Parthey's edition of the Isis and Osiris (Berlin, 1850); named in Babbitt's introduction, not read",
+      "Babbitt's own Greek text, on the facing pages of the Loeb; not transcribed or checked",
+      "The Aldine Moralia (Venice, 1509), the first printing of the Greek; seen at its title page only",
+    ],
+    imageCollections: [
+      "Wikimedia Commons: the Aldine Moralia of 1509; the inscribed pillar and the bust at Delphi taken for Plutarch; Egyptian evidence for the Osiris myth (the Osiris bed from Djer's tomb, the Dendera Osiris chapels)",
+    ],
+    anchor: {
+      existingSlug: "plutarch-on-isis-and-osiris",
+      extraClaims: [
+        dated("composition", {
+          qualifier: "the essay, a late work of Plutarch's",
+          sourceKey: "sep-plutarch",
+          startYear: 100,
+          endYear: 120,
+          datePrecision: "decade",
+          originalDateText:
+            "'Plutarch of Chaeronea in Boeotia (ca. 45–120 CE)'; 'His late work On Isis and Osiris' (SEP); 'In the early 2nd century CE' (Wikipedia, 'Osiris myth', citing Griffiths 1970, pp. 16–17)",
+          evidence:
+            "Inferred: the essay gives no date. The SEP calls it a late work and has Plutarch dying after 119 CE; Wikipedia, citing Griffiths (not read), says the early second century. Approximate. It agrees with the existing record's 'about the late first or early second century CE', which is left as it is.",
+        }),
+        dated("translation_publication", {
+          qualifier: "the first printing of the Greek, the Aldine Moralia",
+          sourceKey: "aldine-1509-plutarch-moralia",
+          startYear: 1509,
+          datePrecision: "year",
+          isApproximate: false,
+          originalDateText: "'PLVTARCHI OPVSCVLA. LXXXXII.' (the title page); March 1509 (the Commons file page)",
+          datingMethod: "historical_record",
+          evidence:
+            "The title page was looked at and bears no date; the year is the Commons file page's, for the Simon Fraser University copy. That the essay is in it rests on Babbitt's apparatus citing 'the Aldine ed.'.",
+        }),
+        dated("translation_publication", {
+          qualifier: "Babbitt's English, the text imported",
+          sourceKey: "babbitt-1936-plutarch-isis-osiris",
+          startYear: 1936,
+          datePrecision: "year",
+          isApproximate: false,
+          originalDateText: "'First published 1936' (the Loeb volume, as reprinted)",
+          datingMethod: "historical_record",
+          evidence: "Read on the reverse of the title page of the 2003 reprint scanned on archive.org; Thayer also gives the 1936 Loeb as his source.",
+        }),
+      ],
     },
     prominence: 2,
   },
