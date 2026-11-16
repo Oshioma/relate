@@ -280,3 +280,22 @@ export async function getResearchStats(supabase: Client, todayIso: string): Prom
     upcomingDated: upcoming.count ?? 0,
   };
 }
+
+/**
+ * The viewer's Personal Moon birth details, or null. Row security returns only
+ * their own row. Before the table exists (migration not yet applied) this is
+ * simply null, so the calendar still works.
+ */
+export async function getBirthProfile(supabase: Client, userId: string | null) {
+  if (!userId) return null;
+  const { data, error } = await supabase
+    .from("calendar_birth_profiles")
+    .select("birth_date, birth_time, birth_place, birth_time_zone, display_time_zone, period_wording")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) return null;
+  return data;
+}
+
+export type BirthProfileRow = NonNullable<Awaited<ReturnType<typeof getBirthProfile>>>;
+

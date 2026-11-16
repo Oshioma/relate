@@ -7,7 +7,12 @@ import { updatePassword, type UpdatePasswordState } from "@/app/auth/actions";
 import { Input, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 
-export function UpdatePasswordForm() {
+// `doneHref`/`doneLabel` say where to go once it's saved (the activation page
+// sends people on to their community).
+export function UpdatePasswordForm({
+  doneHref = "/dashboard",
+  doneLabel = "Go to your communities",
+}: { doneHref?: string; doneLabel?: string } = {}) {
   const [state, formAction] = useActionState<UpdatePasswordState, FormData>(updatePassword, undefined);
 
   if (state?.done) {
@@ -17,8 +22,8 @@ export function UpdatePasswordForm() {
           <CheckCircle2 className="h-4 w-4 text-accent" />
           Password updated — use it next time you sign in.
         </p>
-        <Link href="/dashboard" className="inline-block text-sm font-medium text-accent hover:underline">
-          Go to your communities
+        <Link href={doneHref} className="inline-block text-sm font-medium text-accent hover:underline">
+          {doneLabel}
         </Link>
       </div>
     );

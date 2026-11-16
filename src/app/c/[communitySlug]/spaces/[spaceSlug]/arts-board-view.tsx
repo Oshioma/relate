@@ -144,7 +144,7 @@ export function ArtsBoardView({
         </div>
       </section>
 
-      <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
+      <p className="whitespace-pre-line mt-4 max-w-2xl text-sm text-muted-foreground">
         {spaceDescription || "Tap a square to flip it, try the activity together, and mark it done to circle it on your family's board."}
       </p>
 

@@ -20,7 +20,8 @@
 // Pure functions; the profiles are reviewed code, versioned with the repo.
 
 import { type CivilDate, addDays, civilDateAt, compareDates, daysFromCivil, startOfDayIn } from "../dates";
-import { type QuarterKind, quartersBetween } from "../astronomy";
+import { type QuarterKind, quartersBetween, seasonsOf } from "../astronomy";
+import { type Place, type TithiTime, HINDU_MONTHS, hinduFestivalDates, hinduMonths, tithiDates } from "./day-rules";
 
 export type MappingLevel = "A" | "B" | "C";
 export const MAPPING_LEVELS: Record<MappingLevel, { name: string; short: string; explain: string }> = {
@@ -41,6 +42,10 @@ export type Anchor =
   | { kind: "full_moon"; offsetDays: number }
   /** A fixed-length day cycle counted from a sourced anchor date stored on the cycle record. */
   | { kind: "cycle_anchor" }
+  /** Hindu tithi: the lunar day in force at local sunrise at a stated place (one tithi per 12° of Moon–Sun elongation). */
+  | { kind: "tithi"; place: { lat: number; lon: number; height: number; tz: string }; placeName: string }
+  /** Chinese twelve day officers: from the day's earthly branch and the solar-term month (see day-rules.ts). */
+  | { kind: "jianchu" }
   /** No defensible anchor: nothing is dated. */
   | { kind: "none"; needs: string };
 
@@ -79,6 +84,82 @@ export interface MappingProfile {
   assumption: string;
   /** Advice that does not travel (seasonal farming from another climate). */
   climateNote?: string;
+  /** Named months of the year: which lunar month is month 1. */
+  yearStart?: YearStart;
+  /** For a months-only profile: the lunar profile whose months it names. */
+  monthsFrom?: string;
+}
+
+/** How a tradition's year picks its first month. */
+export type YearStart =
+  /** Month 1 is the lunar month whose first day is nearest the March equinox (in the profile's timezone). */
+  | { kind: "nearest_equinox" }
+  /**
+   * Month 1 is the lunar month whose night `night` falls nearest a listed
+   * date of that year (e.g. the Matariki public holiday, set by the "Tangaroa
+   * of Pipiri" method). Years with no listed date are not named.
+   */
+  | { kind: "listed"; night: number; dates: Record<number, string>; sourceKey: string; label: string; url: string }
+  /**
+   * Hindu months (amānta): each new-Moon-to-new-Moon month is named by the
+   * sidereal sign the Sun enters during it, Caitra for Meṣa; a month the Sun
+   * enters no sign in is an extra (adhika) month and gets no ordinal.
+   */
+  | { kind: "hindu_sankranti" };
+
+/**
+ * When in the day almanacs check a festival's tithi (research batch 12): the
+ * day the tithi is in force at that time is the festival. Checked against
+ * published dates in mapping.test.ts.
+ */
+export const HINDU_FESTIVAL_TIMES: Record<string, TithiTime> = {
+  "asia.south.vedic-hindu.tithi.festival.ugadi-gudi-padwa": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.rama-navami": "midday",
+  "asia.south.vedic-hindu.tithi.festival.akshaya-tritiya": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.narasimha-jayanti": "evening",
+  "asia.south.vedic-hindu.tithi.festival.hariyali-teej": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.krishna-janmashtami": "midnight",
+  "asia.south.vedic-hindu.tithi.festival.nandotsava": "midnight",
+  "asia.south.vedic-hindu.tithi.festival.hartalika-teej": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.ganesh-chaturthi": "midday",
+  "asia.south.vedic-hindu.tithi.festival.radhashtami": "midday",
+  "asia.south.vedic-hindu.tithi.festival.ananta-chaturdashi": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.maha-navami": "midday",
+  "asia.south.vedic-hindu.tithi.festival.vijayadashami": "afternoon",
+  "asia.south.vedic-hindu.tithi.festival.karva-chauth": "evening",
+  "asia.south.vedic-hindu.tithi.festival.govatsa-dvadashi": "evening",
+  "asia.south.vedic-hindu.tithi.festival.naraka-chaturdashi": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.diwali": "evening",
+  "asia.south.vedic-hindu.tithi.festival.govardhan-puja-bali-pratipada": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.bhai-dooj": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.chhath": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.vivaha-panchami": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.kurma-dvadashi": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.ganesh-jayanti": "midday",
+  "asia.south.vedic-hindu.tithi.festival.vasant-panchami": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.ratha-saptami": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.maha-shivaratri": "midnight",
+  "asia.south.vedic-hindu.tithi.festival.holika-dahana": "evening",
+  "asia.south.vedic-hindu.tithi.festival.phulera-dooj": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.hala-shashthi": "sunrise",
+  "asia.south.vedic-hindu.tithi.festival.vamana-jayanti": "midday",
+  "asia.south.vedic-hindu.tithi.festival.kartika-purnima": "sunrise"
+};
+
+/** Festivals kept as "the day after" another one, whatever the tithi does that day. */
+export const HINDU_FESTIVAL_DAY_AFTER: Record<string, string> = {
+  "asia.south.vedic-hindu.tithi.festival.nandotsava": "asia.south.vedic-hindu.tithi.festival.krishna-janmashtami",
+};
+
+/** The dates of a Hindu yearly festival (by its observance key) between `from` and `to`. */
+export function hinduFestivalDatesFor(key: string, monthIndex: number, tithi: number, from: CivilDate, to: CivilDate, place?: Place): CivilDate[] {
+  const before = HINDU_FESTIVAL_DAY_AFTER[key];
+  if (before) {
+    const t = tithi === 1 ? 30 : tithi - 1;
+    return hinduFestivalDates(monthIndex, t, HINDU_FESTIVAL_TIMES[before] ?? "sunrise", addDays(from, -1), addDays(to, -1), place)
+      .map((d) => addDays(d, 1));
+  }
+  return hinduFestivalDates(monthIndex, tithi, HINDU_FESTIVAL_TIMES[key] ?? "sunrise", from, to, place);
 }
 
 const MAORI_SYSTEMS = /^oceania\.maori\.(maramataka|tepapa-sequence|kahungunu-maramataka)$/;
@@ -225,27 +306,27 @@ export const MAPPING_PROFILES: MappingProfile[] = [
     assumption: "Dates are counted forward 42 days at a time from the sourced anchor (1 Feb 2026). A published listing for the date is shown as such; a counted date is an estimate.",
   },
   {
-    key: "igbo.market-week-unanchored",
+    key: "igbo.nri-market-count",
     group: "igbo-market-week",
     isDefault: true,
-    label: "Igbo four-day market week (Eke, Orie, Afọ, Nkwọ)",
+    label: "Igbo four-day market week, Nri count",
     cultureKey: "africa.west.igbo",
-    community: "Igbo communities (local market days differ)",
+    community: "Nri (Ịgụ Arọ festival date); other towns' market days can differ",
     systems: /^africa\.west\.igbo\.market-week$/,
     calendarSystem: "Izu (four-day week)",
     cycleType: "day_cycle",
     cycleLength: 4,
-    anchor: { kind: "none", needs: "a community-specific date anchor (which Gregorian day is Eke in that town)" },
+    anchor: { kind: "cycle_anchor" },
     monthBoundary: "No month: a repeating four-day cycle.",
     region: "Southeastern Nigeria",
     timezone: "Africa/Lagos",
-    adjustment: "Communities hold their markets on different days of the cycle; one town's Eke is not another's.",
-    sourceKeys: ["src.elias-igbo-days", "src.igbo-nkwerre-2022"],
-    level: "C",
-    historicalPeriod: "Documented 19th century to today",
+    adjustment: "Communities hold their markets on different days of the cycle; one town's Eke is not another's. The days are counted from the Nri anchor.",
+    sourceKeys: ["src.wikipedia-igbo-calendar", "src.elias-igbo-days"],
+    level: "B",
+    historicalPeriod: "Documented 19th century to today; anchor 2012",
     validFrom: null,
     validTo: null,
-    assumption: "Not dated: we need a community-specific anchor before any Gregorian date can be given.",
+    assumption: "Counted four days at a time from 18 February 2012, recorded as an Nkwọ day for the Nri year-counting festival. Your own town's market may fall on a different day of the cycle.",
   },
   {
     key: "yoruba.ritual-week-unanchored",
@@ -317,27 +398,156 @@ export const MAPPING_PROFILES: MappingProfile[] = [
     assumption: "Not dated: no sourced rule says which modern lunar month each name falls on.",
   },
   {
-    key: "maori.tuhoe-months-unmapped",
+    key: "maori.tuhoe-months-matariki",
     group: "tuhoe-months",
     isDefault: true,
-    label: "Tūhoe months",
+    label: "Tūhoe months, Pipiri at Matariki",
     cultureKey: "oceania.maori",
-    community: "Tūhoe (Te Ara)",
+    community: "Tūhoe (Te Ara), aligned to the national Matariki dates",
     systems: /^oceania\.maori\.tuhoe-months$/,
     calendarSystem: "Tūhoe months",
     cycleType: "seasonal_month",
-    cycleLength: null,
-    anchor: { kind: "none", needs: "a sourced rule for the month that opens the Tūhoe year" },
-    monthBoundary: "Named months of the year, tied to Aotearoa's seasons.",
+    cycleLength: 29.53,
+    anchor: { kind: "conjunction", offsetDays: 0 },
+    monthBoundary: "Each month runs from Whiro (the new Moon) to the night before the next Whiro. Pipiri, the first month, is the month of Matariki.",
     region: "Aotearoa New Zealand",
     timezone: "Pacific/Auckland",
-    adjustment: "Southern-hemisphere seasons; not transferable to Zanzibar.",
-    sourceKeys: ["src.teara-maramataka"],
-    level: "C",
-    historicalPeriod: "Documented 19th century",
+    adjustment: "Southern-hemisphere seasons; not transferable to Zanzibar. A 13th lunation before the next Pipiri is left unnamed: this list has 12 months and our sources do not say how Tūhoe handled the extra one.",
+    sourceKeys: ["src.teara-maramataka", "calc.matariki-dates"],
+    level: "B",
+    historicalPeriod: "Documented 19th century; Matariki dates 2022 to 2032",
+    validFrom: "2022-01-01",
+    validTo: "2033-06-30",
+    assumption:
+      "Pipiri (month 1) is taken as the lunar month (Whiro to Whiro, New Zealand time) whose Tangaroa nights fall nearest the Matariki public holiday. The holiday is set each year by the Matariki Advisory Group's \"Tangaroa of Pipiri\" method; the other months follow in order. Tūhoe's own reckoning may differ.",
+    monthsFrom: "maori.whiro-new-moon",
+    yearStart: {
+      kind: "listed",
+      night: 24,
+      dates: { 2022: "2022-06-24", 2023: "2023-07-14", 2024: "2024-06-28", 2025: "2025-06-20", 2026: "2026-07-10", 2027: "2027-06-25", 2028: "2028-07-14", 2029: "2029-07-06", 2030: "2030-06-21", 2031: "2031-07-11", 2032: "2032-07-02" },
+      sourceKey: "calc.matariki-dates",
+      label: "Matariki dates 2022 to 2052 (Matariki Advisory Group, published by MBIE)",
+      url: "https://www.mbie.govt.nz/assets/matariki-dates-2022-to-2052-matariki-advisory-group.pdf",
+    },
+  },
+  {
+    key: "babylonian.first-crescent-illustrative",
+    group: "babylonian-month",
+    isDefault: true,
+    label: "Babylonian month (illustrative model)",
+    cultureKey: "middle-east.babylonian",
+    community: "Babylon and Assyria (hemerologies of the 2nd and 1st millennia BCE)",
+    systems: /^middle-east\.babylonian\./,
+    calendarSystem: "Babylonian lunisolar calendar",
+    cycleType: "synodic_lunar",
+    cycleLength: 29.53,
+    anchor: { kind: "first_crescent", minAgeHours: 24, eveningHour: 18 },
+    monthBoundary: "A month began on the evening the new crescent was first seen at sunset; 29 or 30 days.",
+    region: "Babylon (Iraq)",
+    timezone: "Asia/Baghdad",
+    adjustment: "Weather could delay the sighting, and the year was kept in step by inserting an extra month by decree or by the 19-year cycle. Exact ancient dates are not established.",
+    sourceKeys: ["src.wikipedia-babylonian-calendar", "src.csmc-hemerologies"],
+    level: "B",
+    illustrative: true,
+    historicalPeriod: "2nd and 1st millennia BCE",
     validFrom: null,
     validTo: null,
-    assumption: "Not dated: no sourced rule for which new Moon opens which month.",
+    assumption:
+      "An illustrative reconstruction: day 1 is the first evening (6 pm Babylon time) when the Moon is at least a day past the calculated new Moon, and Nisānu (month 1) is the month that begins nearest the March equinox; a 13th month in a year is the inserted Addaru II. It shows where the days would fall if the calendar were kept today; it is not an ancient listing.",
+    yearStart: { kind: "nearest_equinox" },
+  },
+  {
+    key: "maya.gmt-highland-count",
+    group: "maya-count",
+    isDefault: true,
+    label: "Maya day count (GMT correlation)",
+    cultureKey: "americas.maya",
+    community: "Highland Guatemalan daykeepers (Kʼicheʼ, Ixil, Mam and others), whose living count agrees with the GMT correlation",
+    systems: /^americas\.maya\.(tzolkin|haab)$/,
+    calendarSystem: "Tzolkʼin and haabʼ",
+    cycleType: "day_cycle",
+    cycleLength: 260,
+    anchor: { kind: "cycle_anchor" },
+    monthBoundary: "No lunar month: 20 day names with 13 numbers (260 days), beside a 365-day year.",
+    region: "Guatemala and southern Mexico",
+    timezone: "America/Guatemala",
+    adjustment: "Communities keeping the count agree with the GMT correlation; some scholars argue for a correlation a day or two different.",
+    sourceKeys: ["src.wikipedia-maya-long-count", "src.wikipedia-tzolkin"],
+    level: "A",
+    historicalPeriod: "Classic Maya inscriptions to today",
+    validFrom: null,
+    validTo: null,
+    assumption: "Counted from 21 December 2012 = 4 Ajaw 3 Kʼankʼin (GMT correlation 584,283), which the highland daykeepers' unbroken count agrees with.",
+  },
+  {
+    key: "akan.six-and-seven-day-weeks",
+    group: "akan-weeks",
+    isDefault: true,
+    label: "Akan six-day and seven-day weeks",
+    cultureKey: "africa.west.akan",
+    community: "Akan (recorded in Kwahu and Bono; dated by the published Asante Akwasidae listings)",
+    systems: /^africa\.west\.akan\.(nnanson|nnawotwe)$/,
+    calendarSystem: "Nnanson and nnawɔtwe",
+    cycleType: "day_cycle",
+    cycleLength: 6,
+    anchor: { kind: "cycle_anchor" },
+    monthBoundary: "No month: two weeks of six and seven days, together making the 42-day adaduanan.",
+    region: "Ghana",
+    timezone: "Africa/Accra",
+    adjustment: "The seven-day week is the Gregorian week. The six-day week is counted from Akwasidae (Kuru on a Sunday), as in the 42-day grid.",
+    sourceKeys: ["src.wikipedia-akan-calendar", "src.akandictionary-akwasidae-2026"],
+    level: "A",
+    historicalPeriod: "Documented 18th century to today",
+    validFrom: null,
+    validTo: null,
+    assumption: "Akwasidae (1 February 2026, published) is Kuru of the six-day week on a Sunday; the days before and after are counted from it. Bartle's 1978 dates count to the same days.",
+  },
+  {
+    key: "chinese.jianchu-qing-rule",
+    group: "chinese-officers",
+    isDefault: true,
+    label: "Chinese day officers (Qing almanac rule)",
+    cultureKey: "asia.east.chinese",
+    community: "Chinese almanacs (Tongshu) since the Qing dynasty",
+    systems: /^asia\.east\.chinese\.jianchu$/,
+    calendarSystem: "建除 (twelve day officers)",
+    cycleType: "day_cycle",
+    cycleLength: 12,
+    anchor: { kind: "jianchu" },
+    monthBoundary: "Solar-term months: each opens at a 'jie' term (Lichun at 315° of the Sun's longitude, Jingzhe at 345°…), when the officer repeats.",
+    region: "China",
+    timezone: "Asia/Shanghai",
+    adjustment: "Worked out in China time; an almanac printed for another time zone can differ by a day only on the day a solar term begins.",
+    sourceKeys: ["src.zhwiki-jianchu", "src.wikipedia-sexagenary-cycle"],
+    level: "B",
+    historicalPeriod: "3rd century BCE to today (this rule: Qing, 1741)",
+    validFrom: null,
+    validTo: null,
+    assumption: "The day whose earthly branch matches the solar-term month's branch is Jian; the other officers follow in order, and the officer repeats on the day a new month begins. Day branches are counted from 1 October 1949 (甲子), and the months from the Sun's calculated position.",
+  },
+  {
+    key: "hindu.tithi-ujjain-sunrise",
+    group: "hindu-tithi",
+    isDefault: true,
+    label: "Hindu tithi at sunrise (Ujjain)",
+    cultureKey: "asia.south.vedic-hindu",
+    community: "Hindu pañcāṅga (almanacs); calculated for Ujjain",
+    systems: /^asia\.south\.vedic-hindu\.tithi$/,
+    calendarSystem: "Tithi",
+    cycleType: "synodic_lunar",
+    cycleLength: 29.53,
+    anchor: { kind: "tithi", place: { lat: 23.18, lon: 75.78, height: 490, tz: "Asia/Kolkata" }, placeName: "Ujjain" },
+    monthBoundary: "Thirty tithis: the bright half ends at the full Moon (Pūrṇimā), the dark half at the new Moon (Amāvasyā).",
+    region: "India",
+    timezone: "Asia/Kolkata",
+    adjustment: "Each city's almanac uses its own sunrise, and traditional almanacs may use the older Sūrya Siddhānta reckoning; the tithi of a day can differ by one near a boundary.",
+    sourceKeys: ["src.wikipedia-tithi", "src.wikipedia-paksha"],
+    level: "B",
+    historicalPeriod: "Vedic period to today",
+    validFrom: null,
+    validTo: null,
+    assumption: "The tithi of a day is the one in force at sunrise in Ujjain, the traditional meridian of Indian astronomy, calculated from the true positions of the Sun and Moon (one tithi for each 12° the Moon gains on the Sun). Months run new Moon to new Moon (amānta) and take the name of the sidereal sign (Lahiri) the Sun enters during them; a yearly festival falls on the day its tithi is in force at the time of day almanacs use for it.",
+    yearStart: { kind: "hindu_sankranti" },
   },
 ];
 
@@ -393,6 +603,8 @@ export function anchorDates(profile: MappingProfile, from: CivilDate, to: CivilD
 export function lunarNightDates(profile: MappingProfile, n: number, from: CivilDate, to: CivilDate, anchors = anchorDates(profile, from, to)): CivilDate[] {
   if (profile.cycleType !== "synodic_lunar" || profile.level === "C") return [];
   const a = profile.anchor;
+  // A tithi is the lunar day at sunrise, worked out day by day (it can skip or repeat).
+  if (a.kind === "tithi") return tithiDates(n === 0 ? 30 : n, from, to, a.place);
   if (a.kind !== "conjunction" && a.kind !== "first_crescent" && a.kind !== "full_moon") return [];
   const offset = a.kind === "first_crescent" ? 0 : a.offsetDays;
   const out: CivilDate[] = [];
@@ -414,4 +626,68 @@ export function dayCycleDates(anchor: CivilDate, anchorPosition: number, length:
   const out: CivilDate[] = [];
   for (let d = base + k * length; d <= daysFromCivil(to); d += length) out.push(addDays(anchor, d - daysFromCivil(anchor)));
   return out;
+}
+
+export interface MonthSpan {
+  /** 1 = the tradition's first month; above 12 an extra month (e.g. Addaru II). Null when the year start is unknown, or for a Hindu adhika month. */
+  ordinal: number | null;
+  /** The name of an extra month that has no ordinal of its own (a Hindu adhika month). */
+  extra?: string;
+  /** First and last local dates of the month. */
+  start: CivilDate;
+  end: CivilDate;
+}
+
+/**
+ * The tradition's named months overlapping [from, to], each a lunar month of
+ * the profile (or of `monthsFrom`). Empty when the profile cannot place months.
+ */
+export function monthSpans(profile: MappingProfile, from: CivilDate, to: CivilDate): MonthSpan[] {
+  if (!profile.yearStart || profile.level === "C") return [];
+  if (profile.yearStart.kind === "hindu_sankranti") {
+    const place = profile.anchor.kind === "tithi" ? profile.anchor.place : undefined;
+    return hinduMonths(from, to, place).map((m) => ({ ordinal: m.adhika ? null : m.index + 1, start: m.start, end: m.end, ...(m.adhika ? { extra: `Adhika ${HINDU_MONTHS[m.index]}` } : {}) }));
+  }
+  const lunar = profile.monthsFrom ? MAPPING_PROFILES.find((p) => p.key === profile.monthsFrom) : profile;
+  if (!lunar) return [];
+  const a = lunar.anchor;
+  const offset = a.kind === "conjunction" || a.kind === "full_moon" ? a.offsetDays : 0;
+  // Far enough back to find the start of the current year.
+  const firsts = anchorDates(lunar, addDays(from, -420), addDays(to, 40)).map((d) => addDays(d, offset));
+  if (firsts.length < 2) return [];
+  const ys = profile.yearStart;
+  const starts = new Set<number>();
+  for (let y = from.year - 2; y <= to.year + 1; y++) {
+    let target: CivilDate | null = null;
+    if (ys.kind === "nearest_equinox") {
+      const eq = seasonsOf(y).find((e) => e.kind === "march-equinox");
+      target = eq ? civilDateAt(eq.instant, lunar.timezone) : null;
+    } else {
+      const listed = ys.dates[y];
+      target = listed ? addDays(civilFromIso(listed), -(ys.night - 1)) : null;
+    }
+    if (!target) continue;
+    let best = -1;
+    for (let i = 0; i < firsts.length - 1; i++) {
+      if (best < 0 || Math.abs(daysFromCivil(firsts[i]) - daysFromCivil(target)) < Math.abs(daysFromCivil(firsts[best]) - daysFromCivil(target))) best = i;
+    }
+    // Only a month the anchors actually cover (not the window's edge).
+    if (best >= 0 && Math.abs(daysFromCivil(firsts[best]) - daysFromCivil(target)) <= 20) starts.add(best);
+  }
+  const out: MonthSpan[] = [];
+  let since: number | null = null;
+  for (let i = 0; i < firsts.length - 1; i++) {
+    if (starts.has(i)) since = i;
+    const start = firsts[i];
+    const end = addDays(firsts[i + 1], -1);
+    if (compareDates(end, from) < 0 || compareDates(start, to) > 0) continue;
+    const n = since === null ? null : i - since + 1;
+    out.push({ ordinal: n !== null && n <= 13 ? n : null, start, end });
+  }
+  return out;
+}
+
+function civilFromIso(iso: string): CivilDate {
+  const [year, month, day] = iso.split("-").map(Number);
+  return { year, month, day };
 }

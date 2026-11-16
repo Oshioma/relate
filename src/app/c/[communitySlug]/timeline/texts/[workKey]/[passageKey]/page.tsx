@@ -168,7 +168,7 @@ export default async function PassagePage({ params }: { params: Promise<Params> 
         {passage.source_id && sourcesById.get(passage.source_id) ? ` · ${sourcesById.get(passage.source_id)!.title}` : ""}
         <span className="ml-2 font-mono text-xs">{passage.passage_key}</span>
       </p>
-      {passage.summary && <p className="mt-3 max-w-3xl text-base text-foreground">{passage.summary}</p>}
+      {passage.summary && <p className="whitespace-pre-line mt-3 max-w-3xl text-base text-foreground">{passage.summary}</p>}
 
       <div className="mt-4">{nav}</div>
 

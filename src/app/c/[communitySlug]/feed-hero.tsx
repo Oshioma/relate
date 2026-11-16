@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { HeroBackgroundVideo } from "./hero-background-video";
+import { UserText } from "@/components/ui/user-text";
 
 export interface HeroStat {
   icon: LucideIcon;
@@ -91,14 +92,14 @@ export function FeedHero({
               {headline}
             </h1>
             {description && (
-              <p
+              <div
                 className={cn(
                   "mt-4 line-clamp-4 max-w-2xl text-base leading-relaxed sm:text-lg",
-                  onPhoto ? "text-white/90" : "text-foreground/80"
+                  onPhoto ? "text-white/90 [&_a]:text-white" : "text-foreground/80"
                 )}
               >
-                {description}
-              </p>
+                <UserText text={description} />
+              </div>
             )}
             <div className="mt-6 flex flex-wrap items-center gap-3">{actions}</div>
           </div>

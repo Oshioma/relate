@@ -114,7 +114,7 @@ export function VolunteerProjectCard({
           )}
         </div>
 
-        <p className="mt-2 text-sm text-foreground">{project.description}</p>
+        <p className="whitespace-pre-line mt-2 text-sm text-foreground">{project.description}</p>
 
         <div className="mt-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">

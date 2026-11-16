@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   fillPlaceholders,
   firstNameOf,
+  inlineEmailImages,
   isOwnJoinNotificationTitle,
   renderCommunityEmail,
   sanitizeEmailHtml,
@@ -78,4 +79,29 @@ test("only a member's own join notification counts as a welcome moment", () => {
   assert.ok(isOwnJoinNotificationTitle("You're now a member of Escape Space"));
   assert.ok(!isOwnJoinNotificationTitle("You are now admin in Escape Space"));
   assert.ok(!isOwnJoinNotificationTitle("Amina joined Escape Space"));
+});
+
+test("pictures are sent inside the email, each once", () => {
+  const html =
+    '<img src="https://x.supabase.co/storage/v1/object/public/a/logo.png?v=1" alt="Escape Space" width="72" />' +
+    '<p>Hi</p><img src="https://x.supabase.co/storage/v1/object/public/a/logo.png?v=1" alt="" />' +
+    '<img src="https://x.test/photo" alt="" />';
+  const out = inlineEmailImages(html);
+  assert.equal(out.attachments.length, 2);
+  assert.ok(out.html.includes('src="cid:relate-img-1"'));
+  assert.ok(out.html.includes('src="cid:relate-img-2"'));
+  assert.ok(!out.html.includes("https://"));
+  assert.deepEqual(out.attachments[0], {
+    path: "https://x.supabase.co/storage/v1/object/public/a/logo.png?v=1",
+    filename: "1-logo.png",
+    content_id: "relate-img-1",
+  });
+  assert.equal(out.attachments[1].filename, "2-photo.png");
+});
+
+test("pictures past the limit keep their link", () => {
+  const html = '<img src="https://a.test/1.png" /><img src="https://a.test/2.png" />';
+  const out = inlineEmailImages(html, 1);
+  assert.equal(out.attachments.length, 1);
+  assert.ok(out.html.includes('src="https://a.test/2.png"'));
 });

@@ -559,6 +559,9 @@ body {
   --tc-moon-lit: #f4e9c8;
   --tc-moon-dark: #3a4058;
   --tc-moon-edge: #2b3046;
+  /* Personal Moon: a quiet violet, distinct from gold (calendar) and rose (Mercury). */
+  --tc-personal: #6a4c9c;
+  --tc-personal-soft: #f2edf8;
 }
 
 :root[data-theme="dark"] .true-calendar {
@@ -574,6 +577,8 @@ body {
   --tc-moon-lit: #f1e6c6;
   --tc-moon-dark: #262f4a;
   --tc-moon-edge: #3a4566;
+  --tc-personal: #b9a2ea;
+  --tc-personal-soft: #1c1a36;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -590,5 +595,7 @@ body {
     --tc-moon-lit: #f1e6c6;
     --tc-moon-dark: #262f4a;
     --tc-moon-edge: #3a4566;
+    --tc-personal: #b9a2ea;
+    --tc-personal-soft: #1c1a36;
   }
 }

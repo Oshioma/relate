@@ -1,0 +1,1126 @@
+{
+ "format": "true-calendar/v1",
+ "sources": [
+  {
+   "key": "src.wikipedia-hindu-calendar",
+   "title": "Hindu calendar (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Hindu_calendar",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Amānta and pūrṇimānta months; months named by the saṅkrānti (the Sun's entry into a sidereal sign); adhika (extra) months.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-ugadi",
+   "title": "Ugadi (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Ugadi",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Ugadi and Gudi Padwa (Hindu New Year).",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-rama-navami",
+   "title": "Rama Navami (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Rama_Navami",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Rama Navami.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-akshaya-tritiya",
+   "title": "Akshaya Tritiya (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Akshaya_Tritiya",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Akshaya Tritiya.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-narasimha-jayanti",
+   "title": "Narasimha Jayanti (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Narasimha_Jayanti",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Narasimha Jayanti.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-teej",
+   "title": "Teej (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Teej",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Hariyali Teej.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-krishna-janmashtami",
+   "title": "Krishna Janmashtami (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Krishna_Janmashtami",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Krishna Janmashtami.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-nandotsava",
+   "title": "Nandotsava (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Nandotsava",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Nandotsava.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-ganesh-chaturthi",
+   "title": "Ganesh Chaturthi (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Ganesh_Chaturthi",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Ganesh Chaturthi.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-radhashtami",
+   "title": "Radhashtami (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Radhashtami",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Radhashtami.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-ananta-chaturdashi",
+   "title": "Ananta Chaturdashi (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Ananta_Chaturdashi",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Ananta Chaturdashi.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-navaratri",
+   "title": "Navaratri (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Navaratri",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Maha Navami (Navaratri).",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-vijayadashami",
+   "title": "Vijayadashami (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Vijayadashami",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Vijayadashami (Dussehra).",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-karva-chauth",
+   "title": "Karva Chauth (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Karva_Chauth",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Karva Chauth.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-govatsa-dwadashi",
+   "title": "Govatsa Dwadashi (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Govatsa_Dwadashi",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Govatsa Dvadashi.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-naraka-chaturdashi",
+   "title": "Naraka Chaturdashi (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Naraka_Chaturdashi",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Naraka Chaturdashi.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-lakshmi-puja",
+   "title": "Lakshmi Puja (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Lakshmi_Puja",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Diwali (Lakshmi Puja).",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-govardhan-puja",
+   "title": "Govardhan Puja (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Govardhan_Puja",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Govardhan Puja and Bali Pratipada.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-bhai-dooj",
+   "title": "Bhai Dooj (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Bhai_Dooj",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Bhai Dooj.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-chhath",
+   "title": "Chhath (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Chhath",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Chhath.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-vivaha-panchami",
+   "title": "Vivaha Panchami (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Vivaha_Panchami",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Vivaha Panchami.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-kurma",
+   "title": "Kurma (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Kurma",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Kurma Dvadashi.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-ganesh-jayanti",
+   "title": "Ganesh Jayanti (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Ganesh_Jayanti",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Ganesh Jayanti.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-vasant-panchami",
+   "title": "Vasant Panchami (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Vasant_Panchami",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Vasant Panchami.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-ratha-saptami",
+   "title": "Ratha Saptami (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Ratha_Saptami",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Ratha Saptami.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-maha-shivaratri",
+   "title": "Maha Shivaratri (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Maha_Shivaratri",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Maha Shivaratri.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-holika-dahana",
+   "title": "Holika Dahana (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Holika_Dahana",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Month and lunar day of Holika Dahana.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.wikipedia-holi",
+   "title": "Holi (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Holi",
+   "accessed_on": "2026-11-12",
+   "source_type": "reference",
+   "notes": "Holika Dahan is lit the night before Holi, which falls on the day after Phalguna Pūrṇimā.",
+   "review_status": "draft"
+  }
+ ],
+ "months": [
+  {
+   "key": "asia.south.vedic-hindu.tithi.month-01",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "ordinal": 1,
+   "name": "Chaitra",
+   "season": "Roughly Mar/Apr",
+   "description": "Month 1 of the Hindu lunar year: the month in which the Sun enters sidereal Meṣa (Aries).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Counted here new Moon to new Moon (amānta, as in much of western and southern India). In the pūrṇimānta reckoning of northern India the month runs full Moon to full Moon, so its dark half has the previous month's name.",
+   "sources": [
+    {
+     "source": "src.wikipedia-hindu-calendar",
+     "locator": "Lunar months"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.month-02",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "ordinal": 2,
+   "name": "Vaishakha",
+   "season": "Roughly Apr/May",
+   "description": "Month 2 of the Hindu lunar year: the month in which the Sun enters sidereal Vṛṣabha (Taurus).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Counted here new Moon to new Moon (amānta, as in much of western and southern India). In the pūrṇimānta reckoning of northern India the month runs full Moon to full Moon, so its dark half has the previous month's name.",
+   "sources": [
+    {
+     "source": "src.wikipedia-hindu-calendar",
+     "locator": "Lunar months"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.month-03",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "ordinal": 3,
+   "name": "Jyeshtha",
+   "season": "Roughly May/Jun",
+   "description": "Month 3 of the Hindu lunar year: the month in which the Sun enters sidereal Mithuna (Gemini).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Counted here new Moon to new Moon (amānta, as in much of western and southern India). In the pūrṇimānta reckoning of northern India the month runs full Moon to full Moon, so its dark half has the previous month's name.",
+   "sources": [
+    {
+     "source": "src.wikipedia-hindu-calendar",
+     "locator": "Lunar months"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.month-04",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "ordinal": 4,
+   "name": "Ashadha",
+   "season": "Roughly Jun/Jul",
+   "description": "Month 4 of the Hindu lunar year: the month in which the Sun enters sidereal Karka (Cancer).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Counted here new Moon to new Moon (amānta, as in much of western and southern India). In the pūrṇimānta reckoning of northern India the month runs full Moon to full Moon, so its dark half has the previous month's name.",
+   "sources": [
+    {
+     "source": "src.wikipedia-hindu-calendar",
+     "locator": "Lunar months"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.month-05",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "ordinal": 5,
+   "name": "Shravana",
+   "season": "Roughly Jul/Aug",
+   "description": "Month 5 of the Hindu lunar year: the month in which the Sun enters sidereal Siṃha (Leo).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Counted here new Moon to new Moon (amānta, as in much of western and southern India). In the pūrṇimānta reckoning of northern India the month runs full Moon to full Moon, so its dark half has the previous month's name.",
+   "sources": [
+    {
+     "source": "src.wikipedia-hindu-calendar",
+     "locator": "Lunar months"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.month-06",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "ordinal": 6,
+   "name": "Bhadrapada",
+   "season": "Roughly Aug/Sep",
+   "description": "Month 6 of the Hindu lunar year: the month in which the Sun enters sidereal Kanyā (Virgo).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Counted here new Moon to new Moon (amānta, as in much of western and southern India). In the pūrṇimānta reckoning of northern India the month runs full Moon to full Moon, so its dark half has the previous month's name.",
+   "sources": [
+    {
+     "source": "src.wikipedia-hindu-calendar",
+     "locator": "Lunar months"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.month-07",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "ordinal": 7,
+   "name": "Ashvin",
+   "season": "Roughly Sep/Oct",
+   "description": "Month 7 of the Hindu lunar year: the month in which the Sun enters sidereal Tulā (Libra).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Counted here new Moon to new Moon (amānta, as in much of western and southern India). In the pūrṇimānta reckoning of northern India the month runs full Moon to full Moon, so its dark half has the previous month's name.",
+   "sources": [
+    {
+     "source": "src.wikipedia-hindu-calendar",
+     "locator": "Lunar months"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.month-08",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "ordinal": 8,
+   "name": "Kartika",
+   "season": "Roughly Oct/Nov",
+   "description": "Month 8 of the Hindu lunar year: the month in which the Sun enters sidereal Vṛścika (Scorpio).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Counted here new Moon to new Moon (amānta, as in much of western and southern India). In the pūrṇimānta reckoning of northern India the month runs full Moon to full Moon, so its dark half has the previous month's name.",
+   "sources": [
+    {
+     "source": "src.wikipedia-hindu-calendar",
+     "locator": "Lunar months"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.month-09",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "ordinal": 9,
+   "name": "Margashirsha",
+   "season": "Roughly Nov/Dec",
+   "description": "Month 9 of the Hindu lunar year: the month in which the Sun enters sidereal Dhanu (Sagittarius).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Counted here new Moon to new Moon (amānta, as in much of western and southern India). In the pūrṇimānta reckoning of northern India the month runs full Moon to full Moon, so its dark half has the previous month's name.",
+   "sources": [
+    {
+     "source": "src.wikipedia-hindu-calendar",
+     "locator": "Lunar months"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.month-10",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "ordinal": 10,
+   "name": "Pausha",
+   "season": "Roughly Dec/Jan",
+   "description": "Month 10 of the Hindu lunar year: the month in which the Sun enters sidereal Makara (Capricorn).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Counted here new Moon to new Moon (amānta, as in much of western and southern India). In the pūrṇimānta reckoning of northern India the month runs full Moon to full Moon, so its dark half has the previous month's name.",
+   "sources": [
+    {
+     "source": "src.wikipedia-hindu-calendar",
+     "locator": "Lunar months"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.month-11",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "ordinal": 11,
+   "name": "Magha",
+   "season": "Roughly Jan/Feb",
+   "description": "Month 11 of the Hindu lunar year: the month in which the Sun enters sidereal Kumbha (Aquarius).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Counted here new Moon to new Moon (amānta, as in much of western and southern India). In the pūrṇimānta reckoning of northern India the month runs full Moon to full Moon, so its dark half has the previous month's name.",
+   "sources": [
+    {
+     "source": "src.wikipedia-hindu-calendar",
+     "locator": "Lunar months"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.month-12",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "ordinal": 12,
+   "name": "Phalguna",
+   "season": "Roughly Feb/Mar",
+   "description": "Month 12 of the Hindu lunar year: the month in which the Sun enters sidereal Mīna (Pisces).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Counted here new Moon to new Moon (amānta, as in much of western and southern India). In the pūrṇimānta reckoning of northern India the month runs full Moon to full Moon, so its dark half has the previous month's name.",
+   "sources": [
+    {
+     "source": "src.wikipedia-hindu-calendar",
+     "locator": "Lunar months"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ],
+ "observances": [
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.ugadi-gudi-padwa",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Ugadi and Gudi Padwa (Hindu New Year)",
+   "kind": "festival",
+   "timing": "Chaitra Śukla Pratipadā (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-01",
+   "lunar_day": 1,
+   "description": "New Year in Karnataka, Andhra Pradesh and Telangana (Ugadi) and Maharashtra and Goa (Gudi Padwa).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-ugadi"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.rama-navami",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Rama Navami",
+   "kind": "festival",
+   "timing": "Chaitra Śukla Navamī (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-01",
+   "lunar_day": 9,
+   "description": "The birthday of Rama, celebrated at midday.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at midday in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-rama-navami"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.akshaya-tritiya",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Akshaya Tritiya",
+   "kind": "festival",
+   "timing": "Vaishakha Śukla Tṛtīyā (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-02",
+   "lunar_day": 3,
+   "description": "A day held to be lasting (akshaya) in its good effects: for buying gold, starting things, giving.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-akshaya-tritiya"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.narasimha-jayanti",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Narasimha Jayanti",
+   "kind": "festival",
+   "timing": "Vaishakha Śukla Caturdaśī (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-02",
+   "lunar_day": 14,
+   "description": "The appearance of Narasimha, the man-lion form of Vishnu, at dusk.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force in the early evening in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-narasimha-jayanti"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.hariyali-teej",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Hariyali Teej",
+   "kind": "festival",
+   "timing": "Shravana Śukla Tṛtīyā (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-05",
+   "lunar_day": 3,
+   "description": "Women's festival of the monsoon: swings, green clothes, fasting for husbands' welfare.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-teej"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.krishna-janmashtami",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Krishna Janmashtami",
+   "kind": "festival",
+   "timing": "Shravana Kṛṣṇa Aṣṭamī (amānta); Bhadrapada in the pūrṇimānta reckoning",
+   "month_key": "asia.south.vedic-hindu.tithi.month-05",
+   "lunar_day": 23,
+   "description": "Krishna's birthday, kept with a fast until midnight.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at midnight in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-krishna-janmashtami"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.nandotsava",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Nandotsava",
+   "kind": "festival",
+   "timing": "Shravana Kṛṣṇa Navamī (amānta); Bhadrapada in the pūrṇimānta reckoning",
+   "month_key": "asia.south.vedic-hindu.tithi.month-05",
+   "lunar_day": 24,
+   "description": "The day after Janmashtami: Nanda's celebration of Krishna's birth.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at midnight in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-nandotsava"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.hartalika-teej",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Hartalika Teej",
+   "kind": "festival",
+   "timing": "Bhadrapada Śukla Tṛtīyā (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-06",
+   "lunar_day": 3,
+   "description": "Teej one lunar month after Hariyali Teej, the day before Ganesh Chaturthi; a women's fast.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-teej"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.ganesh-chaturthi",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Ganesh Chaturthi",
+   "kind": "festival",
+   "timing": "Bhadrapada Śukla Caturthī (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-06",
+   "lunar_day": 4,
+   "description": "Ganesha's festival, with his image installed at home or in public; the main puja is at midday.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at midday in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-ganesh-chaturthi"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.radhashtami",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Radhashtami",
+   "kind": "festival",
+   "timing": "Bhadrapada Śukla Aṣṭamī (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-06",
+   "lunar_day": 8,
+   "description": "Radha's birthday, kept especially in the Braj region.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at midday in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-radhashtami"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.ananta-chaturdashi",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Ananta Chaturdashi",
+   "kind": "festival",
+   "timing": "Bhadrapada Śukla Caturdaśī (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-06",
+   "lunar_day": 14,
+   "description": "Worship of Vishnu as Ananta; the last day of the Ganesh festival, when images are immersed.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-ananta-chaturdashi"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.maha-navami",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Maha Navami (Navaratri)",
+   "kind": "festival",
+   "timing": "Ashvin Śukla Navamī (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-07",
+   "lunar_day": 9,
+   "description": "The ninth night of the autumn Navaratri.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-navaratri"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.vijayadashami",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Vijayadashami (Dussehra)",
+   "kind": "festival",
+   "timing": "Ashvin Śukla Daśamī (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-07",
+   "lunar_day": 10,
+   "description": "The victory of Rama over Ravana and of Durga over Mahishasura.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force in the afternoon in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-vijayadashami"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.karva-chauth",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Karva Chauth",
+   "kind": "festival",
+   "timing": "Ashvin Kṛṣṇa Caturthī (amānta); Kartika in the pūrṇimānta reckoning",
+   "month_key": "asia.south.vedic-hindu.tithi.month-07",
+   "lunar_day": 19,
+   "description": "Married women fast from sunrise until the Moon rises.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force in the early evening in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-karva-chauth"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.govatsa-dvadashi",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Govatsa Dvadashi",
+   "kind": "festival",
+   "timing": "Ashvin Kṛṣṇa Dvādaśī (amānta); Kartika in the pūrṇimānta reckoning",
+   "month_key": "asia.south.vedic-hindu.tithi.month-07",
+   "lunar_day": 27,
+   "description": "Cows and calves are honoured; in Maharashtra the first day of Diwali.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force in the early evening in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-govatsa-dwadashi"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.naraka-chaturdashi",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Naraka Chaturdashi",
+   "kind": "festival",
+   "timing": "Ashvin Kṛṣṇa Caturdaśī (amānta); Kartika in the pūrṇimānta reckoning",
+   "month_key": "asia.south.vedic-hindu.tithi.month-07",
+   "lunar_day": 29,
+   "description": "Krishna's defeat of the demon Naraka; an oil bath before sunrise.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-naraka-chaturdashi"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.diwali",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Diwali (Lakshmi Puja)",
+   "kind": "festival",
+   "timing": "Ashvin Amāvasyā (amānta); Kartika in the pūrṇimānta reckoning",
+   "month_key": "asia.south.vedic-hindu.tithi.month-07",
+   "lunar_day": 30,
+   "description": "The main night of Diwali, the festival of lights: worship of Lakshmi in the evening.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force in the early evening in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-lakshmi-puja"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.govardhan-puja-bali-pratipada",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Govardhan Puja and Bali Pratipada",
+   "kind": "festival",
+   "timing": "Kartika Śukla Pratipadā (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-08",
+   "lunar_day": 1,
+   "description": "The day after Diwali: Krishna lifting Govardhan hill; Bali's return.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-govardhan-puja"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.bhai-dooj",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Bhai Dooj",
+   "kind": "festival",
+   "timing": "Kartika Śukla Dvitīyā (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-08",
+   "lunar_day": 2,
+   "description": "Sisters honour their brothers; the last day of Diwali.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force in the afternoon in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-bhai-dooj"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.chhath",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Chhath",
+   "kind": "festival",
+   "timing": "Kartika Śukla Ṣaṣṭhī (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-08",
+   "lunar_day": 6,
+   "description": "The main day of Chhath, the festival of the Sun, with offerings at sunset and the next sunrise (Bihar, Jharkhand, eastern Uttar Pradesh, Nepal).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-chhath"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.vivaha-panchami",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Vivaha Panchami",
+   "kind": "festival",
+   "timing": "Margashirsha Śukla Pañcamī (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-09",
+   "lunar_day": 5,
+   "description": "The wedding of Rama and Sita.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-vivaha-panchami"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.kurma-dvadashi",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Kurma Dvadashi",
+   "kind": "festival",
+   "timing": "Pausha Śukla Dvādaśī (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-10",
+   "lunar_day": 12,
+   "description": "Kept for Kurma, the tortoise form of Vishnu.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-kurma"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.ganesh-jayanti",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Ganesh Jayanti",
+   "kind": "festival",
+   "timing": "Magha Śukla Caturthī (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-11",
+   "lunar_day": 4,
+   "description": "Ganesha's birthday in the Magha tradition (Maharashtra, Goa).",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at midday in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-ganesh-jayanti"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.vasant-panchami",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Vasant Panchami",
+   "kind": "festival",
+   "timing": "Magha Śukla Pañcamī (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-11",
+   "lunar_day": 5,
+   "description": "The start of spring and worship of Saraswati, goddess of learning; yellow clothes.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-vasant-panchami"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.ratha-saptami",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Ratha Saptami",
+   "kind": "festival",
+   "timing": "Magha Śukla Saptamī (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-11",
+   "lunar_day": 7,
+   "description": "For the Sun god Surya: the Sun's chariot turning north.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-ratha-saptami"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.maha-shivaratri",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Maha Shivaratri",
+   "kind": "festival",
+   "timing": "Magha Kṛṣṇa Caturdaśī (amānta); Phalguna in the pūrṇimānta reckoning",
+   "month_key": "asia.south.vedic-hindu.tithi.month-11",
+   "lunar_day": 29,
+   "description": "The great night of Shiva, kept with a fast and a night-long vigil.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at midnight in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-maha-shivaratri"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.holika-dahana",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Holika Dahana",
+   "kind": "festival",
+   "timing": "Phalguna Pūrṇimā (amānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-12",
+   "lunar_day": 15,
+   "description": "The bonfire for the burning of Holika, on the full-Moon evening, the night before Holi. Wikipedia's Holika Dahana article gives the day before (Phalguna Śukla Caturdaśī); we follow the full-Moon evening that the Holi article and almanacs use.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force in the early evening in Ujjain, the rule almanacs use for this festival. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-holika-dahana"
+    },
+    {
+     "source": "src.wikipedia-holi"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ]
+}

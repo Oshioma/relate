@@ -93,7 +93,7 @@ export function matchesQuery(member: DirectoryMember, query: string): boolean {
   const haystack = [
     member.profile.full_name,
     member.profile.username,
-    member.profile.bio,
+    member.profile.bio?.replace(/<[^>]+>/g, " "),
     member.profile.profession,
     member.profile.company,
     ...member.interests,

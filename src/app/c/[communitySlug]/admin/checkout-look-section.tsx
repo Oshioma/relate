@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label, Textarea } from "@/components/ui/input";
+import { Label } from "@/components/ui/input";
+import { RichEditor } from "@/components/ui/rich-editor";
+import { userTextPreview } from "@/components/ui/user-text";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { useFormDraft, useFormDraftRef } from "@/lib/use-form-draft";
 import { CHECKOUT_MESSAGE_MAX, defaultCheckoutMessage } from "@/lib/checkout-look";
@@ -109,16 +111,17 @@ export function CheckoutLookSection({
                 Used for courses, paid spaces and any membership below that doesn&apos;t have its own.
               </p>
             )}
-            <Textarea
+            <RichEditor
               id="checkout_message"
               name="checkout_message"
               rows={3}
-              maxLength={CHECKOUT_MESSAGE_MAX}
+              basic
+              fromPlainText
               defaultValue={checkoutMessage ?? ""}
               placeholder={defaultCheckoutMessage(communityName)}
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Leave it empty to use the line shown in grey. Up to {CHECKOUT_MESSAGE_MAX} characters.
+              Leave it empty to use the line shown in grey. Bold, italic and links show on Stripe. Up to {CHECKOUT_MESSAGE_MAX} characters.
             </p>
             <div className="mt-2 flex items-center gap-2">
               <Button type="submit" className="w-auto" disabled={isPending}>
@@ -142,7 +145,7 @@ export function CheckoutLookSection({
           communityId={communityId}
           communitySlug={communitySlug}
           tier={tier}
-          fallbackMessage={checkoutMessage?.trim() || defaultCheckoutMessage(communityName)}
+          fallbackMessage={userTextPreview(checkoutMessage).trim() || defaultCheckoutMessage(communityName)}
           fallbackImageUrl={coverUrl}
         />
       ))}
@@ -241,16 +244,17 @@ function TierCheckoutWindow({
 
           <div>
             <Label htmlFor={messageId}>Message under the Pay button</Label>
-            <Textarea
+            <RichEditor
               id={messageId}
               name="checkout_message"
               rows={3}
-              maxLength={CHECKOUT_MESSAGE_MAX}
+              basic
+              fromPlainText
               defaultValue={tier.checkout_message ?? ""}
               placeholder={fallbackMessage}
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Leave it empty to use the line shown in grey. Up to {CHECKOUT_MESSAGE_MAX} characters.
+              Leave it empty to use the line shown in grey. Bold, italic and links show on Stripe. Up to {CHECKOUT_MESSAGE_MAX} characters.
             </p>
           </div>
 

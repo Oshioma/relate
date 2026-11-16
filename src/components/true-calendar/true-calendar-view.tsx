@@ -24,18 +24,34 @@ import { fixedWeekday, formatFixedDate, gregorianToFixed } from "@/lib/true-cale
 import { lunarMonthContaining } from "@/lib/true-calendar/astronomy";
 import { parseYearInput } from "@/lib/true-calendar/url-state";
 import { FixedGrid, GregorianGrid, LunarGrid } from "./calendar-grids";
+import { MercuryStatus } from "./mercury-status";
 import { MoonPanel } from "./moon-panel";
+import { MoonsOfYear } from "./moons-of-year";
 import { DayWisdom } from "./day-wisdom";
 import type { ResearchBundle } from "@/lib/true-calendar/research/daily";
 import type { ResearchStats } from "@/lib/data/true-calendar";
 import { useCalendarPrefs, useCalendarState } from "./use-calendar-state";
+import { PersonalMoonPanel, PersonalMoonProvider } from "./personal-moon";
+import type { BirthProfileRow } from "@/lib/data/true-calendar";
 
 // The True Calendar: two synchronised calendars for one selected day.
 // Left, the Gregorian month; right, the International Fixed Calendar or the
 // astronomical lunar calendar. Every control just changes the selected date
 // (kept in the URL), and both sides and the Moon panel follow it.
 
-export function TrueCalendarView({ bundle, stats, historyPath }: { bundle: ResearchBundle; stats: ResearchStats | null; historyPath: string }) {
+export function TrueCalendarView({
+  bundle,
+  stats,
+  historyPath,
+  birthProfile = null,
+  spacePath = "",
+}: {
+  bundle: ResearchBundle;
+  stats: ResearchStats | null;
+  historyPath: string;
+  birthProfile?: BirthProfileRow | null;
+  spacePath?: string;
+}) {
   const state = useCalendarState();
   const [prefs, setPrefs] = useCalendarPrefs();
   // On a phone the two calendars share one slot; this picks which shows.
@@ -44,7 +60,9 @@ export function TrueCalendarView({ bundle, stats, historyPath }: { bundle: Resea
   return !state.ready ? (
     <LoadingFrame />
   ) : (
-    <Calendar state={state} prefs={prefs} setPrefs={setPrefs} mobileSide={mobileSide} setMobileSide={setMobileSide} bundle={bundle} stats={stats} historyPath={historyPath} />
+    <PersonalMoonProvider row={birthProfile} bundle={bundle} calendarTz={state.tz} spacePath={spacePath}>
+      <Calendar state={state} prefs={prefs} setPrefs={setPrefs} mobileSide={mobileSide} setMobileSide={setMobileSide} bundle={bundle} stats={stats} historyPath={historyPath} />
+    </PersonalMoonProvider>
   );
 }
 
@@ -96,20 +114,20 @@ function Calendar({
           <p className="font-serif text-2xl">{formatLongDate(date)}</p>
           {isToday ? <span className="rounded-full bg-[var(--tc-gold)] px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-[var(--tc-bg)]">Today</span> : null}
         </div>
-        <dl className="mt-1.5 grid gap-x-6 gap-y-1 text-base sm:grid-cols-2">
+        {/* The Moon's date, as large as the day's own: the lunar month is the clock this space keeps. */}
+        <p className="mt-1 font-serif text-2xl leading-snug sm:text-3xl">
+          <span className="text-[var(--tc-gold)]">Day {lunar.day}</span> of lunar month {lunar.month.numberInYear}
+          <span className="text-[var(--tc-muted)]">, {lunar.month.year}</span>
+        </p>
+        <dl className="mt-1.5 grid gap-x-6 gap-y-1 text-base">
           <div className="flex gap-2">
             <dt className="text-[var(--tc-muted)]">Fixed calendar</dt>
             <dd>
               {fixedDay === null ? `${formatFixedDate(fixed)} (outside the week)` : `${WEEKDAYS[fixedDay]} ${formatFixedDate(fixed)}`}
             </dd>
           </div>
-          <div className="flex gap-2">
-            <dt className="text-[var(--tc-muted)]">Lunar calendar</dt>
-            <dd>
-              Day {lunar.day} of lunar month {lunar.month.numberInYear}, {lunar.month.year}
-            </dd>
-          </div>
         </dl>
+        <MercuryStatus date={date} tz={tz} />
         {isProlepticGregorian(date) ? (
           <p className="mt-2 text-sm text-[var(--tc-muted)]">
             Before 15 October 1582 no one used the Gregorian calendar. This date is shown in it projected backwards (the proleptic Gregorian calendar), which is how astronomers line up ancient dates; it is not the date people used at the time.
@@ -165,7 +183,11 @@ function Calendar({
         </section>
       </div>
 
+      <MoonsOfYear date={date} tz={tz} bundle={bundle} southern={prefs.southernView} />
+
       <MoonPanel date={date} tz={tz} prefs={prefs} onPrefs={setPrefs} />
+
+      <PersonalMoonPanel />
 
       <DayWisdom bundle={bundle} stats={stats} date={date} tz={tz} historyPath={historyPath} isToday={isToday} />
     </div>

@@ -18,6 +18,8 @@ import {
   updateAccountBranding,
 } from "@/lib/stripe";
 import { CHECKOUT_MESSAGE_MAX } from "@/lib/checkout-look";
+import { tidyMultilineText } from "@/lib/multiline-text";
+import { htmlToStripeMarkdown, looksLikeRichHtml } from "@/lib/stripe-markdown";
 
 async function requestBaseUrl(): Promise<string> {
   const h = await headers();
@@ -303,6 +305,16 @@ export async function setCommunityCurrency(
   return { error: null };
 }
 
+// The line under the Pay button comes from the rich text editor (HTML) or, if
+// saved before that, plain text. Plain text is tidied but keeps its line
+// breaks. It's measured as Stripe will show it. Null = too long.
+function checkoutMessageToSave(raw: string): string | null {
+  const message = looksLikeRichHtml(raw) ? raw.trim() : tidyMultilineText(raw);
+  const shown = htmlToStripeMarkdown(message);
+  if (shown.length > CHECKOUT_MESSAGE_MAX || message.length > CHECKOUT_MESSAGE_MAX * 8) return null;
+  return shown ? message : "";
+}
+
 // The community's own line under the Pay button on its Stripe Checkout pages
 // (tiers, courses, paid spaces). Blank = our default line.
 export async function setCheckoutMessage(
@@ -310,8 +322,8 @@ export async function setCheckoutMessage(
   communitySlug: string,
   rawMessage: string
 ): Promise<{ error: string | null }> {
-  const message = rawMessage.replace(/\s+/g, " ").trim();
-  if (message.length > CHECKOUT_MESSAGE_MAX) return { error: `Keep it under ${CHECKOUT_MESSAGE_MAX} characters.` };
+  const message = checkoutMessageToSave(rawMessage);
+  if (message === null) return { error: `Keep it under ${CHECKOUT_MESSAGE_MAX} characters.` };
 
   const ctx = await requireAdminCommunity(communityId);
   if (!ctx.ok) return { error: ctx.error };
@@ -341,8 +353,8 @@ export async function setTierCheckoutLook(
   rawMessage: string,
   rawImageUrl: string
 ): Promise<{ error: string | null }> {
-  const message = rawMessage.replace(/\s+/g, " ").trim();
-  if (message.length > CHECKOUT_MESSAGE_MAX) return { error: `Keep it under ${CHECKOUT_MESSAGE_MAX} characters.` };
+  const message = checkoutMessageToSave(rawMessage);
+  if (message === null) return { error: `Keep it under ${CHECKOUT_MESSAGE_MAX} characters.` };
   const imageUrl = rawImageUrl.trim();
   if (imageUrl && !isOwnStorageUrl(imageUrl)) return { error: "Upload the picture here rather than pasting an address." };
 

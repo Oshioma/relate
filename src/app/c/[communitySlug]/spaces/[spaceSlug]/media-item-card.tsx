@@ -178,7 +178,7 @@ export function MediaCard({
         </h3>
         {data.creator && <p className="truncate text-sm text-muted-foreground">{data.creator}</p>}
 
-        {data.description && <p className={cn("mt-2 text-sm text-foreground", !expanded && "line-clamp-2")}>{data.description}</p>}
+        {data.description && <p className={cn("mt-2 text-sm text-foreground", expanded ? "whitespace-pre-line" : "line-clamp-2")}>{data.description}</p>}
 
         {data.reason && (
           // The clamp sits on the text, not the padded box: clamping the box

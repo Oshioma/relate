@@ -62,6 +62,9 @@ export type MyTierSubscription = {
   // Scheduled to cancel at period end (access continues until then).
   cancelAtPeriodEnd: boolean;
   currentPeriodEnd: string | null;
+  // Given free by the community (no Stripe subscription behind it), e.g. from
+  // a "we've moved" activation link. Nothing to cancel.
+  free: boolean;
 };
 
 // The viewer's tier subscriptions in a community, keyed by tier id — active
@@ -74,7 +77,7 @@ export async function getMyTierSubscriptions(
 ): Promise<Map<string, MyTierSubscription>> {
   const { data } = await supabase
     .from("tier_subscriptions")
-    .select("tier_id, status, current_period_end, cancel_at_period_end")
+    .select("tier_id, status, current_period_end, cancel_at_period_end, stripe_subscription_id")
     .eq("community_id", communityId)
     .eq("user_id", userId);
 
@@ -84,7 +87,12 @@ export async function getMyTierSubscriptions(
     const active =
       (s.status === "active" || s.status === "trialing") &&
       (!s.current_period_end || new Date(s.current_period_end) > now);
-    map.set(s.tier_id, { active, cancelAtPeriodEnd: s.cancel_at_period_end, currentPeriodEnd: s.current_period_end });
+    map.set(s.tier_id, {
+      active,
+      cancelAtPeriodEnd: s.cancel_at_period_end,
+      currentPeriodEnd: s.current_period_end,
+      free: !s.stripe_subscription_id,
+    });
   }
   return map;
 }

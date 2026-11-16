@@ -54,6 +54,42 @@ export const BUNDLED_RESEARCH = [
     description: "Hesiod's days of the month (Works and Days), the Egyptian calendar of lucky and unlucky days, and three Hawaiian seasonal months. None of these get Gregorian dates.",
     load: () => import("../../../../docs/true-calendar/research/batch-07.v1.json").then((m) => m.default as unknown),
   },
+  {
+    id: "batch-08",
+    title: "Research batch 08",
+    description: "Babylonian moon-day knowledge: the month that began at the first crescent, the unfavourable 7th, 14th, 21st and 28th, the full-Moon šapattu, the twelve months, and day-by-day advice from the hemerologies (marrying, travel, oaths, food).",
+    load: () => import("../../../../docs/true-calendar/research/batch-08.v1.json").then((m) => m.default as unknown),
+  },
+  {
+    id: "batch-09",
+    title: "Research batch 09",
+    description: "A line for every day from five more traditions: the Maya day names (with an 1854 highland daykeeper's reading of each), the Akan six- and seven-day weeks and the other three special days of the 42-day cycle, the Igbo market day (Nri count), the Chinese twelve day officers, and the Hindu tithi with its fasts (Ekadashi, Pradosha, Sankashti, Amavasya).",
+    load: () => import("../../../../docs/true-calendar/research/batch-09.v1.json").then((m) => m.default as unknown),
+  },
+  {
+    id: "batch-10",
+    title: "Research batch 10",
+    description: "Personal Moon's astrology traditions, each kept separate: the twelve places of Hellenistic astrology (Firmicus Maternus, Latin text of 1897), the twelve houses of medieval Arabic astrology (al-Bīrūnī, 1029), the Moon's transits from the birth Moon in Jyotiṣa (Bṛhat Saṃhitā, 1884 translation) and modern Western solar houses. Read by Personal Moon only, never shown as day records.",
+    load: () => import("../../../../docs/true-calendar/research/batch-10.v1.json").then((m) => m.default as unknown),
+  },
+  {
+    id: "batch-11",
+    title: "Research batch 11",
+    description: "A Babylonian line for every day of the Moon's month: the day-by-day calendar of the second Ulūlu from Ashurbanipal's library (Sayce's 1887 translation), with each day's god, luck, the king's offering and, on the 7th, 14th, 19th, 21st and 28th, the restrictions.",
+    load: () => import("../../../../docs/true-calendar/research/batch-11.v1.json").then((m) => m.default as unknown),
+  },
+  {
+    id: "batch-12",
+    title: "Research batch 12",
+    description: "The twelve Hindu months (Chaitra to Phalguna) and 27 yearly Hindu festivals, each on its tithi in its month: Ugadi, Rama Navami, Akshaya Tritiya, Teej, Janmashtami, Ganesh Chaturthi, Dussehra, Karva Chauth, Diwali, Bhai Dooj, Chhath, Vasant Panchami, Maha Shivaratri, Holika Dahana and more.",
+    load: () => import("../../../../docs/true-calendar/research/batch-12.v1.json").then((m) => m.default as unknown),
+  },
+  {
+    id: "batch-13",
+    title: "Research batch 13",
+    description: "Four more yearly Hindu festivals on their real dates: Phulera Dooj, Hala Shashthi, Vamana Jayanti and Kartika Purnima (Dev Deepawali).",
+    load: () => import("../../../../docs/true-calendar/research/batch-13.v1.json").then((m) => m.default as unknown),
+  },
 ] as const;
 
 export type BundledResearchId = (typeof BUNDLED_RESEARCH)[number]["id"];

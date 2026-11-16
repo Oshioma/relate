@@ -43,6 +43,100 @@ export interface ResearchBundle {
 
 export const EMPTY_BUNDLE: ResearchBundle = { cultures: [], systems: [], cycles: [], positions: [], observances: [], meanings: [], recommendations: [], correspondences: [], notes: [], lunarDays: [], months: [], sources: [], citations: [] };
 
+// --- Astrology traditions ------------------------------------------------------
+//
+// The astrology traditions (culture keys "astrology.…") describe houses and
+// transits, not days. Personal Moon reads them; the history feed, the day hub
+// and the coverage counts never see them, so personal readings and historical
+// day records stay independent.
+
+export const isAstrologyKey = (key: string | null | undefined): boolean => Boolean(key && key.startsWith("astrology."));
+
+const splitCache = new WeakMap<ResearchBundle, { history: ResearchBundle; astrology: ResearchBundle }>();
+
+function split(b: ResearchBundle) {
+  const hit = splitCache.get(b);
+  if (hit) return hit;
+  const part = (astro: boolean): ResearchBundle => {
+    const keep = (k: string | null | undefined) => isAstrologyKey(k) === astro;
+    const cycles = b.cycles.filter((c) => keep(c.system_key));
+    const cycleKeys = new Set(cycles.map((c) => c.key));
+    return {
+      cultures: b.cultures.filter((c) => keep(c.key)),
+      systems: b.systems.filter((s) => keep(s.culture_key)),
+      cycles,
+      positions: b.positions.filter((p) => cycleKeys.has(p.cycle_key)),
+      observances: b.observances.filter((o) => keep(o.culture_key)),
+      meanings: b.meanings.filter((m) => keep(m.culture_key)),
+      recommendations: b.recommendations.filter((r) => keep(r.culture_key)),
+      correspondences: b.correspondences.filter((c) => keep(c.culture_key)),
+      notes: astro ? [] : b.notes,
+      lunarDays: b.lunarDays.filter((d) => keep(d.system_key)),
+      months: b.months.filter((m) => keep(m.system_key)),
+      sources: b.sources,
+      citations: b.citations.filter((c) => keep(c.claim_key)),
+    };
+  };
+  const out = { history: part(false), astrology: part(true) };
+  splitCache.set(b, out);
+  return out;
+}
+
+/** The bundle without the astrology traditions (what the history feed uses). */
+export function historyBundle(b: ResearchBundle): ResearchBundle {
+  return withoutOtherMonths(b.cultures.some((c) => isAstrologyKey(c.key)) || b.systems.some((s) => isAstrologyKey(s.key)) ? split(b).history : b);
+}
+
+/**
+ * Sources whose day-by-day rules were written for one particular month that our
+ * date models never produce: Sayce's 1887 translation of the hemerology of the
+ * second (inserted) Ulūlu. The illustrative Babylonian model only ever inserts
+ * an Addaru II, so there is no date on which those rules belong. Their records
+ * stay in the research but are never shown on a day or month they weren't for.
+ */
+export const SINGLE_MONTH_SOURCES = new Set(["src.sayce-hibbert-1887"]);
+
+/** Day records that hold for one month only and already appear as that month's own observance (Ulūlu day 19). */
+const SINGLE_MONTH_DAYS = new Set(["middle-east.babylonian.lunisolar.day-19"]);
+
+/**
+ * Sentences in a record that is shown every month but talk about other months:
+ * the Hindu tithi records list the festivals that fall on that tithi in
+ * particular months. Each festival is its own event on its own date, so on an
+ * ordinary month's tithi they are left out.
+ */
+const OTHER_MONTH_SENTENCES = [
+  /\s*Yearly festivals on this tithi in particular months:[^.]*\./,
+  /\s*Many festivals fall on the Pūrṇimā of particular months(?:, e\.g\.)?[^.]*\./,
+  /\s*Diwali falls on the Amāvasyā of [^.]*\./,
+];
+
+export function withoutOtherMonthText(text: string): string {
+  let out = text;
+  for (const re of OTHER_MONTH_SENTENCES) out = out.replace(re, "");
+  return out.trim();
+}
+
+function withoutOtherMonths(b: ResearchBundle): ResearchBundle {
+  const by = new Map<string, string[]>();
+  for (const c of b.citations) by.set(c.claim_key, [...(by.get(c.claim_key) ?? []), c.source_key]);
+  const elsewhere = (key: string) => {
+    const s = by.get(key);
+    return Boolean(s && s.length > 0 && s.every((k) => SINGLE_MONTH_SOURCES.has(k)));
+  };
+  return {
+    ...b,
+    lunarDays: b.lunarDays.filter((d) => !elsewhere(d.key) && !SINGLE_MONTH_DAYS.has(d.key)).map((d) => (d.meaning ? { ...d, meaning: withoutOtherMonthText(d.meaning) } : d)),
+    recommendations: b.recommendations.filter((r) => !elsewhere(r.key)),
+    meanings: b.meanings.filter((m) => !elsewhere(m.key)),
+  };
+}
+
+/** Only the astrology traditions (what Personal Moon uses). */
+export function astrologyBundle(b: ResearchBundle): ResearchBundle {
+  return split(b).astrology;
+}
+
 /** The modern suggestions written for this date. */
 export function notesForDay(bundle: ResearchBundle, date: CivilDate): Row<DailyNoteRecord>[] {
   const iso = formatIsoDate(date);
@@ -108,7 +202,8 @@ function onDate(c: Row<CorrespondenceRecord>, iso: string): boolean {
   return c.gregorian_from <= iso && iso <= (c.gregorian_to ?? c.gregorian_from);
 }
 
-export function entriesForDay(bundle: ResearchBundle, date: CivilDate, moon: DayMoon | null): DayEntry[] {
+export function entriesForDay(all: ResearchBundle, date: CivilDate, moon: DayMoon | null): DayEntry[] {
+  const bundle = historyBundle(all);
   const cultures = new Map(bundle.cultures.map((c) => [c.key, c]));
   const systems = new Map(bundle.systems.map((s) => [s.key, s]));
   const out: DayEntry[] = [];

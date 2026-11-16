@@ -219,7 +219,7 @@ export function LessonDocument({
 }) {
   return (
     <div className="grid gap-6">
-      {lesson.summary && <p className="text-sm leading-relaxed text-muted-foreground">{lesson.summary}</p>}
+      {lesson.summary && <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{lesson.summary}</p>}
 
       {lesson.objectives?.length > 0 && (
         <section>

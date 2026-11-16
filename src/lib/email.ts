@@ -1,4 +1,5 @@
 import "server-only";
+import { inlineEmailImages } from "@/lib/email-templates";
 
 // Community-branded transactional email via Resend's REST API. Used for two
 // messages so they arrive as "Mzungu Zanzibar <invites@relate.click>" with the
@@ -139,6 +140,7 @@ export async function sendCommunityTemplateEmail(
   if (!apiKey) return { ok: false, reason: "RESEND_API_KEY is not configured" };
   const fromAddress = defaultFromAddress();
   if (!fromAddress) return { ok: false, reason: "no sender address — set INVITE_EMAIL_FROM or NEXT_PUBLIC_SITE_URL" };
+  const inline = inlineEmailImages(input.html);
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -151,7 +153,10 @@ export async function sendCommunityTemplateEmail(
         from: `${input.communityName.replace(/[<>@"]/g, "") || "Relate"} <${fromAddress}>`,
         to: [input.to],
         subject: input.subject,
-        html: input.html,
+        // The logo, banner and any pictures in the words travel inside the
+        // email, so inboxes that block linked pictures still show them.
+        html: inline.html,
+        ...(inline.attachments.length > 0 ? { attachments: inline.attachments } : {}),
       }),
       cache: "no-store",
     });

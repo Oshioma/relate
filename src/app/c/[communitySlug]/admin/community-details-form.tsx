@@ -2,20 +2,28 @@
 
 import { useActionState } from "react";
 import { updateCommunityDetails, type CommunityDetailsState } from "./actions";
-import { Input, Textarea, Label } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
+import { RichEditor } from "@/components/ui/rich-editor";
+import { useFormDraft } from "@/lib/use-form-draft";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { PLACE_LOCATION_TYPES } from "@/lib/community-templates";
 import type { Community } from "@/types/database";
 
 export function CommunityDetailsForm({ community }: { community: Community }) {
-  const [state, formAction] = useActionState<CommunityDetailsState, FormData>(updateCommunityDetails, undefined);
+  // What's typed is kept in this browser until it's saved (house rule).
+  const { formRef, clearDraft } = useFormDraft(`community-details:${community.id}`);
+  const [state, formAction] = useActionState<CommunityDetailsState, FormData>(async (prev, formData) => {
+    const result = await updateCommunityDetails(prev, formData);
+    if (!result?.error) clearDraft();
+    return result;
+  }, undefined);
   // Location and "kind of place" only apply to place-based communities — they
   // drive the map, AI event discovery and live tides & weather, none of which
   // a generic community has. Don't surface them on every community's settings.
   const isPlace = community.template_key === "place";
 
   return (
-    <form action={formAction} className="space-y-3 rounded-lg border border-border bg-card p-4">
+    <form ref={formRef} action={formAction} className="space-y-3 rounded-lg border border-border bg-card p-4">
       <input type="hidden" name="community_id" value={community.id} />
       <input type="hidden" name="community_slug" value={community.slug} />
 
@@ -26,7 +34,7 @@ export function CommunityDetailsForm({ community }: { community: Community }) {
 
       <div>
         <Label htmlFor="community_description">Description</Label>
-        <Textarea id="community_description" name="description" rows={2} defaultValue={community.description ?? ""} />
+        <RichEditor id="community_description" name="description" rows={4} defaultValue={community.description ?? ""} fromPlainText />
       </div>
 
       {isPlace && (

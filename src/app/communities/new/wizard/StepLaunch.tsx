@@ -96,7 +96,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
               </p>
             )}
             {state.tagline.trim() && <p className="mt-1 text-sm font-semibold text-foreground">{state.tagline.trim()}</p>}
-            {state.description && <p className="mt-1 text-sm text-foreground">{state.description}</p>}
+            {state.description && <p className="whitespace-pre-line mt-1 text-sm text-foreground">{state.description}</p>}
           </div>
         </div>
 

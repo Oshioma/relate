@@ -133,7 +133,7 @@ export function MeetupCard({
           </div>
         )}
 
-        {meetup.description && <p className="mt-2 text-sm text-foreground">{meetup.description}</p>}
+        {meetup.description && <p className="whitespace-pre-line mt-2 text-sm text-foreground">{meetup.description}</p>}
 
         {host && (
           <p className="mt-2 text-xs text-muted-foreground">Posted by {host.full_name || host.username}</p>

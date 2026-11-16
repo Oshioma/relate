@@ -1,0 +1,135 @@
+{
+ "format": "true-calendar/v1",
+ "sources": [
+  {
+   "key": "src.wikipedia-kartika-purnima",
+   "title": "Kartika Purnima (Wikipedia)",
+   "publisher": "Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Kartika_Purnima",
+   "accessed_on": "2026-11-16",
+   "source_type": "reference",
+   "notes": "The full-Moon (pūrṇimā) day of Kartika: holy bathing (Kartika snana), lamps, fairs; Dev Deepawali at Varanasi. Infobox date for 2024: 15 November.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.drikpanchang-phulera-dooj",
+   "title": "Phulera Dooj date and time (Drik Panchang)",
+   "publisher": "Drik Panchang",
+   "url": "https://www.drikpanchang.com/festivals/phulera-dooj/phulera-dooj-date-time.html?year=2026",
+   "accessed_on": "2026-11-16",
+   "source_type": "reference",
+   "notes": "Phalguna Śukla Dvitīyā; 19 February 2026 (as reported for this page in search listings and by news sites citing it; the page itself does not load from our tools).",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.drikpanchang-vamana-jayanti",
+   "title": "Vamana Jayanti date and time (Drik Panchang)",
+   "publisher": "Drik Panchang",
+   "url": "https://www.drikpanchang.com/dashavatara/vamana/vamana-jayanti-date-time.html",
+   "accessed_on": "2026-11-16",
+   "source_type": "reference",
+   "notes": "Bhadrapada Śukla Dvādaśī, the birth of Vamana, the dwarf avatar of Vishnu; 23 September 2026 (as reported for its Dashavatara calendar in search listings; the page itself does not load from our tools). One online calendar gives 22 September.",
+   "review_status": "draft"
+  },
+  {
+   "key": "src.drikpanchang-hala-shashthi",
+   "title": "Hala Shashthi date and time (Drik Panchang)",
+   "publisher": "Drik Panchang",
+   "url": "https://www.drikpanchang.com/dashavatara/lord-balarama/hala-shashthi-date-time.html?year=2026",
+   "accessed_on": "2026-11-16",
+   "source_type": "reference",
+   "notes": "Kṛṣṇa Ṣaṣṭhī of Bhadrapada in the pūrṇimānta (northern) reckoning, i.e. of Shravana in the amānta reckoning; 2 September 2026 (as reported in search listings; the page itself does not load from our tools).",
+   "review_status": "draft"
+  }
+ ],
+ "observances": [
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.phulera-dooj",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Phulera Dooj",
+   "kind": "festival",
+   "timing": "Phalguna Śukla Dvitīyā (amānta and pūrṇimānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-12",
+   "lunar_day": 2,
+   "description": "A spring festival of Krishna and Radha, celebrated with flowers, above all in the Braj region (Mathura and Vrindavan); it opens the Holi season and is held to be a lucky day for weddings.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.drikpanchang-phulera-dooj"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.hala-shashthi",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Hala Shashthi (Lalhi Chhath)",
+   "kind": "festival",
+   "timing": "Kṛṣṇa Ṣaṣṭhī: Shravana in the amānta reckoning, Bhadrapada in the pūrṇimānta (northern) reckoning",
+   "month_key": "asia.south.vedic-hindu.tithi.month-05",
+   "lunar_day": 21,
+   "description": "A fast kept by mothers for their children's long life, honouring Balarama, whose weapon is the plough (hala); food grown in ploughed fields is avoided that day.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain. Local almanacs and communities can differ by a day. Some traditions keep Balarama's birthday itself on Shravana Pūrṇimā instead.",
+   "sources": [
+    {
+     "source": "src.drikpanchang-hala-shashthi"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.vamana-jayanti",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Vamana Jayanti (Vamana Dvadashi)",
+   "kind": "festival",
+   "timing": "Bhadrapada Śukla Dvādaśī (amānta and pūrṇimānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-06",
+   "lunar_day": 12,
+   "description": "The birthday of Vamana, the dwarf avatar of Vishnu, who won back the three worlds from King Bali in three steps; Vishnu is worshipped at midday.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at midday in Ujjain. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.drikpanchang-vamana-jayanti"
+    }
+   ],
+   "review_status": "draft"
+  },
+  {
+   "key": "asia.south.vedic-hindu.tithi.festival.kartika-purnima",
+   "culture_key": "asia.south.vedic-hindu",
+   "system_key": "asia.south.vedic-hindu.tithi",
+   "name": "Kartika Purnima (Dev Deepawali)",
+   "kind": "festival",
+   "timing": "Kartika Pūrṇimā (amānta and pūrṇimānta)",
+   "month_key": "asia.south.vedic-hindu.tithi.month-08",
+   "lunar_day": 15,
+   "description": "The full Moon of Kartika: a holy bath at dawn in a sacred river (Kartika snana), lamps lit on the river banks (Dev Deepawali, the 'Diwali of the gods', at Varanasi), and fairs such as Pushkar.",
+   "evidence": [
+    "historically_documented",
+    "astronomically_calculated"
+   ],
+   "uncertainty": "Dated by calculation: the Hindu month from the Sun's sidereal sign, and the day on which this tithi is in force at sunrise in Ujjain. Local almanacs and communities can differ by a day.",
+   "sources": [
+    {
+     "source": "src.wikipedia-kartika-purnima"
+    }
+   ],
+   "review_status": "draft"
+  }
+ ]
+}

@@ -70,7 +70,7 @@ export default async function WorkPage({ params }: { params: Promise<Params> }) 
         <TraditionBadge traditionClass={work.tradition_class} />
         {[work.civilisation, work.original_language, work.attribution].filter(Boolean).join(" · ")}
       </div>
-      {work.summary && <p className="mt-3 max-w-3xl text-base text-foreground">{work.summary}</p>}
+      {work.summary && <p className="whitespace-pre-line mt-3 max-w-3xl text-base text-foreground">{work.summary}</p>}
       {work.attribution_note && <p className="mt-2 max-w-3xl text-sm text-muted-foreground">{work.attribution_note}</p>}
 
       <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm">

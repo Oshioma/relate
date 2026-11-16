@@ -858,7 +858,7 @@ function AnnouncementsSection({
             <div key={announcement.id} className="flex items-start justify-between gap-3 rounded-lg border border-border bg-card p-3">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-foreground">{announcement.title}</p>
-                {announcement.body && <p className="mt-0.5 text-sm text-muted-foreground">{announcement.body}</p>}
+                {announcement.body && <p className="whitespace-pre-line mt-0.5 text-sm text-muted-foreground">{announcement.body}</p>}
                 <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(announcement.created_at)}</p>
               </div>
               <button

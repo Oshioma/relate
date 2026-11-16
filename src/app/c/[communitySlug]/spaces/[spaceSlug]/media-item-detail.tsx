@@ -156,7 +156,7 @@ export function MediaItemDetail({
             </div>
           </div>
 
-          {item.description && <p className="mt-6 text-base leading-relaxed text-foreground">{item.description}</p>}
+          {item.description && <p className="whitespace-pre-line mt-6 text-base leading-relaxed text-foreground">{item.description}</p>}
 
           {item.reason && (
             <div className={cn("mt-5 rounded-lg px-4 py-3 text-sm", verdictTone)}>
@@ -205,7 +205,7 @@ export function MediaItemDetail({
               <h2 className="text-sm font-semibold text-foreground">
                 The AI review{confidence ? <span className="font-normal text-muted-foreground"> · {confidence} confidence</span> : null}
               </h2>
-              {summary && <p className="mt-2 text-sm text-foreground">{summary}</p>}
+              {summary && <p className="whitespace-pre-line mt-2 text-sm text-foreground">{summary}</p>}
               {sources.length > 0 && (
                 <ul className="mt-2 space-y-1 text-xs">
                   {sources.map((s) => (

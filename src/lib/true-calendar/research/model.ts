@@ -379,6 +379,19 @@ export type CalendarBookmark = {
   created_at: string;
 }
 
+/** Personal Moon birth details: private to the member (see the migration). */
+export type CalendarBirthProfile = {
+  user_id: string;
+  birth_date: string;
+  birth_time: string | null;
+  birth_place: string | null;
+  birth_time_zone: string | null;
+  display_time_zone: string | null;
+  period_wording: Record<string, { title?: string; guidance?: string }>;
+  created_at: string;
+  updated_at: string;
+};
+
 export type CalendarResearchReview = {
   id: string;
   claim_table: string;
