@@ -241,8 +241,8 @@ export function renderCommunityEmail(input: RenderCommunityEmailInput): Rendered
   const logoUrl = template.logo_url || input.communityLogoUrl;
   const logo = logoUrl
     ? template.logo_url
-      ? `<img src="${escapeHtml(logoUrl)}" alt="${community}" style="display:block;max-width:200px;max-height:96px;width:auto;height:auto;margin:0 auto 20px;" />`
-      : `<img src="${escapeHtml(logoUrl)}" alt="${community}" width="72" height="72" style="display:block;border-radius:50%;object-fit:cover;margin:0 auto 20px;" />`
+      ? `<img data-email-logo src="${escapeHtml(logoUrl)}" alt="${community}" style="display:block;max-width:200px;max-height:96px;width:auto;height:auto;margin:0 auto 20px;" />`
+      : `<img data-email-logo src="${escapeHtml(logoUrl)}" alt="${community}" width="72" height="72" style="display:block;border-radius:50%;object-fit:cover;margin:0 auto 20px;" />`
     : "";
   const banner = template.banner_url
     ? `<img src="${escapeHtml(template.banner_url)}" alt="" style="display:block;width:100%;height:auto;margin:0 0 24px;border-radius:8px;" />`
@@ -323,4 +323,26 @@ export function inlineEmailImages(html: string, max = 8): { html: string; attach
     return `${before}cid:${attachment.content_id}${after}`;
   });
   return { html: out, attachments: [...byUrl.values()] };
+}
+
+// Only the logo travels inside the email; every other picture (the banner,
+// pictures in the words) stays a normal link. An email carrying several
+// attached pictures is heavy and reads to Gmail like bulk mail from a new
+// sender, which sent community emails to spam, while Gmail itself shows linked
+// pictures fine. The logo is the one picture worth attaching, because an
+// empty box where the community's name should be is what readers notice.
+// renderCommunityEmail marks the logo with data-email-logo; the mark is
+// removed from what is sent.
+export function inlineEmailLogo(html: string): { html: string; attachments: InlineImageAttachment[] } {
+  let logo: InlineImageAttachment | null = null;
+  const out = html.replace(/<img\b[^>]*>/gi, (tag) => {
+    if (!/\sdata-email-logo(?:="[^"]*")?(?=[\s/>])/i.test(tag)) return tag;
+    const cleaned = tag.replace(/\sdata-email-logo(?:="[^"]*")?(?=[\s/>])/i, "");
+    if (logo) return cleaned.replace(/(\ssrc=")[^"]+(")/i, `$1cid:${logo.content_id}$2`);
+    const inlined = inlineEmailImages(cleaned, 1);
+    if (inlined.attachments.length === 0) return cleaned;
+    logo = inlined.attachments[0];
+    return inlined.html;
+  });
+  return { html: out, attachments: logo ? [logo] : [] };
 }
