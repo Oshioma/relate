@@ -2876,3 +2876,161 @@ The paraphrase follows Babbitt's English closely. Nothing is offered as true of 
 - Verse lines are kept as separate paragraphs.
 - The licence holds in the United States only.
 - `inventoryVerified` stays false.
+
+## 35. Stage 29: Ptolemy, Tetrabiblos, in Robbins's English (1940)
+
+Brief item 18 ("Related Greek and Hermetic texts") listed Ptolemy's *Tetrabiblos* ("planetary rulers") among its proposed members. It is now imported as its own work, whole, from Frank Egleston Robbins's English in the Loeb volume *Manetho; Ptolemy, Tetrabiblos* (1940). The proposed-member line now reads "Ptolemy, Tetrabiblos — planetary rulers; Robbins 1940 public domain in the US; imported as its own work, greek.ptolemy-tetrabiblos".
+
+- **`greek.ptolemy-tetrabiblos`** (prefix `greek.ptol`), brief item 18. Tradition class `ancient_late_transmission`, corpus group `greek_hermetic`. No timeline record was about Ptolemy or the Tetrabiblos, so the work makes its **own marker**, **`ptolemy-tetrabiblos`** (category `religion`, prominence 2), with three dated claims (below).
+
+**What it is.** A Greek handbook of astrology in four books by Claudius Ptolemy, the astronomer of Alexandria. It is addressed to Syrus and was written after his Almagest, which it names (I.1). Robbins's introduction puts Ptolemy's life "approximately in the years 100‑178" and the Tetrabiblos in "the last third of the author's life": the second century CE.
+
+It is systematic and argued. Ptolemy, who "took, in general, an Aristotelian position philosophically" (Robbins), explains the claimed powers of the planets and signs through the qualities hot, cold, moist and dry. He argues that astrology is a natural science, possible and useful but only conjectural, like medicine and navigation, and not a matter of inescapable fate (I.2–3).
+- **Book I** sets out the doctrines: the natures of the planets, the aspects, the houses (domiciles) of the planets, and the triplicities, exaltations and terms.
+- **Book II** deals with countries and peoples (the climes), eclipses and the weather.
+- **Books III and IV** deal with nativities, ending with the division of a life's times among the seven planets.
+
+**Presented honestly.**
+- **Ptolemy's claims, not facts.** The book passage, the marker, the inventory and every chapter's notes say that the doctrines are Ptolemy's astrological claims. Each chapter's notes begin by saying whose voice it is in: Ptolemy's own, or the tradition he reports ("the ancients", "the Egyptians", "the Chaldaeans") and argues with.
+- **His judgements of peoples and persons** (II.3, III.11–14) are the prejudices of his time. They are paraphrased as his claims, and the plain-words file says so.
+- **Not a revealed or Egyptian text.** Ptolemy writes in his own voice, as a Greek natural philosopher, and the attribution note says so.
+- **Hübner, second-hand only.** W. Hübner's Teubner edition (*Apotelesmatika*, Stuttgart and Leipzig, 1998), the latest critical Greek, was **not read**. It is cited only as a reference edition, as Wikipedia ("Tetrabiblos") reports it ("Based on 33 complete and 14 partial manuscripts").
+- **The licence: US only.** Bill Thayer's LacusCurtius home page states: "It is now in the public domain pursuant to the 1978 revision of the U. S. Copyright Code, since the copyright was not renewed at the appropriate time, which would have been that year or the year before." That is a United States status only, and the text layers carry `public_domain_us`. The statement is exported as `THAYER_TETRABIBLOS_PUBLIC_DOMAIN_STATEMENT` and quoted in the source's notes and in every layer's evidence.
+
+The inventory gained six sources:
+- `robbins-1940-tetrabiblos`: the English imported, read in the archive.org scan of the Toronto copy of the 1964 reprint. It is also cited for what Robbins's introduction says: the dates, Ptolemy's Aristotelianism, Posidonius, the doubtful ending and the first printing;
+- `thayer-lacuscurtius-tetrabiblos`: the copy text, Thayer's hand-typed transcription, and the licence statement;
+- `loeb-tetrabiblos-scans`: the four archive.org copies whose OCR served as witnesses;
+- `camerarius-1535-tetrabiblos`: the first printing of the Greek (Nuremberg, 1535), seen at its title page and colophon only;
+- `boll-boer-1940-apotelesmatika`: the Teubner Greek of 1940 (corrected reprint 1957), read at its title page and preface only;
+- `wikipedia-tetrabiblos`: second-hand, for Hübner, the 1484 Latin printing and the Aristotelian qualities.
+
+Files:
+- `corpus/ptolemy-tetrabiblos.ts`;
+- the generated `corpus/ptolemy-tetrabiblos-text.ts`, made by `scripts/texts/ptolemy-tetrabiblos.py`, which records the witnesses, the method, every decision on a flagged place and every correction by hand;
+- `corpus/ptolemy-tetrabiblos-related-images.ts`;
+- plain words in `corpus/plain/ptolemy-tetrabiblos.ts`;
+- the marker's pictures in `marker-pictures.ts`.
+
+### Source and checking
+
+| Siglum | Witness |
+|---|---|
+| R | Thayer's LacusCurtius transcription (twelve pages: 1A, 1B, 2A, 2B, 2C, 3A, 3B, 3C, 3D, 4A, 4B, 4C), with his marks for the Loeb pages and Robbins's note numbers (numbered through each book). The copy text. |
+| T | archive.org OCR of `manethowithengli00maneuoft`, a University of Toronto copy of the 1964 reprint ("First printed 1940"); its page images were used for all the proofreading |
+| D | `dli.ernet.471573`, a Digital Library of India copy (1964) |
+| L | `L350ManethoHistoryOfEgyptPtolemyTetrabiblos` (1964, origin unstated) |
+| F | `ptolemy-tetrabiblos-four-books-of-the-influence-of-the-stars`, a retyped copy of Robbins's English (origin unstated; not Thayer's text) |
+
+The reprints are photographic: the type and pages are those of 1940.
+
+- **The vote.** Thayer's words were aligned with each witness, chapter by chapter. A place is flagged wherever at least three of the four agree on another reading (letters, a stop or a diacritic), or where the aligner could not anchor the stretch in three. **105 places** were flagged: 82 letters, 15 stops, 8 skipped.
+- **Decisions.** Each flag was looked at on T's page image and has an entry in `DECISIONS`. Thayer's reading stands where no other is taken. The script stops if a flag has no decision or a decision is unused. The printed reading was taken in **84** places (pinned as `TETRABIBLOS_TAKEN_COUNT`), among them:
+  - "philosophical" for Thayer's "physical" (I.1);
+  - "peculiar" for "particular" (III.13);
+  - two stretches Thayer skips, a line in I.18 and a phrase in IV.10.
+- **The tables of terms** (I.20, p. 97; I.21, p. 107) were left out of the vote, since the OCRs cannot read the planetary signs. They were read cell by cell on the page images, and one cell was corrected: Libra's last term in Ptolemy's own table is Mars's, not Saturn's.
+- **`FIXES`**, three entries: the comma before the two conclusions (IV.10), the capital in I.17's heading, and the Libra cell.
+- **Not followed:** Thayer's own notes and comments, and his marginal pages of Camerarius's second edition.
+
+### Units
+
+- **`greek.ptol.book`** (`part`) holds no text. It carries:
+  - the Greek as a cited layer (`grc`, no content): Robbins's own facing Greek, which he collated against Camerarius's second edition (not transcribed); Boll–Boer (preface only); Hübner 1998 (second-hand); Camerarius 1535 (title page and colophon only);
+  - the dates, the themes (planetary rulers; fate and free will) and the pictures of the work;
+  - notes on what is imported and what is listed.
+- Four **`book`** passages, `greek.ptol.b1` to `greek.ptol.b4`, with summaries and no text.
+- 61 **`chapter`** units, `greek.ptol.1.1` to `greek.ptol.4.10`, with 24, 13, 14 and 10 to the four books.
+  - Each is labelled with Robbins's heading ("I.1 Introduction") and has the layer `eng-1940`, kind `translation`, and its Loeb pages (3–459).
+  - Chapter notes give the voice, any imported footnote, and the hand corrections.
+  - IV.10 keeps both endings Robbins prints, "Conclusion according to Parisinus 2425" and "Conclusion according to MADProc.Cam.".
+
+That makes 61 units with text and 66 passages, 46,259 words. `expectedUnits` is 61. `inventoryVerified` stays false: the Greek was not compared, and Robbins's chapter division was not checked against Boll–Boer or Hübner.
+
+**Imported notes:** 8 of Robbins's 492, in Thayer's numbering 1.1, 1.2, 1.108, 1.118, 2.7, 4.85, 4.86 and 4.87, found in I.1, I.20, I.21, II.2 and IV.10. They explain:
+- what "astronomy" and "its own treatise" refer to;
+- what the tables of terms leave out;
+- Posidonius as Ptolemy's probable source for the ethnography;
+- the doubtful ending.
+
+**Listed, not imported:**
+- Robbins's introduction;
+- his Greek text and apparatus;
+- the other 484 footnotes;
+- Thayer's own notes.
+
+Not used: Ashmand's English of 1822.
+
+### Dates
+
+On `greek.ptol.book`, and as the claims of the new marker:
+
+- **Composition:** 150–178 CE (`decade`, approximate), `robbins-1940-tetrabiblos`. **Inferred**: the work gives no date. It names the Almagest as already written (I.1), and the Almagest's latest observation is of 151. Robbins dates Ptolemy's life approximately 100–178 and puts the Tetrabiblos in its last third.
+- **Translation and publication:**
+  - 1535 (`camerarius-1535-tetrabiblos`): the first printing of the Greek, edited by Joachim Camerarius at Nuremberg. Read on the title page ("NORIMBERGAE. M. D. XXXV.") and colophon ("Norimbergae apud Ioannem Petreium. Anno M. D. XXXV.") of the Sevilla copy. Robbins names the printer as Froben, the colophon names Petreius, and the discrepancy is recorded. The role is the archive's nearest: this is a first printing of the Greek, not a translation.
+  - 1940 (`robbins-1940-tetrabiblos`): "First printed 1940", read in the OCR of the 1964 reprint.
+
+### Links
+
+All 20 are `proposed`, and none says one text copied or quoted another. Ptolemy names none of the texts linked, and they do not name the Tetrabiblos.
+- The one exception is Hall, who names Ptolemy and "the Ptolemaic system". That link begins "Documented as a name only".
+- All the others begin "None shown." for transmission.
+
+| From | To | Class | What it rests on |
+|---|---|---|---|
+| I.2 | `greek.iamb.9.4` | `close_conceptual_parallel` | astrology's errors blamed on its practitioners, not on the science |
+| I.3 | `arab.secretum.2.17` | `close_conceptual_parallel` | astrology joined to medicine |
+| I.3 | `modern.hall.5.s2.p2` | `broad_thematic_resemblance` | Egyptian priestly learning joining astrology and medicine |
+| I.4 | `arab.secretum.10.9` | `broad_thematic_resemblance` | each planet with a physical nature acting on earth |
+| I.4 | `greek.chald.121` | `broad_thematic_resemblance` | the seven wandering bodies |
+| I.4 | `greek.mithras.1907.11` | `broad_thematic_resemblance` | sevens of heavenly powers over the world |
+| I.5 | `greek.plut.48` | `close_conceptual_parallel` | planets beneficent, maleficent and mixed (the Chaldeans, in Plutarch) |
+| I.5 | `greek.iamb.1.18` | `contradiction` | Iamblichus rejects the doctrine that some gods are malefic |
+| I.6 | `modern.kyb.1908.2` | `broad_thematic_resemblance` | masculine and feminine beyond living bodies |
+| I.13 | `greek.tim.40c` | `broad_thematic_resemblance` | conjunctions and oppositions of the planets as portents |
+| I.17 | `arab.secretum.4.4` | `close_conceptual_parallel` | the planets' houses (Mercury in Gemini and Virgo) |
+| I.17 | `modern.hall.4.fig2` | `close_conceptual_parallel` | Saturn's house in Capricorn |
+| II.2 | `herm.sh.ex26.47` | `close_conceptual_parallel` | peoples' natures from their regions, east "right-handed" and west "left-handed" (Robbins's note names Posidonius as Ptolemy's probable source; a common source is not shown) |
+| II.8 | `herm.sh.ex9.5` | `close_conceptual_parallel` | heavenly powers as causes of general calamities |
+| III.13 | `modern.hpb.sd.2.1` | `broad_thematic_resemblance` | human natures following the seven planetary powers |
+| IV.10 | `herm.ch.1.25` | `symbolic_similarity` | seven heavenly stations in order, each tied to a human quality |
+| IV.10 | `herm.sh.ex24` | `symbolic_similarity` | each planet's share in human nature |
+| IV.10 | `gnostic.origen.6.22` | `symbolic_similarity` | the Mithraic ladder of seven planetary gates (Celsus, as Origen quotes him) |
+| IV.10 | `greek.tim.38c` | `broad_thematic_resemblance` | the planets as measures of time |
+| IV.10 | `modern.hall.intro.fig5` | `later_reinterpretation` | Hall's spiritual reading of Ptolemy's geocentric spheres |
+
+The links' notes use the archive's own dates for each text (the Secretum, the Hermetic writings, the Oracles, Celsus and Origen). No later text is presented as Ptolemy's source.
+
+### Images
+
+All the pictures come from Commons file pages, and each was looked at before it was added. None repeats a picture shown elsewhere in the archive. No manuscript leaf of the Tetrabiblos was found on Commons under a name that could be checked.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| The title page of Camerarius's first printing of the Greek, "NORIMBERGAE. M. D. XXXV.", Sevilla copy (Commons PDF of Internet Archive ARes43420, page 7); public domain | `greek.ptol.book`; the marker's cover | `secure`, `historical_document` |
+| The first page of Robbins's introduction (Loeb, p. v), read on the image; scan of unstated origin; public domain as the file page states (the archive says US only) | `greek.ptol.book` | `secure`, `historical_document` |
+| The opening page of a printed Latin *Quadripartitum*, heading read on the image ("Cuius in primo tractatu sunt 24 capitula"); public domain | `greek.ptol.book`; the marker's second picture | `UNVERIFIED`: the file page says Ratdolt, Venice, 1484, translated by Plato of Tivoli; Wikipedia gives the 1484 Ratdolt printing to Egidio Tebaldi's translation from the Arabic; neither was checked |
+
+The Camerarius title page was read on the Internet Archive's page image of the Sevilla copy (leaf n6). The Commons file is the Internet Archive's PDF of the same scan, with as many pages (271) as the scan has leaves, so its page 7 is that leaf; Commons refused the rendered page itself.
+
+Left out, because Commons refused the images (HTTP 429, for over an hour) and they could not be looked at, though their file pages were read:
+- an aspect diagram said to be from the Basel printing of 1533 (Hervagius, in Plato of Tivoli's Latin);
+- the opening chapter of the 1535 edition, as a bookseller photographed it;
+- the woodcut of Ptolemy in Ziletti's Italian edition of 1564;
+- an illumination of Ptolemy with an astrolabe in Paris, BnF latin 7432 (1468, as its file page says).
+
+### Plain words
+
+There are 61 entries, one per chapter, and none for the work or the books. Each begins with "Ptolemy" and says that what it describes is his claim: many end "This is Ptolemy's astrological claim, not a fact." The paraphrase follows Robbins's English closely. Where Ptolemy judges peoples, bodies or characters (II.3, III.11–14), the plain words give his judgement as his, and the file's header says these are the prejudices of his time. Nothing is offered as true of the stars or of people.
+
+### Not done
+
+- The Greek was not read in any edition (Robbins's facing text, Boll–Boer, Hübner); nothing is marked verified.
+- Hübner's edition is known only second-hand from Wikipedia; Boll–Boer was read at its title page and preface only.
+- Robbins's chapter division was not compared with Boll–Boer's or Hübner's.
+- 24 places where only two of the four witnesses differ from Thayer on punctuation were not examined; capitals were not voted.
+- 484 of Robbins's 492 footnotes and his introduction are not imported; Thayer's notes are not imported.
+- The Camerarius printer (Petreius in the colophon, Froben in Robbins) is recorded, not resolved further.
+- The pictures listed above as left out could not be looked at.
+- The licence holds in the United States only.
+- `inventoryVerified` stays false.

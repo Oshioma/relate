@@ -1417,6 +1417,80 @@ export const INVENTORY_SOURCES: SeedSource[] = [
       "Cited, second-hand, for what it reports from J. Gwyn Griffiths's edition and commentary, Plutarch's De Iside et Osiride (University of Wales Press, 1970), which was not read: that Plutarch wrote 'in the early 2nd century CE' (Griffiths pp. 16–17); that Griffiths 'concluded that several elements of this account were taken from Greek mythology, and that the work as a whole was not based directly on Egyptian sources' (pp. 51–52, 98); and that the Byblos episode 'is not known from Egyptian sources' (pp. 319–322); and for the opposite view of John Baines (1996, p. 370), that 'temples may have kept written accounts of myths that were later lost, and that Plutarch could have drawn on such sources'. Neither Griffiths nor Baines was read.",
   },
   {
+    key: "robbins-1940-tetrabiblos",
+    title: "Manetho, with an English translation by W. G. Waddell; Ptolemy, Tetrabiblos, edited and translated by F. E. Robbins (Loeb Classical Library)",
+    author: "Frank Egleston Robbins (ed. and trans.)",
+    publisher: "William Heinemann, London, and Harvard University Press, Cambridge, Mass.",
+    publishedYear: 1940,
+    reference:
+      "Robbins's Introduction (roman-numbered pages; his notes cite it at pp. xviii–xx); Greek and English on facing pages, the English on the odd pages 3–459, in four books of 24, 13, 14 and 10 chapters, with 492 footnotes (as Thayer numbers them through each book); read in the archive.org scan of a 1964 reprint (manethowithengli00maneuoft), every English page",
+    url: "https://archive.org/details/manethowithengli00maneuoft",
+    sourceType: "primary",
+    notes:
+      "The English imported. Public domain in the United States only, on the statement of Bill Thayer's LacusCurtius home page for the work: 'It is now in the public domain pursuant to the 1978 revision of the U. S. Copyright Code, since the copyright was not renewed at the appropriate time, which would have been that year or the year before.' The copy text is Thayer's transcription, voted against the OCR of four scans of this volume and read on the page images of the Toronto copy of the 1964 reprint, which is photographic (the 1940 type and pages); every decision and hand correction is in scripts/texts/ptolemy-tetrabiblos.py. Eight of the 492 footnotes are imported; the introduction, the Greek and its apparatus, and the other notes are not. Robbins's Greek text was not checked. Cited also for what his introduction says: Ptolemy probably born at Ptolemaïs in Egypt and living to 78, observing on the parallel of Alexandria; his life 'approximately in the years 100‑178', since the Almagest's observations run from 127 to 151; the Almagest named in the Tetrabiblos, which with other works 'belong[s] to the last third of the author's life'; his 'Aristotelian position philosophically'; his debt to 'Posidonius in astrological ethnology'; the first edition 'printed by Froben at Nürnberg in 1535' (the colophon of the Sevilla copy names Petreius: see camerarius-1535-tetrabiblos); and the doubtful ending, both forms of which he prints.",
+  },
+  {
+    key: "thayer-lacuscurtius-tetrabiblos",
+    title: "Ptolemy: Tetrabiblos (LacusCurtius)",
+    author: "Bill Thayer (transcription)",
+    publisher: "LacusCurtius (penelope.uchicago.edu)",
+    reference:
+      "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Ptolemy/Tetrabiblos/home.html, its twelve text pages (1A, 1B, 2A, 2B, 2C, 3A, 3B, 3C, 3D, 4A, 4B, 4C) and the Introduction page, read for this import in November 2026",
+    url: "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Ptolemy/Tetrabiblos/home.html",
+    sourceType: "website",
+    notes:
+      "The copy text: Thayer's hand-typed transcription of Robbins's English, 'the English translation by Frank Egleston Robbins in the Loeb Classical Library, 1 volume, Greek text and facing English translation: Harvard University Press, 1940', with the Loeb pages and Robbins's note numbers marked. His home page gives the copyright statement quoted for the Robbins source, which is the basis of the US public-domain status. Where three of four OCRs of the printed volume agreed against him, the page image was looked at, and the printed reading was taken in 84 places (among them 'philosophical' for his 'physical' in I.1, 'peculiar' for 'particular' in III.13, and two lines he had skipped, in I.18 and IV.10); his own notes, comments and Camerarius page marks are not imported (see the generator).",
+  },
+  {
+    key: "loeb-tetrabiblos-scans",
+    title: "Manetho; Ptolemy, Tetrabiblos (Loeb Classical Library), four copies on archive.org",
+    author: "Frank Egleston Robbins (trans.)",
+    publisher: "Internet Archive (scans and an electronic copy of the Loeb volume)",
+    reference:
+      "archive.org: manethowithengli00maneuoft (a University of Toronto copy of the 1964 reprint; its page images used for all proofreading), dli.ernet.471573 (a Digital Library of India copy, 1964), L350ManethoHistoryOfEgyptPtolemyTetrabiblos (1964, origin unstated) and ptolemy-tetrabiblos-four-books-of-the-influence-of-the-stars (a retyped copy of Robbins's English, origin unstated); their OCR text read in November 2026",
+    url: "https://archive.org/details/manethowithengli00maneuoft",
+    sourceType: "primary",
+    notes:
+      "Witnesses to the printed text, not separate editions: the reprints are photographic. Their OCR was aligned word by word with Thayer's transcription; 105 places were flagged where three of the four agreed against him or could not be aligned, and each was decided on the page images of the Toronto copy. Both tables of terms (pp. 97 and 107) were read cell by cell on the page images, and one cell was corrected (Libra in Ptolemy's own terms: Mars, not Saturn, last). Places where only two of the four witnesses disagreed with Thayer on punctuation (24) were not examined.",
+  },
+  {
+    key: "camerarius-1535-tetrabiblos",
+    title: "Hoc in libro nunquam ante typis aeneis in lucem edita haec insunt: Klaudiou Ptolemaiou Pelousieos Tetrabiblos syntaxis pros Syron adelphon ... Claudii Ptolemaei Pelusiensis libri quatuor compositi Syro fratri ... (ed. Joachim Camerarius)",
+    author: "Claudius Ptolemy; Joachim Camerarius (ed. and trans.)",
+    publisher: "Johann Petreius, Nuremberg",
+    publishedYear: 1535,
+    reference:
+      "The title page ('NORIMBERGAE. M. D. XXXV.') and the colophon ('Norimbergae apud Ioannem Petreium. Anno M. D. XXXV.') read on the page images of the Universidad de Sevilla copy (archive.org ARes43420, leaves n6 and n266); nothing else was read",
+    url: "https://archive.org/details/ARes43420",
+    sourceType: "historical_document",
+    notes:
+      "The first printing of the Greek Tetrabiblos (with the Karpos, or Centiloquium), with Camerarius's Latin of Books I–II and of parts of III–IV, Pontano's Latin of the Centiloquium, Camerarius's notes, and tracts of Guarimberti and Ludovicus de Rigiis, as the title page lists them. The Boll–Boer edition's preface says 'primum edidit Ioachimus Camerarius Norimbergae anno 1535'; Robbins's introduction says it 'was printed by Froben at Nürnberg in 1535', but the colophon of this copy names Johann Petreius, and the Sevilla catalogue follows the colophon. Public domain.",
+  },
+  {
+    key: "boll-boer-1940-apotelesmatika",
+    title: "Claudii Ptolemaei opera quae exstant omnia, vol. III 1: Apotelesmatika, ediderunt F. Boll et Ae. Boer",
+    author: "Franz Boll and Emilie Boer (eds.)",
+    publisher: "B. G. Teubner, Leipzig",
+    publishedYear: 1940,
+    reference:
+      "Read in the archive.org scan tetrabiblos_202405 of the 'editio stereotypa correctior editionis prioris (MCMXL)', Leipzig 1957: its title page and the opening of its Latin preface only",
+    url: "https://archive.org/details/tetrabiblos_202405",
+    sourceType: "academic_book",
+    notes:
+      "The critical Greek edition that Robbins awaited and did not use. Cited only for its preface's account of the first printings: 'Quadripartitum Claudii Ptolemaei primum edidit Ioachimus Camerarius Norimbergae anno 1535 e codice, qui est nunc Norimb. gr. Cent. V app. 8 ...; tum anno 1553 ... editionem paravit alteram Basileae; Iunctinus denique anno 1581 ...'. Its Greek was not read or compared. The scan's origin was not checked, and it is not used as a source of any text.",
+  },
+  {
+    key: "wikipedia-tetrabiblos",
+    title: "Tetrabiblos",
+    author: "Wikipedia contributors",
+    publisher: "Wikipedia",
+    reference: "https://en.wikipedia.org/wiki/Tetrabiblos, read for this import in November 2026 through the site's raw wikitext",
+    url: "https://en.wikipedia.org/wiki/Tetrabiblos",
+    sourceType: "website",
+    notes:
+      "Cited, second-hand, for Wolfgang Hübner's edition, which was not read: 'The latest critical Greek edition, by Wolfgang Hübner, was published by Teubner in 1998' (Claudii Ptolemaei opera quae exstant omnia 1, Apotelesmatika, Stuttgart and Leipzig), 'Based on 33 complete and 14 partial manuscripts', and Hübner's preference for the title Apotelesmatika ('(books on) effects'); and for the first printed Latin, Egidio Tebaldi's translation from the Arabic, 'first published by Erhard Ratdolt in 1484'. Also for its summary that Ptolemy's 'account of stellar effects was expressed in terms of the four Aristotelian qualities (hot, cold, wet, and dry)'. None of the scholarship it cites was read.",
+  },
+  {
     key: "waite-1896-turba",
     title:
       "The Turba Philosophorum or Assembly of the Sages, called also the Book of Truth in the Art and the Third Pythagorical Synod: an ancient alchemical treatise translated from the Latin, the chief readings of the shorter codex, parallels from the Greek alchemists, and explanations of obscure terms",
@@ -2842,7 +2916,7 @@ export const INVENTORY: InventoryWork[] = [
       "Plutarch, On Isis and Osiris — Babbitt 1936 public domain in the US; imported as its own work, greek.plutarch-isis-osiris",
       "Iamblichus, On the Mysteries — Taylor 1821 public domain; imported as its own work, greek.iamblichus-mysteries",
       "Chaldean Oracles — imported as its own work, greek.chaldean-oracles",
-      "Ptolemy, Tetrabiblos — planetary rulers",
+      "Ptolemy, Tetrabiblos — planetary rulers; Robbins 1940 public domain in the US; imported as its own work, greek.ptolemy-tetrabiblos",
       "Macrobius, Commentary on the Dream of Scipio I.12 — descent of the soul through the seven spheres",
       "Origen, Contra Celsum VI.22 — the Mithraic ladder of seven gates; imported with VI.23–38 as its own work, gnostic.origen-contra-celsum",
     ],
@@ -3200,6 +3274,100 @@ export const INVENTORY: InventoryWork[] = [
           evidence: "Read on the reverse of the title page of the 2003 reprint scanned on archive.org; Thayer also gives the 1936 Loeb as his source.",
         }),
       ],
+    },
+    prominence: 2,
+  },
+
+  {
+    // Brief item 18 listed Ptolemy's Tetrabiblos ("planetary rulers") among
+    // its proposed members; it is imported here as its own work, in Robbins's
+    // English of 1940 (public domain in the US only). No existing event is
+    // about Ptolemy or the Tetrabiblos, so a new event anchors it.
+    workKey: "greek.ptolemy-tetrabiblos",
+    passagePrefix: "greek.ptol",
+    briefItem: 18,
+    title: "Ptolemy, Tetrabiblos, in Robbins's English (1940)",
+    alternativeTitles: ["Apotelesmatika", "Quadripartitum", "Mathematike tetrabiblos syntaxis", "Ta pros Syron apotelesmatika", "Four Books"],
+    corpusGroup: "greek_hermetic",
+    traditionClass: "ancient_late_transmission",
+    civilisation: "Roman Empire",
+    geographicalOrigin: "Alexandria, Egypt (Ptolemy observed on its parallel)",
+    originalLanguage: "Greek",
+    attribution: "Claudius Ptolemy (about 100–178 CE, as Robbins puts it), astronomer of Alexandria, author of the Almagest",
+    attributionNote:
+      "Addressed to Syrus, like the Almagest, which the opening chapter names as already written. Its authorship is not seriously in question; Robbins's introduction notes that the original ending is in doubt and prints both forms of it, one of which, he says, was borrowed from Proclus's Paraphrase. It is a systematic Greek handbook of astrology, which it presents as a natural science that works through the qualities hot, cold, moist and dry and can only conjecture, not as a revealed or Egyptian text: Ptolemy reports the doctrines of 'the ancients', 'the Egyptians' and 'the Chaldaeans' and argues for or against them in his own voice.",
+    summary:
+      "Ptolemy's four books on astrology, 'prognostication through astronomy', written in Greek at Alexandria after his Almagest: Book I argues that astrology is possible and useful and sets out its basic doctrines (the natures of the planets, the aspects, the houses, triplicities, exaltations and terms); Book II deals with whole countries and peoples, eclipses and the weather; Books III and IV with nativities, from parents and birth to body, soul, wealth, rank, marriage, travel, death and the division of a life's times. In F. E. Robbins's English (Loeb, 1940), in its 61 chapters. Astrology's claims are Ptolemy's, not facts.",
+    referenceEdition:
+      "Robbins, Ptolemy, Tetrabiblos (Loeb Classical Library, 1940), by his books and chapters (I.1–24, II.1–13, III.1–14, IV.1–10), with the Loeb pages 3–459",
+    expectedUnits: 61,
+    unitLabel: "chapters",
+    unitDivisionKind: "chapter",
+    inventoryBasis:
+      "Robbins's four books of 24, 13, 14 and 10 chapters, as numbered in the Loeb and in Thayer's transcription, checked against the page images of the 1964 reprint; each chapter carries its Loeb pages (3–459). All 61 imported. Listed, not imported: Robbins's introduction, his Greek text and apparatus, 484 of his 492 footnotes, and Thayer's own notes. The Greek was not compared, and Robbins's chapter division is not that of the Boll–Boer or Hübner editions (not checked), so the count is not marked verified.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Robbins's translation (1940) is public domain in the United States only: Bill Thayer's LacusCurtius home page states that its copyright was not renewed. It may still be in copyright elsewhere. The pictures carry the licences their Commons file pages state.",
+    fullTextEditions: ["Robbins, Ptolemy, Tetrabiblos (Loeb, 1940): the English of all 61 chapters, via Thayer's LacusCurtius transcription"],
+    referenceOnlyEditions: [
+      "W. Hübner, Claudii Ptolemaei opera quae exstant omnia 1, Apotelesmatika (Stuttgart and Leipzig: Teubner, 1998), the latest critical Greek edition; known second-hand from Wikipedia ('Tetrabiblos'), not read",
+      "F. Boll and Ae. Boer, Apotelesmatika (Leipzig: Teubner, 1940; corrected reprint 1957); read at its title page and preface only",
+      "Robbins's own Greek text, on the facing pages of the Loeb; not transcribed or checked",
+      "J. Camerarius, the first printed Greek (Nuremberg: Petreius, 1535); read at its title page and colophon only",
+      "J. M. Ashmand, Ptolemy's Tetrabiblos, or Quadripartite (London, 1822), an earlier English version, which Robbins's introduction quotes; public domain, not used",
+    ],
+    imageCollections: [
+      "Wikimedia Commons: the Camerarius edition of 1535 and the Robbins Loeb of 1940, and a printed Latin Quadripartitum (used); an aspect diagram of a Basel printing of 1533, the Ziletti woodcut of 1564 and an illumination in BnF latin 7432 (file pages read, images not seen: Commons refused them)",
+    ],
+    anchor: {
+      event: {
+        slug: "ptolemy-tetrabiblos",
+        title: "Ptolemy, Tetrabiblos: the astronomer of Alexandria sets out astrology as a natural science",
+        summary:
+          "In the second century CE, after his Almagest, Claudius Ptolemy wrote at Alexandria a Greek handbook of astrology in four books, explaining the claimed powers of the planets and signs through the physics of hot, cold, moist and dry.",
+        description:
+          "Claudius Ptolemy, whose observations recorded in the Almagest run from 127 to 151 CE, followed that work with a second treatise, addressed like it to Syrus, on what he called prognostication through astronomy. In four books it argues that astrology is possible and useful though only conjectural, and sets out its doctrines in Aristotelian terms: the natures of the planets, the aspects, the houses, triplicities, exaltations and terms of the signs, the astrology of countries, eclipses and weather, and the reading of nativities. It became the standard astrological textbook of the Greek, Arabic and Latin worlds; Joachim Camerarius first printed the Greek at Nuremberg in 1535, and Frank Egleston Robbins translated it into English for the Loeb Classical Library in 1940. Its astrological claims are Ptolemy's, not facts.",
+        category: "religion",
+        eventType: "historical",
+        tags: ["ancient texts", "ptolemy", "astrology", "planets", "zodiac", "alexandria"],
+        civilisations: ["Roman Empire"],
+        people: ["Claudius Ptolemy", "Joachim Camerarius", "Frank Egleston Robbins"],
+        claims: [
+          dated("composition", {
+            qualifier: "the Tetrabiblos, after the Almagest, in the last third of Ptolemy's life (inferred)",
+            sourceKey: "robbins-1940-tetrabiblos",
+            startYear: 150,
+            endYear: 178,
+            datePrecision: "decade",
+            originalDateText:
+              "'the earliest of his observations recorded in the Almagest was made in 127 and the latest in 151 ... his life fell approximately in the years 100‑178'; the Almagest, 'since it is mentioned in the Geography, the Ὑποθέσεις, and the Tetrabiblos, and since it contains no reference to observations after the year 151, was certainly not the latest. The three books mentioned ... belong to the last third of the author's life' (Robbins's introduction)",
+            evidence:
+              "Inferred: the work gives no date. It names the Almagest as already written (I.1), whose latest observation is of 151; Robbins puts it in the last third of a life he dates approximately 100–178. Hence about 150–178 CE, the second century, approximate.",
+          }),
+          dated("translation_publication", {
+            qualifier: "the first printed Greek, edited by Joachim Camerarius",
+            sourceKey: "camerarius-1535-tetrabiblos",
+            startYear: 1535,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "'NORIMBERGAE. M. D. XXXV.' (the title page); 'Norimbergae apud Ioannem Petreium. Anno M. D. XXXV.' (the colophon)",
+            datingMethod: "historical_record",
+            evidence:
+              "Read on the title page and colophon of the Sevilla copy (archive.org ARes43420). The Boll–Boer preface and Robbins's introduction also give Nuremberg 1535; Robbins names Froben as the printer, the colophon Petreius.",
+          }),
+          dated("translation_publication", {
+            qualifier: "Robbins's English, the text imported",
+            sourceKey: "robbins-1940-tetrabiblos",
+            startYear: 1940,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "'First printed 1940' (the Loeb volume, as reprinted in 1964); 'Harvard University Press, 1940' (Thayer's home page)",
+            datingMethod: "historical_record",
+            evidence: "Read in the OCR of the reverse of the title page of the Toronto copy of the 1964 reprint; Thayer also gives the 1940 Loeb as his source.",
+          }),
+        ],
+      },
     },
     prominence: 2,
   },

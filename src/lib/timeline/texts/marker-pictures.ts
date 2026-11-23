@@ -1179,6 +1179,37 @@ export const MARKER_PICTURES: Record<string, SeedPicture[]> = {
       depictsActualRemains: false,
     },
   ],
+  "ptolemy-tetrabiblos": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Hoc_in_libro_nunqua%28m%29_ante_tipis_aeneis_in_lucem_edita_haec_insunt_-_Klaudiou_Ptolemaiou_pelousieos_Tetrabiblos_syntaxis_pros_Syron_adelpho_%3D_Claudii_Ptolemaei_pelusiensis_libri_quatuor_compositi_Syro_%28IA_ARes43420%29.pdf/page7-960px-Hoc_in_libro_nunqua%28m%29_ante_tipis_aeneis_in_lucem_edita_haec_insunt_-_Klaudiou_Ptolemaiou_pelousieos_Tetrabiblos_syntaxis_pros_Syron_adelpho_%3D_Claudii_Ptolemaei_pelusiensis_libri_quatuor_compositi_Syro_%28IA_ARes43420%29.pdf.jpg",
+      kind: "image",
+      shows: "historical_document",
+      caption:
+        "The title page of the first printing of Ptolemy's Tetrabiblos in Greek, edited by Joachim Camerarius: the Greek titles of the four books to Syrus and of the Karpos, then in Latin 'Claudii Ptolemaei Pelusiensis libri quatuor compositi Syro fratri', with Camerarius's Latin of the first two books, and 'NORIMBERGAE. M. D. XXXV.' (Nuremberg, 1535). The colophon names the printer, Johann Petreius. The Universidad de Sevilla copy. The Greek original is of the second century CE; no manuscript of it is shown.",
+      credit: "Biblioteca de la Universidad de Sevilla, scanned by the Internet Archive (ARes43420), via Wikimedia Commons",
+      licence: "Public domain (PD-old-100-expired) and Public Domain Mark, as the file page states",
+      sourcePageUrl:
+        "https://commons.wikimedia.org/wiki/File:Hoc_in_libro_nunqua%28m%29_ante_tipis_aeneis_in_lucem_edita_haec_insunt_-_Klaudiou_Ptolemaiou_pelousieos_Tetrabiblos_syntaxis_pros_Syron_adelpho_%3D_Claudii_Ptolemaei_pelusiensis_libri_quatuor_compositi_Syro_%28IA_ARes43420%29.pdf?page=7",
+      institution: "Biblioteca de la Universidad de Sevilla (the scanned copy, via the Internet Archive)",
+      accessionNumber: "Internet Archive ARes43420",
+      identificationStatus: "secure",
+      verifiedIdentity: true,
+      depictsActualRemains: false,
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/a/ad/Quadritpartitum.jpg",
+      kind: "image",
+      shows: "historical_document",
+      caption:
+        "UNVERIFIED — The opening page of an early printed Latin translation of the Tetrabiblos, the Quadripartitum, its red heading reading 'Liber Quadripartiti Ptolomei ... Cuius in primo tractatu sunt 24 capitula. Incipit'. The file page calls it Erhard Ratdolt's Venice edition of 1484, translated by Plato of Tivoli; Wikipedia gives that printing to Egidio Tebaldi's translation from the Arabic. Neither was checked.",
+      credit: "Via Wikimedia Commons (uploaded by Zachariel)",
+      licence: "Public domain and Public Domain Mark, as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Quadritpartitum.jpg",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+  ],
   "story-of-atlantis-published": [
     {
       url: "https://upload.wikimedia.org/wikipedia/commons/d/d3/ELLIOT%281896%29_Atlantis%2C_Map4.jpg",

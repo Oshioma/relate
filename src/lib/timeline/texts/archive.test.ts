@@ -22,6 +22,8 @@ import { CHALDEAN_ORACLE_SECTIONS, CHALDEAN_ORACLE_UNITS } from "./corpus/chalde
 import { IAMBLICHUS_CHAPTERS, IAMBLICHUS_UNITS } from "./corpus/iamblichus-mysteries-text";
 import { PLUTARCH_ISIS_NOTES, PLUTARCH_ISIS_NOTE_COUNT, PLUTARCH_ISIS_TAKEN_COUNT, PLUTARCH_ISIS_UNITS } from "./corpus/plutarch-isis-osiris-text";
 import { THAYER_PUBLIC_DOMAIN_STATEMENT } from "./corpus/plutarch-isis-osiris";
+import { TETRABIBLOS_NOTES, TETRABIBLOS_NOTE_COUNT, TETRABIBLOS_TAKEN_COUNT, TETRABIBLOS_UNITS } from "./corpus/ptolemy-tetrabiblos-text";
+import { THAYER_TETRABIBLOS_PUBLIC_DOMAIN_STATEMENT } from "./corpus/ptolemy-tetrabiblos";
 import { SET_SUTEKH_EVENTS } from "../set-sutekh-seed";
 import { MARKER_PICTURES } from "./marker-pictures";
 import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
@@ -3602,6 +3604,181 @@ test("Plutarch's pictures: the Aldine title page is secure; the manuscript, the 
     assert.equal(picture.identificationStatus, "unverified");
     assert.match(picture.caption ?? "", /^UNVERIFIED — /);
   }
+});
+
+test("Ptolemy's Tetrabiblos is imported whole from Robbins 1940 (US public domain), in four books of 61 chapters with their Loeb pages", () => {
+  const file = corpusFor("greek.ptolemy-tetrabiblos")!;
+  const work = INVENTORY.find((w) => w.workKey === "greek.ptolemy-tetrabiblos")!;
+  assert.equal(work.passagePrefix, "greek.ptol");
+  assert.equal(work.briefItem, 18);
+  assert.equal(work.corpusGroup, "greek_hermetic");
+  assert.equal(work.unitDivisionKind, "chapter");
+  assert.equal(work.expectedUnits, 61);
+  assert.equal(work.inventoryVerified, false, "the Greek was not compared");
+  assert.match(work.copyrightSummary, /public domain in the United States only/);
+  assert.match(work.attributionNote!, /natural science/);
+  assert.ok(work.referenceOnlyEditions!.some((e) => e.includes("Hübner") && e.includes("1998") && /second-hand/.test(e) && /not read/.test(e)));
+  // Item 18 of the brief points here.
+  const related = INVENTORY.find((w) => w.workKey === "greek.related")!;
+  assert.ok(related.proposedMembers!.some((m) => m.startsWith("Ptolemy, Tetrabiblos") && m.endsWith("imported as its own work, greek.ptolemy-tetrabiblos")));
+  for (const key of [
+    "robbins-1940-tetrabiblos",
+    "thayer-lacuscurtius-tetrabiblos",
+    "loeb-tetrabiblos-scans",
+    "camerarius-1535-tetrabiblos",
+    "boll-boer-1940-apotelesmatika",
+    "wikipedia-tetrabiblos",
+  ]) {
+    assert.ok(INVENTORY_SOURCES.some((s) => s.key === key), key);
+    assert.ok(file.sources.some((s) => s.key === key), key);
+  }
+  const robbins = INVENTORY_SOURCES.find((s) => s.key === "robbins-1940-tetrabiblos")!;
+  assert.ok(robbins.notes!.includes(THAYER_TETRABIBLOS_PUBLIC_DOMAIN_STATEMENT));
+  assert.match(robbins.notes!, /Public domain in the United States only/);
+  // The work cites the Greek only; Hübner is second-hand.
+  const book = file.passages[0];
+  assert.equal(book.key, "greek.ptol.book");
+  assert.equal(book.layers.filter((l) => l.content && l.key !== PLAIN_LAYER_KEY).length, 0);
+  const greek = book.layers.find((l) => l.key === "grc")!;
+  assert.equal(greek.content, undefined);
+  assert.match(greek.contentAbsentReason!, /Hübner's .* is known here only second-hand, from the Wikipedia article 'Tetrabiblos'/);
+  assert.match(book.summary!, /Ptolemy's astrological claims, not facts\.$/);
+  assert.match(book.summary!, /Aristotelian physics of hot, cold, moist and dry/);
+  assert.match(book.notes!, /Not imported, and listed here: Robbins's introduction/);
+  // Four books, then 61 chapters in order, each with its Loeb pages.
+  assert.equal(TETRABIBLOS_UNITS.length, 61);
+  assert.deepEqual(
+    file.passages.filter((p) => p.divisionKind === "book").map((p) => [p.key, p.parentKey, file.passages.filter((c) => c.parentKey === p.key).length]),
+    [
+      ["greek.ptol.b1", "greek.ptol.book", 24],
+      ["greek.ptol.b2", "greek.ptol.book", 13],
+      ["greek.ptol.b3", "greek.ptol.book", 14],
+      ["greek.ptol.b4", "greek.ptol.book", 10],
+    ]
+  );
+  const chapters = file.passages.filter((p) => p.divisionKind === "chapter");
+  assert.deepEqual(chapters.map((c) => c.key), TETRABIBLOS_UNITS.map((u) => `greek.ptol.${u.book}.${u.chapter}`));
+  assert.equal(file.passages.length, 66);
+  assert.deepEqual([TETRABIBLOS_UNITS[0].firstPage, TETRABIBLOS_UNITS[60].lastPage], ["3", "459"]);
+  const withText = file.passages.filter((p) => p.layers.some((l) => l.key === "eng-1940"));
+  assert.equal(withText.length, work.expectedUnits);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 61, verifiedUnits: 0 }), "verified_against_edition");
+  for (const unit of chapters) {
+    assert.match(unit.parentKey!, /^greek\.ptol\.b[1-4]$/, unit.key);
+    assert.equal(unit.verificationStatus, "unverified", unit.key);
+    assert.match(unit.reference, /^Ptolemy, Tetrabiblos (I|II|III|IV)\.\d+ \('[^']+'\); Robbins, Loeb \(1940\), (p\. \d+|pp\. \d+–\d+)$/, unit.key);
+    const layer = unit.layers.find((l) => l.key === "eng-1940")!;
+    assert.equal(layer.licence, "public_domain_us", unit.key);
+    assert.equal(layer.layer, "translation", unit.key);
+    assert.equal(layer.sourceKey, "robbins-1940-tetrabiblos", unit.key);
+    assert.match(layer.evidence, /scripts\/texts\/ptolemy-tetrabiblos\.py/, unit.key);
+    assert.ok(unit.layers.some((l) => l.key === PLAIN_LAYER_KEY), `${unit.key} has no plain words`);
+    assert.doesNotMatch(layer.content!, /™|_|�|\{|\||  |"|\w- [a-z]/, unit.key);
+    // Every chapter says whose voice it is in, and that the doctrine is a claim.
+    assert.match(unit.notes!, /^Ptolemy/, unit.key);
+    assert.match(unit.notes!, /claims?|not facts?\b/, unit.key);
+  }
+  const text = (key: string) => file.passages.find((p) => p.key === `greek.ptol.${key}`)!.layers.find((l) => l.key === "eng-1940")!.content!;
+  assert.match(text("1.1"), /^Of the means of prediction through astronomy, O Syrus, two are the most important and valid\./);
+  assert.match(text("4.10"), /combined with due skill\.$/);
+  assert.match(text("4.10"), /Conclusion according to Parisinus 2425:/);
+  assert.match(text("4.10"), /Conclusion according to MADProc\.Cam\.:/);
+  // The hand corrections, each from the page image.
+  assert.match(text("1.1"), /philosophical way/);
+  assert.match(text("1.18"), /constitution, because of Saturn, but by admixture north-eastern,/);
+  assert.match(text("4.10"), /body, soul, property, dignity, and companions,/);
+  // Eight short notes imported, of 492.
+  assert.equal(TETRABIBLOS_NOTE_COUNT, 492);
+  assert.deepEqual(Object.keys(TETRABIBLOS_NOTES), ["1.1", "1.2", "1.108", "1.118", "2.7", "4.85", "4.86", "4.87"]);
+  assert.equal(TETRABIBLOS_TAKEN_COUNT, 84);
+  assert.match(file.passages.find((p) => p.key === "greek.ptol.1.1")!.notes!, /Robbins's note \(1\.2\): 'The Almagest\.'/);
+});
+
+test("Ptolemy's Tetrabiblos is dated about 150–178 CE (inferred, from Robbins), and its printings to 1535 and 1940, on a new marker", () => {
+  const file = corpusFor("greek.ptolemy-tetrabiblos")!;
+  const book = file.passages[0];
+  assert.deepEqual(
+    book.dates!.map((d) => [d.role, d.startYear, d.endYear, d.datePrecision, d.isApproximate, d.sourceKey]),
+    [
+      ["composition", 150, 178, "decade", true, "robbins-1940-tetrabiblos"],
+      ["translation_publication", 1535, 1535, "year", false, "camerarius-1535-tetrabiblos"],
+      ["translation_publication", 1940, 1940, "year", false, "robbins-1940-tetrabiblos"],
+    ]
+  );
+  assert.match(book.dates![0].evidence, /^Inferred, not read as a date in a primary source/);
+  assert.match(book.dates![1].originalDateText!, /Norimbergae apud Ioannem Petreium/);
+  // No record of Ptolemy existed, so the work makes its own marker.
+  const work = INVENTORY.find((w) => w.workKey === "greek.ptolemy-tetrabiblos")!;
+  assert.ok(work.anchor && "event" in work.anchor);
+  assert.equal(work.anchor.event.slug, "ptolemy-tetrabiblos");
+  assert.match(work.anchor.event.description, /Its astrological claims are Ptolemy's, not facts\.$/);
+  assert.deepEqual(
+    work.anchor.event.claims.map((c) => [dateRoleFromWhatIsDated(c.whatIsDated!), c.startYear, c.endYear, c.sourceKey]),
+    [
+      ["composition", 150, 178, "robbins-1940-tetrabiblos"],
+      ["translation_publication", 1535, undefined, "camerarius-1535-tetrabiblos"],
+      ["translation_publication", 1940, undefined, "robbins-1940-tetrabiblos"],
+    ]
+  );
+});
+
+test("Ptolemy's links are proposed; only Hall (who names the Tetrabiblos) is documented, and none claims one text quotes another", () => {
+  const file = corpusFor("greek.ptolemy-tetrabiblos")!;
+  const links = file.links ?? [];
+  const keys = new Set(ALL_CORPORA.flatMap((f) => f.passages.map((p) => p.key)));
+  assert.equal(new Set(links.map((l) => l.key)).size, links.length, "duplicate link key");
+  assert.equal(links.length, 20);
+  for (const link of links) {
+    assert.ok(keys.has(link.from) && keys.has(link.to), link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^greek\.ptol\.\d\.\d+$/, link.key);
+    if (link.to.startsWith("modern.hall.intro")) assert.match(link.transmissionEvidence, /^Documented as a name only/, link.key);
+    else assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+    assert.doesNotMatch(`${link.similarities} ${link.differences} ${link.transmissionEvidence}`, /\bcop(ied|y)\b/, link.key);
+  }
+  const byTarget = new Map(links.map((l) => [l.to, l.connectionClass]));
+  assert.equal(byTarget.get("greek.iamb.1.18"), "contradiction");
+  assert.equal(byTarget.get("modern.hall.intro.fig5"), "later_reinterpretation");
+  assert.ok(!links.some((l) => l.connectionClass === "direct_textual_parallel" || l.connectionClass === "documented_transmission"));
+});
+
+test("Ptolemy's pictures: the 1535 title page and Robbins's Loeb are secure; the Latin Quadripartitum is UNVERIFIED", () => {
+  const file = corpusFor("greek.ptolemy-tetrabiblos")!;
+  const placed = file.passages.flatMap((p) => (p.images ?? []).map((i) => [p.key, i] as const));
+  const images = [...(file.images ?? []), ...placed.map(([, i]) => i)];
+  const seen = new Map(images.map((i) => [i.key, i]));
+  assert.equal(seen.size, images.length, "duplicate image key");
+  assert.equal(seen.size, 3);
+  const elsewhere = new Set(ALL_CORPORA.filter((f) => f.workKey !== "greek.ptolemy-tetrabiblos").flatMap((f) => [...(f.images ?? []), ...f.passages.flatMap((p) => p.images ?? [])].map((i) => i.url)));
+  for (const image of seen.values()) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.ok(image.licence, image.key);
+    assert.ok(!elsewhere.has(image.url), `${image.key} repeats a picture shown elsewhere`);
+    if (image.identificationStatus === "unverified") {
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else {
+      assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+    }
+  }
+  assert.deepEqual(
+    placed.map(([key, i]) => [key, i.key, i.identificationStatus]),
+    [
+      ["greek.ptol.book", "ptol-camerarius-1535-title-page", "secure"],
+      ["greek.ptol.book", "ptol-robbins-1940-introduction", "secure"],
+      ["greek.ptol.book", "ptol-quadripartitum-latin-opening", "unverified"],
+    ]
+  );
+  assert.match(seen.get("ptol-camerarius-1535-title-page")!.caption, /NORIMBERGAE\. M\. D\. XXXV\./);
+  assert.match(seen.get("ptol-quadripartitum-latin-opening")!.whatIsUnverified!, /Tebaldi/);
+  // The new marker: the 1535 title page first, the Latin printing after it.
+  const marker = MARKER_PICTURES["ptolemy-tetrabiblos"];
+  assert.equal(marker.length, 2);
+  assert.equal(marker[0].url, seen.get("ptol-camerarius-1535-title-page")!.url);
+  assert.equal(marker[0].identificationStatus, "secure");
+  assert.equal(marker[1].url, seen.get("ptol-quadripartitum-latin-opening")!.url);
+  assert.match(marker[1].caption ?? "", /^UNVERIFIED — /);
 });
 
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {
