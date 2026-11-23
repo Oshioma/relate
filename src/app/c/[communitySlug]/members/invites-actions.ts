@@ -157,9 +157,10 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
     });
 
     const sent = custom
-      ? await sendCommunityTemplateEmail({ to: email, communityName, subject: custom.subject, html: custom.html })
+      ? await sendCommunityTemplateEmail({ to: email, communityId, communityName, subject: custom.subject, html: custom.html })
       : await sendCommunityInviteEmail({
           to: email,
+          communityId,
           communityName,
           communityLogoUrl: community?.logo_url ?? null,
           inviterName,

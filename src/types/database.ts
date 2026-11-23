@@ -1910,6 +1910,15 @@ export type NotificationEmailPreference = {
   enabled: boolean;
 };
 
+// Someone who pressed "Unsubscribe" on a community's emails (onboarding,
+// invites, welcome, "we've moved"). Keyed by lower-cased address, because
+// invitees often have no account yet. Read and written only by the server.
+export type CommunityEmailUnsubscribe = {
+  community_id: string;
+  email: string;
+  created_at: string;
+};
+
 // A Web Push subscription for one member device. See
 // supabase/migrations/*_push_notifications.sql.
 export type PushSubscription = {
@@ -3585,6 +3594,12 @@ export type Database = {
         Insert: Partial<NotificationEmailPreference> & { user_id: string; type: NotificationType };
         Update: Partial<NotificationEmailPreference>;
         Relationships: [FKey<"user_id", "profiles">];
+      };
+      community_email_unsubscribes: {
+        Row: CommunityEmailUnsubscribe;
+        Insert: Partial<CommunityEmailUnsubscribe> & { community_id: string; email: string };
+        Update: Partial<CommunityEmailUnsubscribe>;
+        Relationships: [FKey<"community_id", "communities">];
       };
       push_subscriptions: {
         Row: PushSubscription;

@@ -144,6 +144,7 @@ export async function sendMigrationEmails(_prev: SendEmailsState, formData: Form
     if (sent + failed.length > 0) await wait(SEND_GAP_MS);
     const result = await sendCommunityTemplateEmail({
       to: email,
+      communityId: community.id,
       communityName: community.name,
       subject: rendered.subject,
       html: rendered.html,

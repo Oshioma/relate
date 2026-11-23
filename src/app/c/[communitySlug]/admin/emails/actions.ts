@@ -84,6 +84,7 @@ export async function saveEmailTemplate(_prev: EmailTemplateState, formData: For
     });
     const sent = await sendCommunityTemplateEmail({
       to: user.email,
+      communityId: community.id,
       communityName: community.name,
       subject: `[Test] ${email.subject}`,
       html: email.html,
