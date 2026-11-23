@@ -1,5 +1,5 @@
 import "server-only";
-import { inlineEmailImages } from "@/lib/email-templates";
+import { inlineEmailLogo } from "@/lib/email-templates";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { htmlToText } from "@/lib/email-text";
 import {
@@ -229,14 +229,14 @@ export async function sendCommunityTemplateEmail(
   if (!apiKey) return { ok: false, reason: "RESEND_API_KEY is not configured" };
   const fromAddress = defaultFromAddress();
   if (!fromAddress) return { ok: false, reason: "no sender address — set INVITE_EMAIL_FROM or NEXT_PUBLIC_SITE_URL" };
-  const inline = inlineEmailImages(input.html);
+  const inline = inlineEmailLogo(input.html);
 
   return sendViaResend(apiKey, {
     from: `${input.communityName.replace(/[<>@"]/g, "") || "Relate"} <${fromAddress}>`,
     to: [input.to],
     subject: input.subject,
-    // The logo, banner and any pictures in the words travel inside the
-    // email, so inboxes that block linked pictures still show them.
+    // Only the logo travels inside the email; the banner and any pictures in
+    // the words stay links, which keeps the email light (see inlineEmailLogo).
     html: inline.html,
     ...(inline.attachments.length > 0 ? { attachments: inline.attachments } : {}),
   }, { kind: "community", communityId: input.communityId, email: input.to });

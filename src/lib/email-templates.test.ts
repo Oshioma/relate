@@ -4,6 +4,7 @@ import {
   fillPlaceholders,
   firstNameOf,
   inlineEmailImages,
+  inlineEmailLogo,
   isOwnJoinNotificationTitle,
   renderCommunityEmail,
   sanitizeEmailHtml,
@@ -104,4 +105,38 @@ test("pictures past the limit keep their link", () => {
   const out = inlineEmailImages(html, 1);
   assert.equal(out.attachments.length, 1);
   assert.ok(out.html.includes('src="https://a.test/2.png"'));
+});
+
+test("only the logo travels inside the email; other pictures stay links", () => {
+  const html =
+    '<img data-email-logo src="https://x.test/logo.png" alt="Escape Space" width="72" />' +
+    '<img src="https://x.test/banner.jpg" alt="" />' +
+    '<p>Hi <img src="https://x.test/photo.jpg" alt="" /></p>';
+  const out = inlineEmailLogo(html);
+  assert.equal(out.attachments.length, 1);
+  assert.equal(out.attachments[0].path, "https://x.test/logo.png");
+  assert.ok(out.html.startsWith('<img src="cid:relate-img-1" alt="Escape Space"'));
+  assert.ok(out.html.includes('src="https://x.test/banner.jpg"'));
+  assert.ok(out.html.includes('src="https://x.test/photo.jpg"'));
+  assert.ok(!out.html.includes("data-email-logo"));
+});
+
+test("a rendered community email marks its logo and nothing else", () => {
+  const email = renderCommunityEmail({
+    template: {
+      kind: "welcome",
+      subject: "Welcome",
+      body_html: '<p>Hello <img src="https://x.test/photo.jpg" /></p>',
+      footer_html: "",
+      button_label: "Go",
+      logo_url: null,
+      banner_url: "https://x.test/banner.jpg",
+    },
+    communityName: "Escape Space",
+    communityLogoUrl: "https://x.test/logo.png",
+    values: {},
+    buttonUrl: "https://www.relate.click/c/escape-space",
+  });
+  const out = inlineEmailLogo(email.html);
+  assert.deepEqual(out.attachments.map((a) => a.path), ["https://x.test/logo.png"]);
 });
