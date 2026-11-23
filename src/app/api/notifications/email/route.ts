@@ -116,7 +116,13 @@ export async function POST(request: NextRequest) {
         values: { firstName: firstNameOf(profile?.full_name) ?? profile?.username ?? null },
         buttonUrl: ctaUrl,
       });
-      const sentWelcome = await sendCommunityTemplateEmail({ to, communityName, subject: email.subject, html: email.html });
+      const sentWelcome = await sendCommunityTemplateEmail({
+        to,
+        communityId: notification.community_id,
+        communityName,
+        subject: email.subject,
+        html: email.html,
+      });
       if (!sentWelcome.ok) {
         console.warn("[notifications/email] welcome send failed:", sentWelcome.reason);
         return NextResponse.json({ ok: false, reason: sentWelcome.reason }, { status: 502 });
@@ -133,6 +139,7 @@ export async function POST(request: NextRequest) {
     ctaLabel: CTA_LABEL[notification.type] ?? "Open in Relate",
     ctaUrl,
     communityName,
+    unsubscribe: { kind: "notification", userId: notification.user_id, type: notification.type },
   });
 
   if (!sent.ok) {

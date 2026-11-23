@@ -1,5 +1,14 @@
 import "server-only";
 import { inlineEmailImages } from "@/lib/email-templates";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { htmlToText } from "@/lib/email-text";
+import {
+  ONE_CLICK_BODY,
+  makeUnsubscribeToken,
+  unsubscribeSecret,
+  unsubscribeUrl,
+  type UnsubscribeTarget,
+} from "@/lib/email-unsubscribe";
 
 // Community-branded transactional email via Resend's REST API. Used for two
 // messages so they arrive as "Mzungu Zanzibar <invites@relate.click>" with the
@@ -46,8 +55,105 @@ function escapeHtml(value: string) {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+// -----------------------------------------------------------------------------
+// The one place an email leaves the site. Every message gets:
+//   - a plain-text part made from its HTML (HTML-only mail is a spam signal
+//     to Gmail, and some readers only show text), and
+//   - for mail people didn't directly ask for (invites, onboarding, welcome,
+//     notifications), a one-click List-Unsubscribe header plus a visible
+//     "Unsubscribe" link at the foot. Gmail expects both from senders like us
+//     and files mail without them as spam far more often.
+// Sign-in, password, payment and contact-form emails are transactional and go
+// out without an unsubscribe: nobody can opt out of their own password reset.
+// -----------------------------------------------------------------------------
+type ResendPayload = {
+  from: string;
+  to: string[];
+  subject: string;
+  html: string;
+  reply_to?: string;
+  attachments?: unknown[];
+};
+
+type SendResult = { ok: true } | { ok: false; reason: string };
+
+// Has this address pressed "Unsubscribe" on this community's emails? A lookup
+// that fails (table not there yet, no service key) never blocks a send.
+async function hasUnsubscribedFromCommunity(communityId: string, email: string): Promise<boolean> {
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("community_email_unsubscribes")
+      .select("email")
+      .eq("community_id", communityId)
+      .eq("email", email.trim().toLowerCase())
+      .maybeSingle();
+    if (error) return false;
+    return Boolean(data);
+  } catch {
+    return false;
+  }
+}
+
+function unsubscribeLinkFor(target: UnsubscribeTarget): string | null {
+  const secret = unsubscribeSecret();
+  const site = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!secret || !site || !/^https?:\/\//.test(site)) return null;
+  return unsubscribeUrl(site, makeUnsubscribeToken(target, secret));
+}
+
+function withUnsubscribeFooter(html: string, link: string, target: UnsubscribeTarget): string {
+  const words =
+    target.kind === "community" ? "Don't want these emails?" : "Don't want emails like this?";
+  const footer = `<p style="max-width:520px;margin:12px auto 0;text-align:center;font-size:11px;line-height:1.6;color:#a5aca5;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">${words} <a href="${escapeHtml(link)}" style="color:#8a938a;text-decoration:underline;">Unsubscribe</a></p>`;
+  const end = html.toLowerCase().lastIndexOf("</body>");
+  return end === -1 ? `${html}${footer}` : `${html.slice(0, end)}${footer}\n  ${html.slice(end)}`;
+}
+
+async function sendViaResend(apiKey: string, payload: ResendPayload, unsubscribe?: UnsubscribeTarget): Promise<SendResult> {
+  let html = payload.html;
+  let headers: Record<string, string> | undefined;
+
+  if (unsubscribe) {
+    if (unsubscribe.kind === "community" && (await hasUnsubscribedFromCommunity(unsubscribe.communityId, unsubscribe.email))) {
+      return { ok: false, reason: "they've unsubscribed from this community's emails" };
+    }
+    const link = unsubscribeLinkFor(unsubscribe);
+    if (link) {
+      headers = { "List-Unsubscribe": `<${link}>`, "List-Unsubscribe-Post": ONE_CLICK_BODY };
+      html = withUnsubscribeFooter(html, link, unsubscribe);
+    }
+  }
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...payload,
+        html,
+        text: htmlToText(html),
+        ...(headers ? { headers } : {}),
+      }),
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      return { ok: false, reason: body?.message ?? `Resend responded ${res.status}` };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, reason: "couldn't reach the Resend API" };
+  }
+}
+
 export type InviteEmailInput = {
   to: string;
+  communityId: string;
   communityName: string;
   communityLogoUrl: string | null;
   inviterName: string | null;
@@ -93,32 +199,14 @@ export async function sendCommunityInviteEmail(
   </body>
 </html>`;
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        // Display name is the community; the address stays on the verified
-        // platform domain so DKIM/SPF keep passing.
-        from: `${input.communityName.replace(/[<>@"]/g, "")} <${fromAddress}>`,
-        to: [input.to],
-        subject: `You're invited to join ${input.communityName}`,
-        html,
-      }),
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as { message?: string } | null;
-      return { ok: false, reason: body?.message ?? `Resend responded ${res.status}` };
-    }
-    return { ok: true };
-  } catch {
-    return { ok: false, reason: "couldn't reach the Resend API" };
-  }
+  return sendViaResend(apiKey, {
+    // Display name is the community; the address stays on the verified
+    // platform domain so DKIM/SPF keep passing.
+    from: `${input.communityName.replace(/[<>@"]/g, "")} <${fromAddress}>`,
+    to: [input.to],
+    subject: `You're invited to join ${input.communityName}`,
+    html,
+  }, { kind: "community", communityId: input.communityId, email: input.to });
 }
 
 // -----------------------------------------------------------------------------
@@ -128,6 +216,7 @@ export async function sendCommunityInviteEmail(
 // built-in invite above.
 export type CommunityTemplateEmailInput = {
   to: string;
+  communityId: string;
   communityName: string;
   subject: string;
   html: string;
@@ -142,33 +231,15 @@ export async function sendCommunityTemplateEmail(
   if (!fromAddress) return { ok: false, reason: "no sender address — set INVITE_EMAIL_FROM or NEXT_PUBLIC_SITE_URL" };
   const inline = inlineEmailImages(input.html);
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: `${input.communityName.replace(/[<>@"]/g, "") || "Relate"} <${fromAddress}>`,
-        to: [input.to],
-        subject: input.subject,
-        // The logo, banner and any pictures in the words travel inside the
-        // email, so inboxes that block linked pictures still show them.
-        html: inline.html,
-        ...(inline.attachments.length > 0 ? { attachments: inline.attachments } : {}),
-      }),
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as { message?: string } | null;
-      return { ok: false, reason: body?.message ?? `Resend responded ${res.status}` };
-    }
-    return { ok: true };
-  } catch {
-    return { ok: false, reason: "couldn't reach the Resend API" };
-  }
+  return sendViaResend(apiKey, {
+    from: `${input.communityName.replace(/[<>@"]/g, "") || "Relate"} <${fromAddress}>`,
+    to: [input.to],
+    subject: input.subject,
+    // The logo, banner and any pictures in the words travel inside the
+    // email, so inboxes that block linked pictures still show them.
+    html: inline.html,
+    ...(inline.attachments.length > 0 ? { attachments: inline.attachments } : {}),
+  }, { kind: "community", communityId: input.communityId, email: input.to });
 }
 
 // -----------------------------------------------------------------------------
@@ -247,34 +318,16 @@ export async function sendCommunityConfirmationEmail(
   </body>
 </html>`;
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        // Display name is the community; the address stays on the verified
-        // platform domain so DKIM/SPF keep passing.
-        from: `${(input.communityName ?? "Relate").replace(/[<>@"]/g, "") || "Relate"} <${fromAddress}>`,
-        to: [input.to],
-        subject: input.communityName
-          ? `Confirm your email to join ${input.communityName}`
-          : "Confirm your email address",
-        html,
-      }),
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as { message?: string } | null;
-      return { ok: false, reason: body?.message ?? `Resend responded ${res.status}` };
-    }
-    return { ok: true };
-  } catch {
-    return { ok: false, reason: "couldn't reach the Resend API" };
-  }
+  return sendViaResend(apiKey, {
+    // Display name is the community; the address stays on the verified
+    // platform domain so DKIM/SPF keep passing.
+    from: `${(input.communityName ?? "Relate").replace(/[<>@"]/g, "") || "Relate"} <${fromAddress}>`,
+    to: [input.to],
+    subject: input.communityName
+      ? `Confirm your email to join ${input.communityName}`
+      : "Confirm your email address",
+    html,
+  });
 }
 
 // -----------------------------------------------------------------------------
@@ -331,30 +384,12 @@ export async function sendCheckoutSignInEmail(
   </body>
 </html>`;
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: `${input.communityName.replace(/[<>@"]/g, "") || "Relate"} <${fromAddress}>`,
-        to: [input.to],
-        subject: `Sign in to ${input.communityName}`,
-        html,
-      }),
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as { message?: string } | null;
-      return { ok: false, reason: body?.message ?? `Resend responded ${res.status}` };
-    }
-    return { ok: true };
-  } catch {
-    return { ok: false, reason: "couldn't reach the Resend API" };
-  }
+  return sendViaResend(apiKey, {
+    from: `${input.communityName.replace(/[<>@"]/g, "") || "Relate"} <${fromAddress}>`,
+    to: [input.to],
+    subject: `Sign in to ${input.communityName}`,
+    html,
+  });
 }
 
 // -----------------------------------------------------------------------------
@@ -415,30 +450,12 @@ export async function sendPasswordResetEmail(
   </body>
 </html>`;
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: `${(input.communityName ?? "Relate").replace(/[<>@"]/g, "") || "Relate"} <${fromAddress}>`,
-        to: [input.to],
-        subject: input.communityName ? `Reset your ${input.communityName} password` : "Reset your password",
-        html,
-      }),
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as { message?: string } | null;
-      return { ok: false, reason: body?.message ?? `Resend responded ${res.status}` };
-    }
-    return { ok: true };
-  } catch {
-    return { ok: false, reason: "couldn't reach the Resend API" };
-  }
+  return sendViaResend(apiKey, {
+    from: `${(input.communityName ?? "Relate").replace(/[<>@"]/g, "") || "Relate"} <${fromAddress}>`,
+    to: [input.to],
+    subject: input.communityName ? `Reset your ${input.communityName} password` : "Reset your password",
+    html,
+  });
 }
 
 // -----------------------------------------------------------------------------
@@ -459,6 +476,10 @@ export type NotificationEmailInput = {
   ctaLabel: string;
   ctaUrl: string;
   communityName?: string | null;
+  // What the email's "Unsubscribe" turns off: for a member's notification
+  // email, their id and the notification type. Left out for direct replies,
+  // which go out without an unsubscribe.
+  unsubscribe?: UnsubscribeTarget;
 };
 
 export async function sendNotificationEmail(
@@ -496,30 +517,12 @@ export async function sendNotificationEmail(
   </body>
 </html>`;
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: `${fromName} <${fromAddress}>`,
-        to: [input.to],
-        subject: input.subject,
-        html,
-      }),
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as { message?: string } | null;
-      return { ok: false, reason: body?.message ?? `Resend responded ${res.status}` };
-    }
-    return { ok: true };
-  } catch {
-    return { ok: false, reason: "couldn't reach the Resend API" };
-  }
+  return sendViaResend(apiKey, {
+    from: `${fromName} <${fromAddress}>`,
+    to: [input.to],
+    subject: input.subject,
+    html,
+  }, input.unsubscribe);
 }
 
 // -----------------------------------------------------------------------------
@@ -608,28 +611,12 @@ export async function sendPlanLapsedEmail(
   </body>
 </html>`;
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: `Relate billing <${fromAddress}>`,
-        to: [input.to],
-        subject: headline,
-        html,
-      }),
-      cache: "no-store",
-    });
-    if (!res.ok) {
-      return { ok: false, reason: `Resend responded ${res.status}: ${await res.text()}` };
-    }
-    return { ok: true };
-  } catch (err) {
-    return { ok: false, reason: (err as Error).message };
-  }
+  return sendViaResend(apiKey, {
+    from: `Relate billing <${fromAddress}>`,
+    to: [input.to],
+    subject: headline,
+    html,
+  });
 }
 
 export type ContactEmailInput = {
@@ -669,29 +656,11 @@ export async function sendContactEmail(
   </body>
 </html>`;
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: `Relate contact <${fromAddress}>`,
-        to: [to],
-        reply_to: input.fromEmail,
-        subject: `Contact form: ${input.fromName}`,
-        html,
-      }),
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as { message?: string } | null;
-      return { ok: false, reason: body?.message ?? `Resend responded ${res.status}` };
-    }
-    return { ok: true };
-  } catch {
-    return { ok: false, reason: "couldn't reach the Resend API" };
-  }
+  return sendViaResend(apiKey, {
+    from: `Relate contact <${fromAddress}>`,
+    to: [to],
+    reply_to: input.fromEmail,
+    subject: `Contact form: ${input.fromName}`,
+    html,
+  });
 }
