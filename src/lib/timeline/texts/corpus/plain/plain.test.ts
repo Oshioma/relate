@@ -38,6 +38,7 @@ import { PLAIN_TURBA } from "./turba-philosophorum";
 import { PLAIN_CHALDEAN_ORACLES } from "./chaldean-oracles";
 import { PLAIN_IAMBLICHUS_MYSTERIES } from "./iamblichus-mysteries";
 import { PLAIN_PLUTARCH_ISIS_OSIRIS } from "./plutarch-isis-osiris";
+import { PLAIN_PTOLEMY_TETRABIBLOS } from "./ptolemy-tetrabiblos";
 import { PLAIN_TIMAEUS } from "./timaeus";
 import { TURBA_UNITS } from "../turba-philosophorum-text";
 
@@ -79,6 +80,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "greek.chaldean-oracles": PLAIN_CHALDEAN_ORACLES,
   "greek.iamblichus-mysteries": PLAIN_IAMBLICHUS_MYSTERIES,
   "greek.plutarch-isis-osiris": PLAIN_PLUTARCH_ISIS_OSIRIS,
+  "greek.ptolemy-tetrabiblos": PLAIN_PTOLEMY_TETRABIBLOS,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -311,6 +313,20 @@ test("every chapter of Babbitt's Plutarch, On Isis and Osiris, has plain words t
   assert.match(PLAIN_PLUTARCH_ISIS_OSIRIS["greek.plut.19"], /Harpocrates/);
   assert.match(PLAIN_PLUTARCH_ISIS_OSIRIS["greek.plut.46"], /Zoroaster/);
   assert.match(PLAIN_PLUTARCH_ISIS_OSIRIS["greek.plut.80"], /kyphi/);
+});
+
+test("every chapter of Robbins's Ptolemy, Tetrabiblos, has plain words that name Ptolemy and call his doctrine a claim, and only those", () => {
+  const ptol = ALL_CORPORA.find((c) => c.workKey === "greek.ptolemy-tetrabiblos")!;
+  const withText = ptol.passages.filter((p) => p.layers.some((l) => l.key === "eng-1940")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_PTOLEMY_TETRABIBLOS).sort(), [...withText].sort());
+  assert.equal(withText.length, 61);
+  // Every paraphrase names Ptolemy as the one claiming or reporting, and says
+  // that what he claims about the stars and about people is not fact.
+  for (const [key, words] of Object.entries(PLAIN_PTOLEMY_TETRABIBLOS)) {
+    assert.match(words, /^Ptolemy/, key);
+    assert.match(words, /claim/, key);
+  }
+  assert.match(PLAIN_PTOLEMY_TETRABIBLOS["greek.ptol.1.4"], /hot, cold, moist and dry/);
 });
 
 test("Porphyry's Epistle and every chapter of the Answer in Taylor's Iamblichus have plain words, with the two voices kept apart, and only those", () => {
